@@ -7,11 +7,11 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type { SetProfilePictureRequest, SuccessResult } from '../types.js';
 
 export class ProfileResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** Set the account display name (max 25 chars). */
   setProfileName(sessionId: string, name: string): Promise<SuccessResult> {

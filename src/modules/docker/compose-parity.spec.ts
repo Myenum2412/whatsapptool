@@ -128,7 +128,7 @@ describe('DockerService managed specs ↔ docker-compose.yml parity', () => {
 
   it('the managed profiles are exactly the compose services labeled as built-in', () => {
     const builtin = Object.entries(compose.services)
-      .filter(([, svc]) => (svc.labels ?? []).includes('com.openwa.builtin=true'))
+      .filter(([, svc]) => (svc.labels ?? []).includes('com.mywhatsapp.builtin=true'))
       .map(([name]) => name)
       .sort();
     expect([...MANAGED_DOCKER_PROFILES].sort()).toEqual(builtin);
@@ -144,13 +144,13 @@ describe('DockerService managed specs ↔ docker-compose.yml parity', () => {
     expect(cfg.name).toBe(compose.services[profile].container_name);
   });
 
-  it.each(PROFILES)('%s: attaches to the fixed openwa-network like the compose service', async profile => {
+  it.each(PROFILES)('%s: attaches to the fixed mywhatsapp-network like the compose service', async profile => {
     const cfg = await capture(profile);
-    expect(cfg.HostConfig.NetworkMode).toBe('openwa-network');
-    expect(compose.networks['openwa-network'].name).toBe('openwa-network');
-    expect(compose.services[profile].networks).toContain('openwa-network');
+    expect(cfg.HostConfig.NetworkMode).toBe('mywhatsapp-network');
+    expect(compose.networks['mywhatsapp-network'].name).toBe('mywhatsapp-network');
+    expect(compose.services[profile].networks).toContain('mywhatsapp-network');
     // Compose DNS resolves peers by service name; the Docker-API path adds it as an alias.
-    expect(cfg.NetworkingConfig.EndpointsConfig['openwa-network'].Aliases).toContain(profile);
+    expect(cfg.NetworkingConfig.EndpointsConfig['mywhatsapp-network'].Aliases).toContain(profile);
   });
 
   it.each(PROFILES)('%s: uses the same restart policy as compose', async profile => {
@@ -175,8 +175,8 @@ describe('DockerService managed specs ↔ docker-compose.yml parity', () => {
     const composeVol = `${profile}-data`;
     expect(compose.services[profile].volumes).toContain(`${composeVol}:${VOLUME_PATH[profile]}`);
     // The compose volume name is pinned to the literal name the Docker-API path binds.
-    expect(compose.volumes[composeVol].name).toBe(`openwa_${composeVol}`);
-    expect(cfg.HostConfig.Binds).toEqual([`openwa_${composeVol}:${VOLUME_PATH[profile]}`]);
+    expect(compose.volumes[composeVol].name).toBe(`mywhatsapp_${composeVol}`);
+    expect(cfg.HostConfig.Binds).toEqual([`mywhatsapp_${composeVol}:${VOLUME_PATH[profile]}`]);
   });
 
   it.each(PROFILES)('%s: matches the compose healthcheck timing', async profile => {
@@ -189,36 +189,39 @@ describe('DockerService managed specs ↔ docker-compose.yml parity', () => {
     });
   });
 
-  it.each(PROFILES)('%s: sets no CPU/memory/PID limits on either path (only openwa-api is limited)', async profile => {
-    const svc = compose.services[profile];
-    expect(svc.mem_limit).toBeUndefined();
-    expect(svc.pids_limit).toBeUndefined();
-    expect(svc.deploy).toBeUndefined();
-    const cfg = await capture(profile);
-    expect(cfg.HostConfig.Memory).toBeUndefined();
-    expect(cfg.HostConfig.NanoCpus).toBeUndefined();
-    expect(cfg.HostConfig.PidsLimit).toBeUndefined();
-  });
+  it.each(PROFILES)(
+    '%s: sets no CPU/memory/PID limits on either path (only mywhatsapp-api is limited)',
+    async profile => {
+      const svc = compose.services[profile];
+      expect(svc.mem_limit).toBeUndefined();
+      expect(svc.pids_limit).toBeUndefined();
+      expect(svc.deploy).toBeUndefined();
+      const cfg = await capture(profile);
+      expect(cfg.HostConfig.Memory).toBeUndefined();
+      expect(cfg.HostConfig.NanoCpus).toBeUndefined();
+      expect(cfg.HostConfig.PidsLimit).toBeUndefined();
+    },
+  );
 
   it('postgres: provisions the fixed built-in credentials; compose defaults agree on user/db only', async () => {
     const cfg = await capture('postgres');
-    expect(cfg.Env).toEqual(['POSTGRES_USER=openwa', 'POSTGRES_PASSWORD=openwa', 'POSTGRES_DB=openwa']);
+    expect(cfg.Env).toEqual(['POSTGRES_USER=mywhatsapp', 'POSTGRES_PASSWORD=mywhatsapp', 'POSTGRES_DB=mywhatsapp']);
     const env = compose.services.postgres.environment!;
     // Compose is the manual operator path: same user/db defaults, but deliberately NO default
     // password (the image fails fast on an empty one). The orchestrated built-in path instead
     // provisions the fixed credential the production boot guard exempts for the built-in,
     // internal-host deployment (see the getContainerSpec docblock).
-    expect(env.POSTGRES_USER).toBe('${DATABASE_USERNAME:-openwa}');
-    expect(env.POSTGRES_DB).toBe('${DATABASE_NAME:-openwa}');
+    expect(env.POSTGRES_USER).toBe('${DATABASE_USERNAME:-mywhatsapp}');
+    expect(env.POSTGRES_DB).toBe('${DATABASE_NAME:-mywhatsapp}');
     expect(env.POSTGRES_PASSWORD).toBe('${DATABASE_PASSWORD:-}');
   });
 
   it('postgres: healthcheck resolves to the same pg_isready command as compose', async () => {
     const cfg = await capture('postgres');
     const composeTest = compose.services.postgres.healthcheck!.test;
-    // Compose interpolates the manual-path user default; the built-in user is always openwa.
+    // Compose interpolates the manual-path user default; the built-in user is always mywhatsapp.
     expect(cfg.Healthcheck!.Test[0]).toBe(composeTest[0]);
-    expect(cfg.Healthcheck!.Test[1]).toBe(composeTest[1].replace('${DATABASE_USERNAME:-openwa}', 'openwa'));
+    expect(cfg.Healthcheck!.Test[1]).toBe(composeTest[1].replace('${DATABASE_USERNAME:-mywhatsapp}', 'mywhatsapp'));
   });
 
   it('postgres: publishes no host ports, like compose', async () => {

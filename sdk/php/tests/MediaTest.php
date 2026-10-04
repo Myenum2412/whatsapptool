@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Tests;
+namespace MyWhatsapp\Tests;
 
 use PHPUnit\Framework\TestCase;
 

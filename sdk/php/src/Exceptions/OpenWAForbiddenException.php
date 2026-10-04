@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Exceptions;
+namespace MyWhatsapp\Exceptions;
 
 /** 403 Forbidden — the API key's role is insufficient. */
-class OpenWAForbiddenException extends OpenWAApiException
+class MyWhatsappForbiddenException extends MyWhatsappApiException
 {
 }

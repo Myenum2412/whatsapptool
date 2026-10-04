@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Tests;
+namespace MyWhatsapp\Tests;
 
-use OpenWA\Exceptions\OpenWANotFoundException;
+use MyWhatsapp\Exceptions\MyWhatsappNotFoundException;
 use PHPUnit\Framework\TestCase;
 
 class ProfileCallsTest extends TestCase
@@ -66,7 +66,7 @@ class ProfileCallsTest extends TestCase
             'message' => 'Call not found or no longer ringing',
             'error' => 'Not Found',
         ]);
-        $this->expectException(OpenWANotFoundException::class);
+        $this->expectException(MyWhatsappNotFoundException::class);
         $backend->makeClient()->calls->rejectCall('s', 'missing');
     }
 }

@@ -53,25 +53,25 @@ describe('MetricsService', () => {
       const svc = makeService('s3cret');
       const out = await svc.render();
 
-      expect(out).toContain('openwa_up 1');
-      expect(out).toContain('openwa_sessions_active 2');
-      expect(out).toContain('openwa_sessions_total 3');
-      expect(out).toContain('openwa_sessions{status="ready"} 2');
-      expect(out).toContain('openwa_sessions{status="failed"} 1');
-      expect(out).toContain('openwa_messages_total{direction="outgoing"} 100');
-      expect(out).toContain('openwa_messages_total{direction="incoming"} 50');
-      expect(out).toContain('openwa_messages_failed_total 3');
+      expect(out).toContain('mywhatsapp_up 1');
+      expect(out).toContain('mywhatsapp_sessions_active 2');
+      expect(out).toContain('mywhatsapp_sessions_total 3');
+      expect(out).toContain('mywhatsapp_sessions{status="ready"} 2');
+      expect(out).toContain('mywhatsapp_sessions{status="failed"} 1');
+      expect(out).toContain('mywhatsapp_messages_total{direction="outgoing"} 100');
+      expect(out).toContain('mywhatsapp_messages_total{direction="incoming"} 50');
+      expect(out).toContain('mywhatsapp_messages_failed_total 3');
       // Every metric must declare HELP/TYPE before its sample.
-      expect(out).toContain('# TYPE openwa_messages_total gauge');
-      expect(out).toContain('# TYPE openwa_messages_failed_total gauge');
+      expect(out).toContain('# TYPE mywhatsapp_messages_total gauge');
+      expect(out).toContain('# TYPE mywhatsapp_messages_failed_total gauge');
       // Webhook terminal-failure counter is emitted with correct counter typing + current total.
-      expect(out).toContain('# TYPE openwa_webhook_delivery_failures_total counter');
-      expect(out).toContain(`openwa_webhook_delivery_failures_total ${getWebhookDeliveryFailuresTotal()}`);
+      expect(out).toContain('# TYPE mywhatsapp_webhook_delivery_failures_total counter');
+      expect(out).toContain(`mywhatsapp_webhook_delivery_failures_total ${getWebhookDeliveryFailuresTotal()}`);
       // Reconnect observability counters are emitted with correct counter typing + current totals.
-      expect(out).toContain('# TYPE openwa_session_reconnect_attempts_total counter');
-      expect(out).toContain(`openwa_session_reconnect_attempts_total ${getSessionReconnectAttemptsTotal()}`);
-      expect(out).toContain('# TYPE openwa_session_reconnect_loop_alerts_total counter');
-      expect(out).toContain(`openwa_session_reconnect_loop_alerts_total ${getSessionReconnectLoopAlertsTotal()}`);
+      expect(out).toContain('# TYPE mywhatsapp_session_reconnect_attempts_total counter');
+      expect(out).toContain(`mywhatsapp_session_reconnect_attempts_total ${getSessionReconnectAttemptsTotal()}`);
+      expect(out).toContain('# TYPE mywhatsapp_session_reconnect_loop_alerts_total counter');
+      expect(out).toContain(`mywhatsapp_session_reconnect_loop_alerts_total ${getSessionReconnectLoopAlertsTotal()}`);
       expect(out.endsWith('\n')).toBe(true);
     });
 
@@ -81,15 +81,15 @@ describe('MetricsService', () => {
       setRestrictedSessionCount(2);
       const out = await makeService('s3cret').render();
 
-      expect(out).toContain('# TYPE openwa_sessions_restricted gauge');
-      expect(out).toContain('openwa_sessions_restricted 2');
+      expect(out).toContain('# TYPE mywhatsapp_sessions_restricted gauge');
+      expect(out).toContain('mywhatsapp_sessions_restricted 2');
     });
 
     it('reports zero restricted sessions rather than omitting the gauge', async () => {
       setRestrictedSessionCount(0);
       const out = await makeService('s3cret').render();
 
-      expect(out).toContain('openwa_sessions_restricted 0');
+      expect(out).toContain('mywhatsapp_sessions_restricted 0');
     });
 
     it('memoizes the rendered output within the TTL (one getOverview per window)', async () => {
@@ -136,20 +136,20 @@ describe('MetricsService.render survives a failing stats query', () => {
   it('still serves the series that need no database', async () => {
     const text = await failing().render();
 
-    expect(text).toContain('openwa_up 1');
-    expect(text).toContain('openwa_process_uptime_seconds');
-    expect(text).toContain('openwa_process_resident_memory_bytes');
-    expect(text).toContain('openwa_webhook_delivery_failures_total');
+    expect(text).toContain('mywhatsapp_up 1');
+    expect(text).toContain('mywhatsapp_process_uptime_seconds');
+    expect(text).toContain('mywhatsapp_process_resident_memory_bytes');
+    expect(text).toContain('mywhatsapp_webhook_delivery_failures_total');
   });
 
   it('signals that the database-derived series are missing rather than reporting them as zero', async () => {
     const text = await failing().render();
 
-    expect(text).toContain('openwa_stats_available 0');
+    expect(text).toContain('mywhatsapp_stats_available 0');
     // A stale or invented 0 would be worse than an absent series: an alert on
-    // openwa_sessions_active would fire as if every session had dropped.
-    expect(text).not.toContain('openwa_sessions_active');
-    expect(text).not.toContain('openwa_messages_total');
+    // mywhatsapp_sessions_active would fire as if every session had dropped.
+    expect(text).not.toContain('mywhatsapp_sessions_active');
+    expect(text).not.toContain('mywhatsapp_messages_total');
   });
 
   // Negative twin: a healthy scrape must still carry the database-derived series and say so.
@@ -158,7 +158,7 @@ describe('MetricsService.render survives a failing stats query', () => {
     const stats = { getOverview: jest.fn().mockResolvedValue(healthyOverview) } as unknown as StatsService;
     const text = await new MetricsService(config, stats).render();
 
-    expect(text).toContain('openwa_stats_available 1');
-    expect(text).toContain('openwa_sessions_active 2');
+    expect(text).toContain('mywhatsapp_stats_available 1');
+    expect(text).toContain('mywhatsapp_sessions_active 2');
   });
 });

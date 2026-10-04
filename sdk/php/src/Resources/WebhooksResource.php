@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Resources;
+namespace MyWhatsapp\Resources;
 
-use OpenWA\Http\HttpExecutor;
+use MyWhatsapp\Http\HttpExecutor;
 
 /**
  * Webhooks resource — configure event delivery to external HTTP endpoints.
@@ -62,7 +62,7 @@ class WebhooksResource
     }
 
     /**
-     * A `secret` in $body signs every delivery as `X-OpenWA-Signature: sha256=<hex>`. The gateway
+     * A `secret` in $body signs every delivery as `X-MyWhatsapp-Signature: sha256=<hex>`. The gateway
      * enforces a 16-character minimum on it and answers 400 below that; omit it for unsigned
      * deliveries. Neither `secret` nor `headers` is returned by a read.
      *

@@ -6,14 +6,14 @@
  * (puppeteer-core `cdp/utils.js` `createEvaluationError`). WhatsApp Web's own error classes are
  * minified to a one-letter name and keep their detail in their own properties rather than in
  * `message`, so a send the page refuses (`MediaFileTooLarge`, `InvalidMediaCheckRepairFailedType`)
- * reaches OpenWA as `t: t` with nothing but Node frames. The warning a failed send logs then names
+ * reaches MyWhatsapp as `t: t` with nothing but Node frames. The warning a failed send logs then names
  * no cause, and neither does anything the operator can send upstream (#1679).
  *
  * The patch wraps the one `window.WWebJS.sendMessage` call inside that evaluate. A plain Error is
  * rethrown untouched, for the reasons given at FIX. Any other thrown value is rethrown as a plain
  * Error whose message is PREFIX followed by a JSON summary read inside the page: the WhatsApp Web
  * build that is actually running, the constructor name, `String()`, `name`, `message`, `stack`, and
- * the value's own properties. The build is read from the page because the one OpenWA pins is not
+ * the value's own properties. The build is read from the page because the one MyWhatsapp pins is not
  * always the one that runs: a warm profile's service worker can serve a newer build under the pin.
  *
  * Diagnostic only. A send that succeeds returns exactly what it returned before, and a send that
@@ -53,7 +53,7 @@ const ANCHOR = `                const msg = await window.WWebJS.sendMessage(
 // A plain Error (`e.constructor === Error`) passes through as the SAME object. That is what the send
 // path's readable failures already are: whatsapp-web.js's own throws (`Could not get the quoted
 // message.`, `media-fault: ...`) and WhatsApp Web's bare `No LID for user`, which puppeteer rebuilds
-// readably, message and page frames included. OpenWA matches them by substring
+// readably, message and page frames included. MyWhatsapp matches them by substring
 // (isNoLidForUserError, isQuoteUnresolvedError) and the dead-page classifier reads the same text, so
 // handing them over byte-identical is what guarantees none of those decisions can change.
 // Everything else is captured: WhatsApp Web's own subclasses, which arrive as `t: t`; primitives,

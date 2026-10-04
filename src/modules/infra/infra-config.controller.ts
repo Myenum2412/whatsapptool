@@ -298,7 +298,7 @@ export class InfraConfigController {
     // Only a HOST-supplied key may win. load-env also merges .env and data/.env.generated into
     // process.env, so reading process.env alone would hand back the very file this save is
     // replacing — the guard would then bless a flip by validating the OLD config (a built-in ->
-    // external switch keeping the bundled 'openwa' password would save cleanly and crash-loop the
+    // external switch keeping the bundled 'mywhatsapp' password would save cleanly and crash-loop the
     // next production boot, the exact case this guard exists for). isOsProvidedEnv separates the
     // two using the snapshot load-env takes before either file is loaded.
     const bootValue = (key: string): string | undefined => {
@@ -335,7 +335,7 @@ export class InfraConfigController {
       .sort()
       .map(key => `${key}=${merged[key]}`);
     const contents = [
-      '# OpenWA Configuration',
+      '# MyWhatsapp Configuration',
       `# Generated at ${new Date().toISOString()}`,
       '# Managed via Dashboard > Infrastructure. Values in process env or project .env take precedence.',
       '',
@@ -406,7 +406,7 @@ export class InfraConfigController {
       // otherwise tear down the very backend the app is running on. (Known minor limitation: switching
       // away from a built-in backend and then reloading the page before restarting can leave the old
       // container running until the next explicit change.)
-      // Only ever tear down OpenWA-managed services. An arbitrary profile name (or the empty string)
+      // Only ever tear down MyWhatsapp-managed services. An arbitrary profile name (or the empty string)
       // would otherwise reach stopManagedService and, via container-name matching, could stop an unrelated
       // container — so constrain teardown to the managed allowlist and drop anything else.
       const requested = profilesToRemove.filter(p => !profiles.includes(p));
@@ -439,8 +439,8 @@ export class InfraConfigController {
       // Then, start containers for enabled services. Start shares the SAME managed allowlist as
       // teardown above: a non-managed name reaching orchestrateProfiles could, via container-name
       // matching, select an unrelated host container, so constrain start to the managed profiles too
-      // and drop anything else. (DockerService already hard-prefixes openwa-<service> and filters on
-      // the com.openwa.service label, so this is defense-in-depth, not the sole control.)
+      // and drop anything else. (DockerService already hard-prefixes mywhatsapp-<service> and filters on
+      // the com.mywhatsapp.service label, so this is defense-in-depth, not the sole control.)
       const toStart = profiles.filter(p => MANAGED_DOCKER_PROFILES.includes(p));
       const ignoredStart = profiles.filter(p => !MANAGED_DOCKER_PROFILES.includes(p));
       if (ignoredStart.length > 0) {

@@ -13,7 +13,7 @@ import { renderHttpRequestMetrics } from '../../common/metrics/request-metrics';
 import { createLogger } from '../../common/services/logger.service';
 
 /**
- * Prometheus exposition for OpenWA. Kept dependency-free (no prom-client) — the
+ * Prometheus exposition for MyWhatsapp. Kept dependency-free (no prom-client) — the
  * surface is small and the text format (v0.0.4) is trivial to emit by hand.
  *
  * Scraping is gated by METRICS_TOKEN: when it is unset the endpoint is disabled entirely
@@ -96,66 +96,70 @@ export class MetricsService {
       lines.push(`${name}${labels} ${value}`);
     };
 
-    gauge('openwa_up', 'Whether the OpenWA process is up (always 1 when scraped).', 1);
-    gauge('openwa_process_uptime_seconds', 'Process uptime in seconds.', Math.round(process.uptime()));
-    gauge('openwa_process_resident_memory_bytes', 'Resident set size in bytes.', mem.rss);
-    gauge('openwa_process_heap_used_bytes', 'V8 heap used in bytes.', mem.heapUsed);
+    gauge('mywhatsapp_up', 'Whether the MyWhatsapp process is up (always 1 when scraped).', 1);
+    gauge('mywhatsapp_process_uptime_seconds', 'Process uptime in seconds.', Math.round(process.uptime()));
+    gauge('mywhatsapp_process_resident_memory_bytes', 'Resident set size in bytes.', mem.rss);
+    gauge('mywhatsapp_process_heap_used_bytes', 'V8 heap used in bytes.', mem.heapUsed);
 
     gauge(
-      'openwa_stats_available',
+      'mywhatsapp_stats_available',
       'Whether the database-derived series below could be read on this scrape (1) or not (0).',
       overview ? 1 : 0,
     );
 
     if (overview) {
-      gauge('openwa_sessions_total', 'Total number of configured sessions.', overview.sessions.total);
-      gauge('openwa_sessions_active', 'Number of READY (active) sessions.', overview.sessions.active);
+      gauge('mywhatsapp_sessions_total', 'Total number of configured sessions.', overview.sessions.total);
+      gauge('mywhatsapp_sessions_active', 'Number of READY (active) sessions.', overview.sessions.active);
 
       // Per-status session counts share one metric name with a `status` label.
-      lines.push('# HELP openwa_sessions Number of sessions by status.');
-      lines.push('# TYPE openwa_sessions gauge');
+      lines.push('# HELP mywhatsapp_sessions Number of sessions by status.');
+      lines.push('# TYPE mywhatsapp_sessions gauge');
       for (const [status, count] of Object.entries(overview.sessions.byStatus)) {
-        lines.push(`openwa_sessions{status="${this.escapeLabel(status)}"} ${count}`);
+        lines.push(`mywhatsapp_sessions{status="${this.escapeLabel(status)}"} ${count}`);
       }
 
-      lines.push('# HELP openwa_messages_total Current stored messages by direction.');
-      lines.push('# TYPE openwa_messages_total gauge');
-      lines.push(`openwa_messages_total{direction="outgoing"} ${overview.messages.sent}`);
-      lines.push(`openwa_messages_total{direction="incoming"} ${overview.messages.received}`);
+      lines.push('# HELP mywhatsapp_messages_total Current stored messages by direction.');
+      lines.push('# TYPE mywhatsapp_messages_total gauge');
+      lines.push(`mywhatsapp_messages_total{direction="outgoing"} ${overview.messages.sent}`);
+      lines.push(`mywhatsapp_messages_total{direction="incoming"} ${overview.messages.received}`);
 
-      lines.push('# HELP openwa_messages_failed_total Current stored messages in FAILED state.');
-      lines.push('# TYPE openwa_messages_failed_total gauge');
-      lines.push(`openwa_messages_failed_total ${overview.messages.failed}`);
+      lines.push('# HELP mywhatsapp_messages_failed_total Current stored messages in FAILED state.');
+      lines.push('# TYPE mywhatsapp_messages_failed_total gauge');
+      lines.push(`mywhatsapp_messages_failed_total ${overview.messages.failed}`);
     }
 
     lines.push(
-      '# HELP openwa_webhook_delivery_failures_total Webhook deliveries that terminally failed (all retries exhausted) since process start.',
+      '# HELP mywhatsapp_webhook_delivery_failures_total Webhook deliveries that terminally failed (all retries exhausted) since process start.',
     );
-    lines.push('# TYPE openwa_webhook_delivery_failures_total counter');
-    lines.push(`openwa_webhook_delivery_failures_total ${getWebhookDeliveryFailuresTotal()}`);
+    lines.push('# TYPE mywhatsapp_webhook_delivery_failures_total counter');
+    lines.push(`mywhatsapp_webhook_delivery_failures_total ${getWebhookDeliveryFailuresTotal()}`);
 
     lines.push(
-      '# HELP openwa_session_reconnect_attempts_total Reconnect attempts scheduled across all sessions since process start.',
+      '# HELP mywhatsapp_session_reconnect_attempts_total Reconnect attempts scheduled across all sessions since process start.',
     );
-    lines.push('# TYPE openwa_session_reconnect_attempts_total counter');
-    lines.push(`openwa_session_reconnect_attempts_total ${getSessionReconnectAttemptsTotal()}`);
+    lines.push('# TYPE mywhatsapp_session_reconnect_attempts_total counter');
+    lines.push(`mywhatsapp_session_reconnect_attempts_total ${getSessionReconnectAttemptsTotal()}`);
 
-    lines.push('# HELP openwa_session_reconnect_loop_alerts_total Reconnect-loop alerts emitted since process start.');
-    lines.push('# TYPE openwa_session_reconnect_loop_alerts_total counter');
-    lines.push(`openwa_session_reconnect_loop_alerts_total ${getSessionReconnectLoopAlertsTotal()}`);
+    lines.push(
+      '# HELP mywhatsapp_session_reconnect_loop_alerts_total Reconnect-loop alerts emitted since process start.',
+    );
+    lines.push('# TYPE mywhatsapp_session_reconnect_loop_alerts_total counter');
+    lines.push(`mywhatsapp_session_reconnect_loop_alerts_total ${getSessionReconnectLoopAlertsTotal()}`);
 
-    lines.push('# HELP openwa_sessions_restricted Sessions whose account WhatsApp is currently restricting.');
-    lines.push('# TYPE openwa_sessions_restricted gauge');
-    lines.push(`openwa_sessions_restricted ${getRestrictedSessionCount()}`);
+    lines.push('# HELP mywhatsapp_sessions_restricted Sessions whose account WhatsApp is currently restricting.');
+    lines.push('# TYPE mywhatsapp_sessions_restricted gauge');
+    lines.push(`mywhatsapp_sessions_restricted ${getRestrictedSessionCount()}`);
 
     // Emitted only once a refusal has actually happened, like the HTTP series: a family that appears
     // at its first occurrence is easier to alert on than one pinned at zero for every reason.
     const refusals = getSendPacingRefusals();
     if (refusals.size > 0) {
-      lines.push('# HELP openwa_send_pacing_refusals_total Sends refused by the pacing governor since process start.');
-      lines.push('# TYPE openwa_send_pacing_refusals_total counter');
+      lines.push(
+        '# HELP mywhatsapp_send_pacing_refusals_total Sends refused by the pacing governor since process start.',
+      );
+      lines.push('# TYPE mywhatsapp_send_pacing_refusals_total counter');
       for (const [reason, count] of refusals) {
-        lines.push(`openwa_send_pacing_refusals_total{reason="${this.escapeLabel(reason)}"} ${count}`);
+        lines.push(`mywhatsapp_send_pacing_refusals_total{reason="${this.escapeLabel(reason)}"} ${count}`);
       }
     }
 

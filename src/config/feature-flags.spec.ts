@@ -99,8 +99,8 @@ describe('feature-flags', () => {
     }
 
     it.each([
-      ['docker-compose.yml', 'openwa-api'],
-      ['docker-compose.dev.yml', 'openwa'],
+      ['docker-compose.yml', 'mywhatsapp-api'],
+      ['docker-compose.dev.yml', 'mywhatsapp'],
     ])('%s forwards the redirect flag on service %s', (file, serviceName) => {
       const compose = fs.readFileSync(path.join(__dirname, '../../', file), 'utf8');
       const service = extractTopLevelService(compose, serviceName);

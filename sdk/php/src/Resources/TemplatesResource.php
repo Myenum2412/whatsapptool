@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Resources;
+namespace MyWhatsapp\Resources;
 
-use OpenWA\Http\HttpExecutor;
+use MyWhatsapp\Http\HttpExecutor;
 
 /**
  * Templates resource — stored message templates with {{variable}} placeholders.

@@ -1,18 +1,18 @@
 {
-    "name": "rmyndharis/openwa",
-    "description": "Official PHP SDK for OpenWA WhatsApp API Gateway",
+    "name": "mywhatsapp/sdk",
+    "description": "Official PHP SDK for MyWhatsapp WhatsApp API Gateway",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "whatsapp",
         "api",
         "sdk",
-        "openwa",
+        "mywhatsapp",
         "gateway"
     ],
     "authors": [
         {
-            "name": "OpenWA Contributors"
+            "name": "Yudhi Armyndharis & MyWhatsapp Contributors"
         }
     ],
     "require": {
@@ -24,12 +24,12 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenWA\\": "src/"
+            "MyWhatsapp\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenWA\\Tests\\": "tests/"
+            "MyWhatsapp\\Tests\\": "tests/"
         }
     },
     "config": {

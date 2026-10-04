@@ -4,7 +4,7 @@
 
 ### Our Pledge
 
-OpenWA is committed to providing a welcoming and inclusive environment for everyone. We pledge to make participation in our project and community a harassment-free experience for all, regardless of:
+MyWhatsapp is committed to providing a welcoming and inclusive environment for everyone. We pledge to make participation in our project and community a harassment-free experience for all, regardless of:
 
 - Age, body size, disability, ethnicity, sex characteristics
 - Gender identity and expression
@@ -57,8 +57,8 @@ flowchart LR
 # 1. Fork the repository on GitHub
 
 # 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/openwa.git
-cd openwa
+git clone https://github.com/YOUR_USERNAME/mywhatsapp.git
+cd mywhatsapp
 
 # 3. Add upstream remote
 git remote add upstream https://github.com/rmyndharis/OpenWA.git
@@ -215,21 +215,21 @@ async function sendTextMessage(sessionId: string, phone: string, text: string): 
 
 Before opening an Issue, decide whether it belongs here or in **GitHub Discussions**.
 Most misrouted reports are configuration, provider, or environment questions rather than
-defects in OpenWA — routing them correctly upfront saves time for everyone (faster answers
+defects in MyWhatsapp — routing them correctly upfront saves time for everyone (faster answers
 for you, cleaner triage for maintainers). When in doubt, open a Discussion first; it can
 always be promoted to an Issue once a real defect is confirmed.
 
-| Open an **Issue**                                                        | Open a **Discussion**                                                       |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Reproducible defect in OpenWA code with clear steps, expected vs. actual | Setup / configuration help ("my proxy doesn't work, how do I configure X?") |
-| Crash, panic, wrong API response, regression after upgrade               | Provider-specific quirks (webshare, IPRoyal, brightdata, Twilio, etc.)      |
-| Documented behavior contradicted by actual behavior                      | "Is X possible?" / "What's the best way to Y?"                              |
-| Security issue (use `SECURITY.md`, not a public issue)                   | Hosting-platform / network / firewall questions                             |
+| Open an **Issue**                                                            | Open a **Discussion**                                                       |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Reproducible defect in MyWhatsapp code with clear steps, expected vs. actual | Setup / configuration help ("my proxy doesn't work, how do I configure X?") |
+| Crash, panic, wrong API response, regression after upgrade                   | Provider-specific quirks (webshare, IPRoyal, brightdata, Twilio, etc.)      |
+| Documented behavior contradicted by actual behavior                          | "Is X possible?" / "What's the best way to Y?"                              |
+| Security issue (use `SECURITY.md`, not a public issue)                       | Hosting-platform / network / firewall questions                             |
 
 **Common gray-zone examples (these go to Discussions, not Issues):**
 
 - "My proxy works on first start but fails after pod restart" → almost always a
-  provider-side IP allowlist, not an OpenWA bug. See `docs/12-troubleshooting-faq.md`.
+  provider-side IP allowlist, not an MyWhatsapp bug. See `docs/12-troubleshooting-faq.md`.
 - "WhatsApp blocked my number" → provider/WhatsApp policy, not a code defect.
 - "How do I deploy behind nginx/Traefik?" → configuration, use Discussions.
 - "Why is my QR not showing?" → start with the troubleshooting FAQ; open an Issue only
@@ -247,7 +247,7 @@ Blank issues are disabled — GitHub presents the **Bug report** form
 | Field              | Notes                                                                        |
 | ------------------ | ---------------------------------------------------------------------------- |
 | Pre-flight         | Both checkboxes: searched for duplicates, and on the latest released version |
-| OpenWA version     | e.g. `0.2.1` (shown on the dashboard Login screen) or a commit SHA           |
+| MyWhatsapp version | e.g. `0.2.1` (shown on the dashboard Login screen) or a commit SHA           |
 | Deployment         | Docker Compose / Docker (manual run) / Bare metal (npm) / Other              |
 | Database           | SQLite (default) / PostgreSQL                                                |
 | What happened?     | The bug and its impact                                                       |
@@ -276,24 +276,24 @@ not supported on whatsapp-web.js, the default engine.
 
 ### Issue Labels
 
-| Label                 | Description                                                                     |
-| --------------------- | ------------------------------------------------------------------------------- |
-| `bug`                 | Something isn't working                                                         |
-| `enhancement`         | New feature or request                                                          |
-| `documentation`       | Improvements to docs                                                            |
-| `good first issue`    | Good for newcomers                                                              |
-| `help wanted`         | Extra attention needed                                                          |
-| `question`            | Further information requested                                                   |
-| `needs-info`          | Awaiting reporter input to proceed                                              |
-| `not-a-bug`           | External/environmental cause (provider, network, hosting); not an OpenWA defect |
-| `move-to-discussions` | Belongs in GitHub Discussions, not Issues — see §20.3 Issue vs. Discussions     |
-| `invalid`             | This doesn't seem right                                                         |
-| `wontfix`             | This will not be worked on                                                      |
-| `duplicate`           | This issue already exists                                                       |
-| `security`            | Security-related                                                                |
-| `design`              | Architecture / design discussion                                                |
-| `engine:baileys`      | Baileys engine specific                                                         |
-| `upstream-blocked`    | Blocked on upstream library/WhatsApp behavior; no OpenWA-side fix               |
+| Label                 | Description                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `bug`                 | Something isn't working                                                             |
+| `enhancement`         | New feature or request                                                              |
+| `documentation`       | Improvements to docs                                                                |
+| `good first issue`    | Good for newcomers                                                                  |
+| `help wanted`         | Extra attention needed                                                              |
+| `question`            | Further information requested                                                       |
+| `needs-info`          | Awaiting reporter input to proceed                                                  |
+| `not-a-bug`           | External/environmental cause (provider, network, hosting); not an MyWhatsapp defect |
+| `move-to-discussions` | Belongs in GitHub Discussions, not Issues — see §20.3 Issue vs. Discussions         |
+| `invalid`             | This doesn't seem right                                                             |
+| `wontfix`             | This will not be worked on                                                          |
+| `duplicate`           | This issue already exists                                                           |
+| `security`            | Security-related                                                                    |
+| `design`              | Architecture / design discussion                                                    |
+| `engine:baileys`      | Baileys engine specific                                                             |
+| `upstream-blocked`    | Blocked on upstream library/WhatsApp behavior; no MyWhatsapp-side fix               |
 
 ## 20.4 Community Channels
 
@@ -309,9 +309,9 @@ Primary community forum for:
 Categories:
 
 - **Announcements**: Official announcements from maintainers
-- **Q&A**: Questions about using OpenWA
+- **Q&A**: Questions about using MyWhatsapp
 - **Ideas**: Feature suggestions and brainstorming
-- **Show and Tell**: Share your projects using OpenWA
+- **Show and Tell**: Share your projects using MyWhatsapp
 - **General**: General discussion
 
 ### Support Priority

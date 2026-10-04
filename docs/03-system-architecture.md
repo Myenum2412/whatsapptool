@@ -12,7 +12,7 @@ flowchart TB
         C3[n8n/Automation]
     end
 
-    subgraph OpenWA["OpenWA Platform"]
+    subgraph MyWhatsapp["MyWhatsapp Platform"]
         subgraph API["API Layer"]
             REST[REST API<br/>NestJS]
             WS[WebSocket<br/>Real-time]
@@ -75,10 +75,10 @@ sequenceDiagram
 
 ## 3.2 Pluggable Architecture Philosophy
 
-OpenWA is designed with a **Pluggable Architecture** that allows infrastructure components to be swapped without changing application code. This enables flexible deployments ranging from minimal single-session bots to larger single-node, multi-session installs.
+MyWhatsapp is designed with a **Pluggable Architecture** that allows infrastructure components to be swapped without changing application code. This enables flexible deployments ranging from minimal single-session bots to larger single-node, multi-session installs.
 
 > **Note — single-instance:** the live WhatsApp engine layer is stateful and held in-process
-> (an in-memory `Map` in `EngineRegistry`). OpenWA currently runs as **one API instance per
+> (an in-memory `Map` in `EngineRegistry`). MyWhatsapp currently runs as **one API instance per
 > session-data volume**; horizontal scaling across multiple API replicas is a future design
 > (not implemented). See [13 - Horizontal Scaling](13-horizontal-scaling.md).
 
@@ -232,7 +232,7 @@ they follow the standard NestJS provider lifecycle (`OnModuleInit` / `OnModuleDe
 
 ### Dependency Injection & Module Wiring
 
-OpenWA does **not** use a dynamic `AdaptersModule` or string DI tokens. `AppModule`
+MyWhatsapp does **not** use a dynamic `AdaptersModule` or string DI tokens. `AppModule`
 (`src/app.module.ts`) imports concrete feature modules directly and configures two **named TypeORM
 connections**:
 
@@ -650,7 +650,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph Production["Production Environment"]
-        API[OpenWA API<br/>single instance]
+        API[MyWhatsapp API<br/>single instance]
         VOL[(Session-data volume<br/>auth dirs)]
 
         API --- VOL
@@ -787,7 +787,7 @@ flowchart TB
 
 > **Future design, not the shipped topology.** Live engines are held in an in-process `Map` in
 > `SessionService`, so a session can only be driven by the instance that started it — there is no
-> session registry, node claim, or affinity router in the codebase. OpenWA runs as one API instance
+> session registry, node claim, or affinity router in the codebase. MyWhatsapp runs as one API instance
 > per session-data volume; the two sketches below are retained for planning. See the single-instance
 > note in §3.2 and [13 - Horizontal Scaling](13-horizontal-scaling.md).
 
@@ -839,7 +839,7 @@ flowchart LR
 ## 3.12 Engine Abstraction Layer
 
 > [!IMPORTANT]
-> Engine abstraction is critical to mitigate **R001: WhatsApp Protocol Changes** in Risk Management. OpenWA ships two production-ready engines selectable via `ENGINE_TYPE`: `whatsapp-web.js` (default, Chromium/Puppeteer-based) and `baileys` (browser-free, WebSocket/Noise protocol). With the abstraction layer, adding further engines requires no changes to application code.
+> Engine abstraction is critical to mitigate **R001: WhatsApp Protocol Changes** in Risk Management. MyWhatsapp ships two production-ready engines selectable via `ENGINE_TYPE`: `whatsapp-web.js` (default, Chromium/Puppeteer-based) and `baileys` (browser-free, WebSocket/Noise protocol). With the abstraction layer, adding further engines requires no changes to application code.
 
 ### Strategy Pattern for Engine
 
@@ -1234,13 +1234,13 @@ flowchart TB
 
 ## 3.13 Pluggable Adapters
 
-OpenWA uses the adapter pattern for infrastructure components that can be swapped per deployment needs. This allows users with limited resources to run OpenWA without heavyweight external dependencies.
+MyWhatsapp uses the adapter pattern for infrastructure components that can be swapped per deployment needs. This allows users with limited resources to run MyWhatsapp without heavyweight external dependencies.
 
 ### Adapter Overview
 
 ```mermaid
 flowchart TB
-    subgraph Core["OpenWA Core"]
+    subgraph Core["MyWhatsapp Core"]
         APP[Application Logic]
     end
 
@@ -1351,7 +1351,7 @@ export class StorageService {
 
 ### 3.13.2 Database Adapter
 
-OpenWA supports SQLite for lightweight deployments and PostgreSQL for high-volume production.
+MyWhatsapp supports SQLite for lightweight deployments and PostgreSQL for high-volume production.
 
 #### Database Comparison
 
@@ -1390,7 +1390,7 @@ if (dbType === 'postgres') {
     port: configService.get('dataDatabase.port'),
     username: configService.get('dataDatabase.username'),
     password: configService.get('dataDatabase.password'),
-    database: configService.get('dataDatabase.name', 'openwa'),
+    database: configService.get('dataDatabase.name', 'mywhatsapp'),
     synchronize: configService.get('dataDatabase.synchronize', false), // migrations in prod
     migrationsRun: true,
     extra: { max: configService.get('dataDatabase.poolSize', 10) },
@@ -1403,7 +1403,7 @@ return {
   ...baseConfig,
   name: 'data',
   type: 'better-sqlite3' as const, // DATABASE_TYPE=sqlite -> this driver
-  database: configService.get('dataDatabase.database', './data/openwa.sqlite'),
+  database: configService.get('dataDatabase.database', './data/mywhatsapp.sqlite'),
   synchronize,
   migrationsRun: !synchronize,
 };
@@ -1411,7 +1411,7 @@ return {
 
 #### SQLite Considerations
 
-> **Note:** OpenWA does not currently apply SQLite-specific concurrency hardening. There is **no**
+> **Note:** MyWhatsapp does not currently apply SQLite-specific concurrency hardening. There is **no**
 > `journal_mode = WAL` PRAGMA, no `SqliteWriteQueueService`, and no application-level write
 > serialization or session cap in the source. SQLite is used with TypeORM's defaults, so its standard
 > single-writer behavior applies. For high write-concurrency or multi-session deployments, use
@@ -1495,7 +1495,7 @@ export class CacheService implements OnModuleDestroy {
 
 ### 3.13.4 Deployment Profiles
 
-OpenWA provides several deployment profiles for different needs:
+MyWhatsapp provides several deployment profiles for different needs:
 
 ```mermaid
 flowchart LR
@@ -1538,7 +1538,7 @@ flowchart LR
 ```bash
 # Database
 DATABASE_TYPE=sqlite
-DATABASE_NAME=./data/openwa.sqlite
+DATABASE_NAME=./data/mywhatsapp.sqlite
 
 # Storage
 STORAGE_TYPE=local
@@ -1555,8 +1555,8 @@ REDIS_ENABLED=false
 DATABASE_TYPE=postgres
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-DATABASE_NAME=openwa
-DATABASE_USERNAME=openwa
+DATABASE_NAME=mywhatsapp
+DATABASE_USERNAME=mywhatsapp
 DATABASE_PASSWORD=password
 
 # Storage
@@ -1576,14 +1576,14 @@ REDIS_PORT=6379
 DATABASE_TYPE=postgres
 DATABASE_HOST=db-cluster
 DATABASE_PORT=5432
-DATABASE_NAME=openwa
-DATABASE_USERNAME=openwa
+DATABASE_NAME=mywhatsapp
+DATABASE_USERNAME=mywhatsapp
 DATABASE_PASSWORD=password
 DATABASE_POOL_SIZE=50
 
 # Storage (S3 or any S3-compatible endpoint; MinIO uses the same vars)
 STORAGE_TYPE=s3
-S3_BUCKET=openwa-media
+S3_BUCKET=mywhatsapp-media
 S3_REGION=ap-southeast-1
 S3_ACCESS_KEY_ID=xxx
 S3_SECRET_ACCESS_KEY=xxx
@@ -1597,13 +1597,13 @@ REDIS_HOST=redis-cluster
 REDIS_PORT=6379
 ```
 
-> OpenWA runs as a single API instance per session-data volume; there is no cluster-mode flag.
+> MyWhatsapp runs as a single API instance per session-data volume; there is no cluster-mode flag.
 > "Enterprise" here describes vertical headroom (RAM, Postgres, S3, Redis), not multi-replica
 > horizontal scaling — see the single-instance note in §3.2.
 
 ### Choosing a Profile
 
-OpenWA does not auto-detect a profile at runtime; pick one by available resources and expected load:
+MyWhatsapp does not auto-detect a profile at runtime; pick one by available resources and expected load:
 
 | Available RAM | Suggested profile | Backends                                          |
 | ------------- | ----------------- | ------------------------------------------------- |

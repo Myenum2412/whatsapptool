@@ -13,7 +13,7 @@ const SKIPPED_PREFIXES = ['/api/health', '/api/metrics'];
  * claims the requests it observes; at response time this middleware records only requests
  * left unclaimed, so every response is counted exactly once.
  */
-export const HTTP_REQUEST_METRICS_CLAIMED = Symbol('openwa.httpRequestMetricsClaimed');
+export const HTTP_REQUEST_METRICS_CLAIMED = Symbol('mywhatsapp.httpRequestMetricsClaimed');
 
 type MetricsRequest = Request & { [HTTP_REQUEST_METRICS_CLAIMED]?: boolean };
 

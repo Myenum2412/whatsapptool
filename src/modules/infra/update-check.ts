@@ -10,7 +10,7 @@ const logger = createLogger('UpdateCheck');
 const { version: APP_VERSION } = require('../../../package.json') as { version: string };
 
 /**
- * Whether a newer OpenWA release than the running one exists, for the dashboard's update notice.
+ * Whether a newer MyWhatsapp release than the running one exists, for the dashboard's update notice.
  *
  * Read-only by design: it names a release and links its notes, and upgrading stays the documented
  * procedure. It runs on the server because the dashboard's CSP only allows its own origin. The request
@@ -26,7 +26,7 @@ export interface UpdateCheck {
 }
 
 // GitHub's `/releases/latest` skips drafts and prereleases, so only a published release is offered.
-const LATEST_RELEASE_URL = 'https://api.github.com/repos/rmyndharis/OpenWA/releases/latest';
+const LATEST_RELEASE_URL = 'https://api.github.com/repos//releases/latest';
 const RELEASE_PAGE_URL = 'https://github.com/rmyndharis/OpenWA/releases/tag/';
 // One unauthenticated request per process per window stays far inside GitHub's 60 per hour per IP,
 // while a long-running instance still notices a new release the same day.

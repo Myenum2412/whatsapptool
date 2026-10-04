@@ -13,7 +13,7 @@ const BEFORE = `            ...extraOptions,\n        };\n\n${ANCHOR}        if 
 const AFTER = `            ...extraOptions,\n        };\n\n${FIX}${ANCHOR}        if (botOptions) {\n`;
 
 function makeDependency(source) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-media-id-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-media-id-'));
   const utils = path.join(root, 'src', 'util', 'Injected', 'Utils.js');
   fs.mkdirSync(path.dirname(utils), { recursive: true });
   fs.writeFileSync(utils, source);

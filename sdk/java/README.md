@@ -1,6 +1,6 @@
-# OpenWA Java SDK
+# MyWhatsapp Java SDK
 
-Official Java client for the [OpenWA](https://github.com/rmyndharis/OpenWA)
+Official Java client for the [MyWhatsapp](https://github.com/rmyndharis/OpenWA)
 WhatsApp API Gateway.
 
 Hand-written against the exact API surface (paths, DTOs, response shapes) and
@@ -14,8 +14,8 @@ Java 17+, one runtime dependency ([Gson](https://github.com/google/gson)).
 
 ```xml
 <dependency>
-  <groupId>com.rmyndharis</groupId>
-  <artifactId>openwa</artifactId>
+  <groupId>com.mywhatsapp</groupId>
+  <artifactId>mywhatsapp</artifactId>
   <version>0.5.0</version>
 </dependency>
 ```
@@ -23,24 +23,24 @@ Java 17+, one runtime dependency ([Gson](https://github.com/google/gson)).
 **Gradle**
 
 ```groovy
-implementation 'com.rmyndharis:openwa:0.5.0'
+implementation 'com.mywhatsapp:mywhatsapp:0.5.0'
 ```
 
 ## Quickstart
 
 ```java
-import com.rmyndharis.openwa.OpenWAClient;
-import com.rmyndharis.openwa.model.MessageResponse;
-import com.rmyndharis.openwa.model.SendTextRequest;
+import com.mywhatsapp.MyWhatsappClient;
+import com.mywhatsapp.model.MessageResponse;
+import com.mywhatsapp.model.SendTextRequest;
 
-OpenWAClient client = new OpenWAClient("http://localhost:2785", "owa_k1_…");
+MyWhatsappClient client = new MyWhatsappClient("http://localhost:2785", "owa_k1_…");
 
 client.sessions.start("my-session");
 
 MessageResponse result = client.messages.sendText("my-session",
     SendTextRequest.builder()
         .chatId("628123456789@c.us")
-        .text("Hello from the OpenWA Java SDK!")
+        .text("Hello from the MyWhatsapp Java SDK!")
         .build());
 
 System.out.println(result.messageId());
@@ -50,10 +50,10 @@ For full control over configuration (timeout, default headers, a custom
 transport), build a `ClientConfig`:
 
 ```java
-import com.rmyndharis.openwa.ClientConfig;
+import com.mywhatsapp.ClientConfig;
 import java.time.Duration;
 
-OpenWAClient client = new OpenWAClient(ClientConfig.builder()
+MyWhatsappClient client = new MyWhatsappClient(ClientConfig.builder()
     .baseUrl("https://wa.example.com")
     .apiKey("owa_k1_…")
     .timeout(Duration.ofSeconds(15))
@@ -79,31 +79,31 @@ Errors are a typed, unchecked hierarchy — branch with `instanceof` or on
 `.status()`:
 
 ```java
-import com.rmyndharis.openwa.errors.OpenWAConflictError;
-import com.rmyndharis.openwa.errors.OpenWANotFoundError;
+import com.mywhatsapp.errors.MyWhatsappConflictError;
+import com.mywhatsapp.errors.MyWhatsappNotFoundError;
 
 try {
     client.messages.sendText("my-session", body);
-} catch (OpenWAConflictError e) {
+} catch (MyWhatsappConflictError e) {
     // 409 — engine not ready
-} catch (OpenWANotFoundError e) {
+} catch (MyWhatsappNotFoundError e) {
     // 404 — session or chat not found
 }
 ```
 
-| Class                           | HTTP | Meaning                                                 |
-| ------------------------------- | ---- | ------------------------------------------------------- |
-| `OpenWAAuthError`               | 401  | Missing or invalid API key                              |
-| `OpenWAForbiddenError`          | 403  | API key role insufficient                               |
-| `OpenWANotFoundError`           | 404  | Resource not found                                      |
-| `OpenWAConflictError`           | 409  | Engine not ready                                        |
-| `OpenWARateLimitError`          | 429  | Rate limited                                            |
-| `OpenWANotImplementedError`     | 501  | Active engine does not support the call                 |
-| `OpenWAServiceUnavailableError` | 503  | Engine did not confirm in time — the only retryable one |
-| `OpenWAApiError`                | —    | Any other non-2xx (carries `.status()`)                 |
-| `OpenWATimeoutError`            | —    | Request exceeded the configured timeout                 |
+| Class                               | HTTP | Meaning                                                 |
+| ----------------------------------- | ---- | ------------------------------------------------------- |
+| `MyWhatsappAuthError`               | 401  | Missing or invalid API key                              |
+| `MyWhatsappForbiddenError`          | 403  | API key role insufficient                               |
+| `MyWhatsappNotFoundError`           | 404  | Resource not found                                      |
+| `MyWhatsappConflictError`           | 409  | Engine not ready                                        |
+| `MyWhatsappRateLimitError`          | 429  | Rate limited                                            |
+| `MyWhatsappNotImplementedError`     | 501  | Active engine does not support the call                 |
+| `MyWhatsappServiceUnavailableError` | 503  | Engine did not confirm in time — the only retryable one |
+| `MyWhatsappApiError`                | —    | Any other non-2xx (carries `.status()`)                 |
+| `MyWhatsappTimeoutError`            | —    | Request exceeded the configured timeout                 |
 
-All extend `OpenWAError` (a `RuntimeException`). In a routed deployment only 503 proves the request was never carried out: a forward that fails after the request reached the owner node answers 502 or 504.
+All extend `MyWhatsappError` (a `RuntimeException`). In a routed deployment only 503 proves the request was never carried out: a forward that fails after the request reached the owner node answers 502 or 504.
 
 ## Reliability & security
 
@@ -113,7 +113,7 @@ All extend `OpenWAError` (a `RuntimeException`). In a routed deployment only 503
 - **No automatic retries.** A failed request throws immediately; wrap calls in
   your own backoff if you need retries (especially for `429`). Inject a custom
   `HttpTransport` for retry or observability middleware.
-- **Redirects are never followed.** A `3xx` surfaces as an `OpenWAApiError`
+- **Redirects are never followed.** A `3xx` surfaces as an `MyWhatsappApiError`
   rather than being followed, so the API key is never re-sent to a redirect
   target.
 - **Default per-request timeout** is 30 s (configurable). Path segments (chat /

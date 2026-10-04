@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { OpenWAClient } from '../src';
+import { MyWhatsappClient } from '../src';
 import { MockTransport } from './helpers';
 
-function client(t: MockTransport): OpenWAClient {
-  return new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: t.asFetch() });
+function client(t: MockTransport): MyWhatsappClient {
+  return new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: t.asFetch() });
 }
 
 describe('MessagesResource — exact paths', () => {
@@ -45,7 +45,7 @@ describe('MessagesResource — exact paths', () => {
   });
 
   it('sendVideo / sendAudio / sendDocument / sendSticker use correct segments', async () => {
-    const cases: Array<[string, (c: OpenWAClient) => Promise<unknown>]> = [
+    const cases: Array<[string, (c: MyWhatsappClient) => Promise<unknown>]> = [
       ['send-video', c => c.messages.sendVideo('s', { chatId: 'a@c.us', url: 'u' })],
       ['send-audio', c => c.messages.sendAudio('s', { chatId: 'a@c.us', url: 'u' })],
       ['send-document', c => c.messages.sendDocument('s', { chatId: 'a@c.us', filename: 'f.pdf' })],
@@ -110,20 +110,20 @@ describe('MessagesResource — exact paths', () => {
   it.each([
     [
       'send-text',
-      (c: OpenWAClient) => c.messages.sendText('s1', { chatId: 'a@c.us', text: 'hi', quotedMessageId: 'q1' }),
+      (c: MyWhatsappClient) => c.messages.sendText('s1', { chatId: 'a@c.us', text: 'hi', quotedMessageId: 'q1' }),
     ],
     [
       'send-image',
-      (c: OpenWAClient) => c.messages.sendImage('s1', { chatId: 'a@c.us', url: 'http://u', quotedMessageId: 'q1' }),
+      (c: MyWhatsappClient) => c.messages.sendImage('s1', { chatId: 'a@c.us', url: 'http://u', quotedMessageId: 'q1' }),
     ],
     [
       'send-location',
-      (c: OpenWAClient) =>
+      (c: MyWhatsappClient) =>
         c.messages.sendLocation('s1', { chatId: 'a@c.us', latitude: 1, longitude: 2, quotedMessageId: 'q1' }),
     ],
     [
       'send-contact',
-      (c: OpenWAClient) =>
+      (c: MyWhatsappClient) =>
         c.messages.sendContact('s1', {
           chatId: 'a@c.us',
           contactName: 'A',
@@ -133,7 +133,7 @@ describe('MessagesResource — exact paths', () => {
     ],
     [
       'send-poll',
-      (c: OpenWAClient) =>
+      (c: MyWhatsappClient) =>
         c.messages.sendPoll('s1', { chatId: 'a@c.us', name: 'Q', options: ['a', 'b'], quotedMessageId: 'q1' }),
     ],
   ])('%s forwards quotedMessageId in the body', async (route, call) => {

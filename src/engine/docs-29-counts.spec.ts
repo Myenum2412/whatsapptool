@@ -155,7 +155,7 @@ describe('docs/29 counts match the capability matrix', () => {
       ten: 10,
       eleven: 11,
     };
-    const spelled = doc.match(/OpenWA ships (\w+) exact, self-disabling source transforms/);
+    const spelled = doc.match(/MyWhatsapp ships (\w+) exact, self-disabling source transforms/);
     const wrongProse: string[] = [];
     if (!spelled) wrongProse.push('29.3 opening: phrasing no longer found in the document');
     else if (WORDS[spelled[1]] !== expected.total) {
@@ -170,8 +170,8 @@ describe('docs/29 counts match the capability matrix', () => {
         re: /engine-specific \(\d+ on wwjs,\s*(\d+) on Baileys\)/,
         want: expected.baileys,
       },
-      { label: 'mermaid wwjs node', re: /whatsapp-web\.js [\d.]+<br\/>\+ (\d+) OpenWA patch/, want: expected.wwjs },
-      { label: 'mermaid baileys node', re: /baileys [\w.-]+<br\/>\+ (\d+) OpenWA patch/, want: expected.baileys },
+      { label: 'mermaid wwjs node', re: /whatsapp-web\.js [\d.]+<br\/>\+ (\d+) MyWhatsapp patch/, want: expected.wwjs },
+      { label: 'mermaid baileys node', re: /baileys [\w.-]+<br\/>\+ (\d+) MyWhatsapp patch/, want: expected.baileys },
       { label: '29.8 total', re: /- \*\*(\d+)\*\* install-time patches/, want: expected.total },
       { label: '29.8 split', re: /install-time patches \((\d+) whatsapp-web\.js/, want: expected.wwjs },
       {

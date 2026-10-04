@@ -19,7 +19,7 @@
  *      current-support prose ("currently X.Y.x") and the supported-versions table row
  *      ("| X.Y.x | :white_check_mark: |"), plus the lower-bound row ("< X.Y"). Derived from
  *      package.json so a release cannot ship with a stale supported-version.
- *   6. charts/openwa/Chart.yaml `appVersion` must equal package.json — the chart defaults its image
+ *   6. charts/mywhatsapp/Chart.yaml `appVersion` must equal package.json — the chart defaults its image
  *      tag to appVersion, so a stale one deploys a tag that does not exist yet. The chart's own
  *      `version:` is intentionally left alone: it tracks packaging changes on its own cadence.
  *
@@ -124,13 +124,13 @@ if (minorMatch) {
 //    `version:` is deliberately NOT checked — it tracks packaging changes and bumps on its own
 //    cadence, so tying it to package.json would be wrong.
 {
-  const chart = read('charts/openwa/Chart.yaml');
+  const chart = read('charts/mywhatsapp/Chart.yaml');
   const appVersion = chart.match(/^appVersion:\s*["']?([^"'\s]+)["']?\s*$/m)?.[1];
   if (!appVersion) {
-    errors.push('charts/openwa/Chart.yaml: no appVersion line found — it must name the shipped application version.');
+    errors.push('charts/mywhatsapp/Chart.yaml: no appVersion line found — it must name the shipped application version.');
   } else if (appVersion !== version) {
     errors.push(
-      `charts/openwa/Chart.yaml: appVersion is ${appVersion} but package.json is ${version} — the chart would deploy an image tag that does not exist yet.`,
+      `charts/mywhatsapp/Chart.yaml: appVersion is ${appVersion} but package.json is ${version} — the chart would deploy an image tag that does not exist yet.`,
     );
   }
 }

@@ -6,7 +6,7 @@
     }
   },
   "common": {
-    "appName": "OpenWA",
+    "appName": "MyWhatsapp",
     "updateAvailable": "גרסה v{{version}} זמינה",
     "loading": "טוען...",
     "cancel": "ביטול",
@@ -354,7 +354,7 @@
     "connectionError": "לא ניתן להתחבר לשרת. יש לנסות שוב.",
     "help": "צריך עזרה?",
     "viewDocs": "לצפייה בתיעוד",
-    "footer": "נבנה באהבה על ידי Yudhi Armyndharis וקהילת OpenWA",
+    "footer": "╫á╫æ╫á╫ö ╫æ╫É╫ö╫æ╫ö ╫ó╫£ ╫Ö╫ô╫Ö Yudhi Armyndharis ╫ò╫º╫ö╫Ö╫£╫¬ MyWhatsapp",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
@@ -1137,7 +1137,7 @@
       "postgres": "PostgreSQL",
       "postgresDesc": "מסד נתונים מוכן לייצור",
       "useBuiltIn": "שימוש בקונטיינר PostgreSQL מובנה",
-      "builtInDesc": "OpenWA ינהל עבורך קונטיינר PostgreSQL",
+      "builtInDesc": "MyWhatsapp ינהל עבורך קונטיינר PostgreSQL",
       "dbName": "שם מסד הנתונים",
       "schema": "סכמה",
       "schemaDesc": "סכמת PostgreSQL (לא חלה על SQLite). ברירת מחדל 'public'. הסכמה חייבת להיות קיימת מראש.",
@@ -1172,7 +1172,7 @@
       "enable": "הפעלת Redis",
       "enableDesc": "נדרש למטמון, אחסון Sessions ותורי BullMQ",
       "useBuiltIn": "שימוש בקונטיינר Redis מובנה",
-      "builtInDesc": "OpenWA ינהל עבורך קונטיינר Redis",
+      "builtInDesc": "MyWhatsapp ינהל עבורך קונטיינר Redis",
       "queueTitle": "הפעלת מערכת התורים BullMQ",
       "queueDesc": "שימוש בתורי הודעות לאספקה אמינה של הודעות ו-Webhooks",
       "statsTitle": "סטטיסטיקות תור",
@@ -1194,7 +1194,7 @@
       "s3": "Amazon S3",
       "s3Desc": "אחסון ענן (תואם S3)",
       "useBuiltIn": "שימוש בקונטיינר MinIO מובנה",
-      "builtInDesc": "OpenWA ינהל עבורך קונטיינר MinIO (תואם S3)",
+      "builtInDesc": "MyWhatsapp ינהל עבורך קונטיינר MinIO (תואם S3)",
       "storagePath": "נתיב אחסון",
       "bucket": "שם Bucket",
       "region": "אזור (Region)",
@@ -1245,7 +1245,7 @@
       "importFailed": "לא ניתן לייבא את הנתונים",
       "importOk": "הנתונים יובאו",
       "importConfirm": "הייבוא יחליף את כל הנתונים הנוכחיים בגיבוי ({{rows}} שורות). לא ניתן לבטל פעולה זו. להמשיך?",
-      "invalidFile": "הקובץ הזה אינו גיבוי נתונים תקין של OpenWA.",
+      "invalidFile": "הקובץ הזה אינו גיבוי נתונים תקין של MyWhatsapp.",
       "importTooLarge": "הגיבוי גדול מדי עבור מגבלת הבקשה. הגדילו את BODY_SIZE_LIMIT בשרת ונסו שוב."
     },
     "statusLoadError": "לא ניתן לטעון את מצב התשתית הנוכחי. רעננו כדי לנסות שוב."

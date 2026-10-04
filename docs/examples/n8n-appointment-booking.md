@@ -1,20 +1,20 @@
 # n8n Appointment Booking Workflow
 
-This example shows how to use OpenWA and n8n to collect appointment requests over WhatsApp, check availability in an external system, and send a confirmation or alternative time slots.
+This example shows how to use MyWhatsapp and n8n to collect appointment requests over WhatsApp, check availability in an external system, and send a confirmation or alternative time slots.
 
 The workflow is intentionally generic. The availability source can be Google Calendar, Cal.com, a CRM, a database, or any HTTP API that returns available slots.
 
 ## Flow
 
 ```
-[OpenWA Trigger]
+[MyWhatsapp Trigger]
       │
       └── Events: message.received
               │
               ▼
 [IF: booking intent?]
       │
-      ├── false → [OpenWA: Send Text]
+      ├── false → [MyWhatsapp: Send Text]
       │             "Thanks for your message. A team member will reply soon."
       │
       └── true
@@ -25,19 +25,19 @@ The workflow is intentionally generic. The availability source can be Google Cal
               ▼
 [Availability Source]
       │
-      ├── available → [Create Booking] → [OpenWA: Send Text confirmation]
+      ├── available → [Create Booking] → [MyWhatsapp: Send Text confirmation]
       │
-      └── unavailable → [OpenWA: Send Text with alternative slots]
+      └── unavailable → [MyWhatsapp: Send Text with alternative slots]
 ```
 
 ## Trigger
 
-Use the **OpenWA Trigger** node.
+Use the **MyWhatsapp Trigger** node.
 
-| Field   | Value                         |
-| ------- | ----------------------------- |
-| Event   | `message.received`            |
-| Session | Your connected OpenWA session |
+| Field   | Value                             |
+| ------- | --------------------------------- |
+| Event   | `message.received`                |
+| Session | Your connected MyWhatsapp session |
 
 The incoming message body is available at:
 
@@ -95,7 +95,7 @@ The availability step should return whether the requested slot is available and,
 
 ## Confirmation Message
 
-When the requested slot is available, create the booking in your scheduling source and send a confirmation with the **OpenWA: Send Text** node.
+When the requested slot is available, create the booking in your scheduling source and send a confirmation with the **MyWhatsapp: Send Text** node.
 
 | Field     | Value                |
 | --------- | -------------------- |
@@ -137,9 +137,9 @@ Reply with 1 or 2 to confirm one of these options.
 
 ## Minimal Node Checklist
 
-- OpenWA Trigger: receives `message.received` events.
+- MyWhatsapp Trigger: receives `message.received` events.
 - IF: detects booking intent.
 - Set: normalizes `chatId`, message body, requested date/time, and service.
 - Availability node: checks the calendar, API, database, or spreadsheet.
 - Booking node: creates the appointment only when a slot is available.
-- OpenWA Send Text: sends confirmation, alternatives, or clarification.
+- MyWhatsapp Send Text: sends confirmation, alternatives, or clarification.

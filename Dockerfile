@@ -1,4 +1,4 @@
-# OpenWA - Dockerfile
+# MyWhatsapp - Dockerfile
 # Multi-stage build for production-ready image
 
 # ===== Stage 1: Builder =====
@@ -171,7 +171,7 @@ http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.l
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Create app user for security
-RUN groupadd -r openwa && useradd -r -g openwa openwa
+RUN groupadd -r mywhatsapp && useradd -r -g mywhatsapp mywhatsapp
 
 WORKDIR /app
 
@@ -218,7 +218,7 @@ RUN npm ci --omit=dev --ignore-scripts \
 
 # Replace the npm the base image bundles. npm is not on the request path — the entrypoint runs
 # `node dist/main` — but it stays in the image because the operator runbooks drive it
-# (`docker exec openwa npm run cli …`, `npm run export`), and its own bundled dependency tree is
+# (`docker exec mywhatsapp npm run cli …`, `npm run export`), and its own bundled dependency tree is
 # what the release image scan reports. node:22-slim currently ships npm 10.9.8, whose bundle
 # carries a critical node-tar advisory plus sigstore/picomatch ones; npm 12 fixes all three.
 # Deliberately AFTER `npm ci`, so the application tree is still resolved by the npm the lockfile
@@ -246,7 +246,7 @@ RUN if [ "$TARGETARCH" = arm64 ]; then \
     else \
         mkdir -p /opt/puppeteer && \
         PUPPETEER_CACHE_DIR=/opt/puppeteer ./node_modules/.bin/puppeteer browsers install 'chrome@153.0.8010.36' && \
-        chown -R openwa:openwa /opt/puppeteer && \
+        chown -R mywhatsapp:mywhatsapp /opt/puppeteer && \
         chrome_path=$(find /opt/puppeteer/chrome/linux*/chrome-linux64/chrome | head -n 1) && \
         test -n "$chrome_path" && \
         ln -s "$chrome_path" /usr/local/bin/puppeteer-chrome; \
@@ -266,14 +266,14 @@ COPY --from=builder /app/dashboard/dist ./dashboard/dist
 # /app chown walks every production dependency file (issue #1045: ~35 minutes on a small VPS) and
 # duplicates their metadata into a new image layer.
 RUN mkdir -p ./data/sessions ./data/media ./data/plugins && \
-    chown -R openwa:openwa ./data
+    chown -R mywhatsapp:mywhatsapp ./data
 
-# The non-root openwa user has no home of its own (`useradd -r`, no -m). Chromium resolves the home
+# The non-root mywhatsapp user has no home of its own (`useradd -r`, no -m). Chromium resolves the home
 # dir from the passwd entry via glib's getpwuid() — it IGNORES $HOME — so it tries to read/write
-# /home/openwa, which does not exist. On hardened/read-only hosts that makes the browser HARD-CRASH
+# /home/mywhatsapp, which does not exist. On hardened/read-only hosts that makes the browser HARD-CRASH
 # at launch (SIGTRAP/int3, logged as "chrome_crashpad_handler: --database is required"). The robust
 # fix is to point Chromium's config + cache at writable, pre-created dirs via XDG_* (honored directly,
-# bypassing the passwd lookup); docker-entrypoint.sh creates them owned by openwa. On a read_only
+# bypassing the passwd lookup); docker-entrypoint.sh creates them owned by mywhatsapp. On a read_only
 # rootfs these live on the tmpfs /tmp. HOME is kept for any other HOME-relative tooling. See #254/#242.
 ENV HOME=/app/data
 ENV XDG_CONFIG_HOME=/tmp/.config
@@ -286,7 +286,7 @@ ENV XDG_CACHE_HOME=/tmp/.cache
 # the exec bit in the repo and COPY preserves it, so no chmod is needed.
 COPY scripts/backup.sh scripts/restore.sh scripts/lib-env.sh ./scripts/
 
-# Copy entrypoint: runs as root to fix named-volume ownership, then drops to openwa via gosu
+# Copy entrypoint: runs as root to fix named-volume ownership, then drops to mywhatsapp via gosu
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
@@ -299,12 +299,12 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 # dumb-init is PID 1 and handles signal forwarding.
 # It execs docker-entrypoint.sh (as root), which fixes volume ownership and
-# then drops to the openwa user via gosu before starting the node process.
+# then drops to the mywhatsapp user via gosu before starting the node process.
 #
-# NOTE — no `USER openwa` directive on purpose (Trivy DS-0002 will flag it, ignore).
+# NOTE — no `USER mywhatsapp` directive on purpose (Trivy DS-0002 will flag it, ignore).
 # The Node process does NOT run as root: docker-entrypoint.sh:30 is
-# `exec gosu openwa "$@"` after the chowns on lines 7 and 25. Adding `USER openwa`
-# here would run the entrypoint as openwa and break the chown-before-drop pattern
+# `exec gosu mywhatsapp "$@"` after the chowns on lines 7 and 25. Adding `USER mywhatsapp`
+# here would run the entrypoint as mywhatsapp and break the chown-before-drop pattern
 # that makes named-volume mounts work on first boot (#254, #259).
 ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "dist/main"]

@@ -2,21 +2,21 @@
 
 ## 18.1 Overview
 
-OpenWA ships five official, hand-written client libraries for the REST API. They are not generated from an OpenAPI spec — each is written directly against the real API surface (paths, request DTOs, response shapes) and **unit-tested with a mocked HTTP transport that asserts on the exact request path, method, and body**, so drift in what an SDK _sends_ is caught at test time rather than in production. That mechanism says nothing about what an SDK expects _back_; see §18.6 for how response shapes are held to the contract.
+MyWhatsapp ships five official, hand-written client libraries for the REST API. They are not generated from an OpenAPI spec — each is written directly against the real API surface (paths, request DTOs, response shapes) and **unit-tested with a mocked HTTP transport that asserts on the exact request path, method, and body**, so drift in what an SDK _sends_ is caught at test time rather than in production. That mechanism says nothing about what an SDK expects _back_; see §18.6 for how response shapes are held to the contract.
 
-| Language                | Package                                                                                | Install                              | Notes                                                                            |
-| ----------------------- | -------------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
-| JavaScript / TypeScript | [`@rmyndharis/openwa`](https://www.npmjs.com/package/@rmyndharis/openwa)               | `npm install @rmyndharis/openwa`     | Dual ESM + CJS, bundled `.d.ts` types, Node 18+                                  |
-| Python                  | [`rmyndharis-openwa`](https://pypi.org/project/rmyndharis-openwa/)                     | `pip install rmyndharis-openwa`      | Synchronous (httpx), PEP 561 typed, Python 3.9+                                  |
-| PHP                     | [`rmyndharis/openwa`](https://packagist.org/packages/rmyndharis/openwa)                | `composer require rmyndharis/openwa` | Synchronous (Guzzle 7), PSR-4, PHP 8.1+                                          |
-| Java                    | [`com.rmyndharis:openwa`](https://central.sonatype.com/artifact/com.rmyndharis/openwa) | Maven Central                        | Sync, `java.net.http`. See [`sdk/java/README.md`](../sdk/java/README.md).        |
-| Go                      | [`github.com/rmyndharis/OpenWA/sdk/go`](../sdk/go)                                     | `go get`                             | Stdlib-only, no third-party deps. See [`sdk/go/README.md`](../sdk/go/README.md). |
+| Language                | Package                                                                                 | Install                           | Notes                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------- |
+| JavaScript / TypeScript | [`@mywhatsapp/sdk`](https://www.npmjs.com/package/@mywhatsapp/sdk)                      | `npm install @mywhatsapp/sdk`     | Dual ESM + CJS, bundled `.d.ts` types, Node 18+                                  |
+| Python                  | [`mywhatsapp-sdk`](https://pypi.org/project/mywhatsapp-sdk/)                            | `pip install mywhatsapp-sdk`      | Synchronous (httpx), PEP 561 typed, Python 3.9+                                  |
+| PHP                     | [`mywhatsapp/sdk`](https://packagist.org/packages/mywhatsapp/sdk)                       | `composer require mywhatsapp/sdk` | Synchronous (Guzzle 7), PSR-4, PHP 8.1+                                          |
+| Java                    | [`com.mywhatsapp:mywhatsapp`](https://central.sonatype.com/artifact/com.mywhatsapp/sdk) | Maven Central                     | Sync, `java.net.http`. See [`sdk/java/README.md`](../sdk/java/README.md).        |
+| Go                      | [`github.com/rmyndharis/OpenWA/sdk/go`](../sdk/go)                                      | `go get`                          | Stdlib-only, no third-party deps. See [`sdk/go/README.md`](../sdk/go/README.md). |
 
-> The import names differ from the dist names where the ecosystem requires it. Python installs `rmyndharis-openwa` but imports `openwa`; the client class is `OpenWAClient` in JS/Python and `OpenWA\Client` in PHP.
+> The import names differ from the dist names where the ecosystem requires it. Python installs `mywhatsapp-sdk` but imports `mywhatsapp`; the client class is `MyWhatsappClient` in JS/Python and `MyWhatsapp\Client` in PHP.
 
 ### Design Principles
 
-- **One client, fluent resources.** A single client object (`OpenWAClient` / `OpenWA\Client`) exposes every resource as a property — `client.messages.sendText(...)`, `client.sessions.start(...)`. All five SDKs expose the **same** resource surface; only the language idioms differ (camelCase methods + objects in JS/PHP/Java, snake_case methods + dicts in Python, exported fields + structs in Go).
+- **One client, fluent resources.** A single client object (`MyWhatsappClient` / `MyWhatsapp\Client`) exposes every resource as a property — `client.messages.sendText(...)`, `client.sessions.start(...)`. All five SDKs expose the **same** resource surface; only the language idioms differ (camelCase methods + objects in JS/PHP/Java, snake_case methods + dicts in Python, exported fields + structs in Go).
 - **It is a request/response client, not an event SDK.** There is no WebSocket, EventEmitter, or `client.on(...)`. To receive inbound messages and acks, register a webhook (the `webhooks` resource) and host your own receiver, or connect to the real-time Socket.IO API directly (see [API Specification §6.5](./06-api-specification.md)).
 - **Typed errors.** Non-2xx responses raise/throw a typed error mapped from the HTTP status (`401/403/404/409/429/501`), plus a timeout error — all `instanceof`/`catch`-checkable. See each language's Error Handling subsection.
 - **Injectable transport.** The HTTP layer is replaceable (`fetch` in JS, an `httpx` transport in Python, a Guzzle client in PHP) — the extension point for retry/observability middleware and for testing without the network.
@@ -49,18 +49,18 @@ All five SDKs expose the same fluent surface:
 
 ## 18.2 TypeScript / JavaScript SDK
 
-The official JavaScript/TypeScript SDK is published as **`@rmyndharis/openwa`**. It is a pure promise-based HTTP client: a single `OpenWAClient` exposes every API resource as a typed property. There is no event model — the SDK does not open WebSockets, emit events, or expose `client.on(...)`. To receive inbound messages and acks, configure a webhook (see the `webhooks` resource) and host your own HTTP receiver.
+The official JavaScript/TypeScript SDK is published as **`@mywhatsapp/sdk`**. It is a pure promise-based HTTP client: a single `MyWhatsappClient` exposes every API resource as a typed property. There is no event model — the SDK does not open WebSockets, emit events, or expose `client.on(...)`. To receive inbound messages and acks, configure a webhook (see the `webhooks` resource) and host your own HTTP receiver.
 
 The package ships **dual CJS + ESM** with bundled `.d.ts` types, so it is consumable from both `require()` and `import`.
 
 ### Installation
 
 ```bash
-npm install @rmyndharis/openwa
+npm install @mywhatsapp/sdk
 # or
-yarn add @rmyndharis/openwa
+yarn add @mywhatsapp/sdk
 # or
-pnpm add @rmyndharis/openwa
+pnpm add @mywhatsapp/sdk
 ```
 
 > **Node 18+ required.** The transport uses the global `fetch` (and `AbortController`), both built into Node 18 and later. To run on an older runtime, pass your own `fetch` implementation via the client constructor (see [Client Configuration](#client-configuration)).
@@ -68,9 +68,9 @@ pnpm add @rmyndharis/openwa
 ### Quick Start
 
 ```typescript
-import { OpenWAClient } from '@rmyndharis/openwa';
+import { MyWhatsappClient } from '@mywhatsapp/sdk';
 
-const client = new OpenWAClient({
+const client = new MyWhatsappClient({
   baseUrl: 'http://localhost:2785',
   apiKey: 'owa_k1_…',
 });
@@ -82,7 +82,7 @@ async function main() {
   // Send a text message.
   const result = await client.messages.sendText('my-session', {
     chatId: '628123456789@c.us',
-    text: 'Hello from the OpenWA SDK!',
+    text: 'Hello from the MyWhatsapp SDK!',
   });
 
   console.log(result.messageId); // -> the WhatsApp message id
@@ -96,16 +96,16 @@ main();
 CommonJS consumers use the same API via `require`:
 
 ```javascript
-const { OpenWAClient } = require('@rmyndharis/openwa');
+const { MyWhatsappClient } = require('@mywhatsapp/sdk');
 ```
 
 ### Client Configuration
 
-The constructor takes a single `OpenWAClientOptions` object. `baseUrl` and `apiKey` are required (the constructor throws synchronously if either is missing).
+The constructor takes a single `MyWhatsappClientOptions` object. `baseUrl` and `apiKey` are required (the constructor throws synchronously if either is missing).
 
 | Option           | Type                     | Required | Default            | Description                                                                                                                                                                    |
 | ---------------- | ------------------------ | -------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `baseUrl`        | `string`                 | yes      | —                  | Base URL of the OpenWA API, e.g. `http://localhost:2785`. A trailing slash is trimmed; a path prefix (e.g. `https://host/v1`) is preserved.                                    |
+| `baseUrl`        | `string`                 | yes      | —                  | Base URL of the MyWhatsapp API, e.g. `http://localhost:2785`. A trailing slash is trimmed; a path prefix (e.g. `https://host/v1`) is preserved.                                |
 | `apiKey`         | `string`                 | yes      | —                  | API key sent as the `X-API-Key` header on every request.                                                                                                                       |
 | `timeoutMs`      | `number`                 | no       | `30000`            | Per-request timeout in milliseconds. Overridable per call via `RequestOptions.timeoutMs` on the raw `request()` method.                                                        |
 | `defaultHeaders` | `Record<string, string>` | no       | `{}`               | Headers merged onto every request. The `Content-Type: application/json` and `X-API-Key` headers always take precedence.                                                        |
@@ -113,7 +113,7 @@ The constructor takes a single `OpenWAClientOptions` object. `baseUrl` and `apiK
 
 ### Resources & Methods
 
-All resources are accessed as properties on the client (`client.<resource>.<method>`). Every method returns a `Promise`. Methods marked **OPERATOR** require an `OPERATOR`-level API key (an `ADMIN` key satisfies it); a `VIEWER` key receives a `403` (`OpenWAForbiddenError`).
+All resources are accessed as properties on the client (`client.<resource>.<method>`). Every method returns a `Promise`. Methods marked **OPERATOR** require an `OPERATOR`-level API key (an `ADMIN` key satisfies it); a `VIEWER` key receives a `403` (`MyWhatsappForbiddenError`).
 
 The top-level client also exposes:
 
@@ -351,29 +351,29 @@ Media bodies share the `SendMediaRequest` shape: `{ chatId, url? | base64?, mime
 
 ### Error Handling
 
-On a non-2xx response the SDK throws a typed `OpenWAApiError` subclass carrying `.status` (HTTP status), `.body` (parsed JSON error envelope, or raw text), and `.errorKind` (the NestJS `error` field, `undefined` when the gateway omits it — which is the norm for a validation rejection in production, where `disableErrorMessages` is on). All error classes extend `OpenWAError` and are exported, so they are `instanceof`-checkable. A timeout throws `OpenWATimeoutError`, which extends `OpenWAError` directly (not `OpenWAApiError`).
+On a non-2xx response the SDK throws a typed `MyWhatsappApiError` subclass carrying `.status` (HTTP status), `.body` (parsed JSON error envelope, or raw text), and `.errorKind` (the NestJS `error` field, `undefined` when the gateway omits it — which is the norm for a validation rejection in production, where `disableErrorMessages` is on). All error classes extend `MyWhatsappError` and are exported, so they are `instanceof`-checkable. A timeout throws `MyWhatsappTimeoutError`, which extends `MyWhatsappError` directly (not `MyWhatsappApiError`).
 
-| Error class                     | HTTP status | Meaning                                                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OpenWAAuthError`               | 401         | Missing or invalid API key.                                                                                                                                                                                                                                                                             |
-| `OpenWAForbiddenError`          | 403         | The key's role is insufficient (e.g. an OPERATOR-only route).                                                                                                                                                                                                                                           |
-| `OpenWANotFoundError`           | 404         | Resource not found.                                                                                                                                                                                                                                                                                     |
-| `OpenWAConflictError`           | 409         | Conflict — typically the engine is not ready.                                                                                                                                                                                                                                                           |
-| `OpenWARateLimitError`          | 429         | Rate limited.                                                                                                                                                                                                                                                                                           |
-| `OpenWANotImplementedError`     | 501         | The active engine does not support this operation.                                                                                                                                                                                                                                                      |
-| `OpenWAServiceUnavailableError` | 503         | The engine did not confirm in time. The only retryable error here — 501 is permanent. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on. |
-| `OpenWAApiError`                | any other   | Generic non-2xx (the base API error, e.g. `400`; also surfaced for unfollowed 3xx redirects).                                                                                                                                                                                                           |
-| `OpenWATimeoutError`            | —           | The request exceeded the configured timeout.                                                                                                                                                                                                                                                            |
+| Error class                         | HTTP status | Meaning                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MyWhatsappAuthError`               | 401         | Missing or invalid API key.                                                                                                                                                                                                                                                                             |
+| `MyWhatsappForbiddenError`          | 403         | The key's role is insufficient (e.g. an OPERATOR-only route).                                                                                                                                                                                                                                           |
+| `MyWhatsappNotFoundError`           | 404         | Resource not found.                                                                                                                                                                                                                                                                                     |
+| `MyWhatsappConflictError`           | 409         | Conflict — typically the engine is not ready.                                                                                                                                                                                                                                                           |
+| `MyWhatsappRateLimitError`          | 429         | Rate limited.                                                                                                                                                                                                                                                                                           |
+| `MyWhatsappNotImplementedError`     | 501         | The active engine does not support this operation.                                                                                                                                                                                                                                                      |
+| `MyWhatsappServiceUnavailableError` | 503         | The engine did not confirm in time. The only retryable error here — 501 is permanent. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on. |
+| `MyWhatsappApiError`                | any other   | Generic non-2xx (the base API error, e.g. `400`; also surfaced for unfollowed 3xx redirects).                                                                                                                                                                                                           |
+| `MyWhatsappTimeoutError`            | —           | The request exceeded the configured timeout.                                                                                                                                                                                                                                                            |
 
 ```typescript
 import {
-  OpenWAClient,
-  OpenWAConflictError,
-  OpenWANotFoundError,
-  OpenWARateLimitError,
-  OpenWATimeoutError,
-  OpenWAApiError,
-} from '@rmyndharis/openwa';
+  MyWhatsappClient,
+  MyWhatsappConflictError,
+  MyWhatsappNotFoundError,
+  MyWhatsappRateLimitError,
+  MyWhatsappTimeoutError,
+  MyWhatsappApiError,
+} from '@mywhatsapp/sdk';
 
 try {
   await client.messages.sendText('my-session', {
@@ -381,15 +381,15 @@ try {
     text: 'Hi!',
   });
 } catch (err) {
-  if (err instanceof OpenWAConflictError) {
+  if (err instanceof MyWhatsappConflictError) {
     // 409 — engine not ready; start the session first.
-  } else if (err instanceof OpenWANotFoundError) {
+  } else if (err instanceof MyWhatsappNotFoundError) {
     // 404 — session/chat does not exist.
-  } else if (err instanceof OpenWARateLimitError) {
+  } else if (err instanceof MyWhatsappRateLimitError) {
     // 429 — back off and retry.
-  } else if (err instanceof OpenWATimeoutError) {
+  } else if (err instanceof MyWhatsappTimeoutError) {
     // request timed out.
-  } else if (err instanceof OpenWAApiError) {
+  } else if (err instanceof MyWhatsappApiError) {
     console.error(`API error ${err.status}:`, err.body);
   } else {
     throw err; // network/transport error
@@ -399,7 +399,7 @@ try {
 
 ### Notable Behaviors
 
-- **Redirects are never followed.** The transport uses `redirect: 'manual'`, so a `3xx` surfaces to the caller as an error (via `OpenWAApiError`) rather than being followed — this guarantees the `X-API-Key` header is never re-sent to a redirect target (potentially a different origin).
+- **Redirects are never followed.** The transport uses `redirect: 'manual'`, so a `3xx` surfaces to the caller as an error (via `MyWhatsappApiError`) rather than being followed — this guarantees the `X-API-Key` header is never re-sent to a redirect target (potentially a different origin).
 - **Auth and JSON headers take precedence.** Request headers are merged in the order `defaultHeaders` → per-call headers → `Content-Type: application/json` → `X-API-Key`. Both `Content-Type` and `X-API-Key` are applied last, so neither can be overridden by a caller-supplied header.
 - **Path segments are percent-encoded.** Ids (session, chat, message, etc.) are encoded so a value cannot break out of its path position, while keeping the WhatsApp-safe characters `@`, `:`, and `+` readable (e.g. `628123456789@c.us`).
 - **Base-URL path prefix is preserved.** A `baseUrl` such as `https://gateway.example.com/v1` keeps its `/v1` prefix on every request; only a trailing slash is trimmed.
@@ -416,26 +416,26 @@ The Python SDK is a **synchronous** client built on [`httpx`](https://www.python
 The PyPI distribution name and the import package differ:
 
 ```bash
-pip install rmyndharis-openwa
+pip install mywhatsapp-sdk
 ```
 
 ```python
-from openwa import OpenWAClient
+from mywhatsapp import MyWhatsappClient
 ```
 
-- **Distribution (PyPI):** `rmyndharis-openwa`
-- **Import package:** `openwa`
-- **Client class:** `OpenWAClient`
+- **Distribution (PyPI):** `mywhatsapp-sdk`
+- **Import package:** `mywhatsapp`
+- **Client class:** `MyWhatsappClient`
 - **Python:** `>=3.9` (per `pyproject.toml`)
 - **Runtime dependency:** `httpx>=0.25.0,<1.0`
-- **Typed:** ships `py.typed` markers for `openwa` and `openwa.resources` (PEP 561)
+- **Typed:** ships `py.typed` markers for `mywhatsapp` and `mywhatsapp.resources` (PEP 561)
 
 ### Quick Start
 
 ```python
-from openwa import OpenWAClient
+from mywhatsapp import MyWhatsappClient
 
-client = OpenWAClient(
+client = MyWhatsappClient(
     base_url="http://localhost:2785",
     api_key="owa_k1_…",
 )
@@ -447,17 +447,17 @@ client.sessions.start("my-session")
 # Send a text message
 result = client.messages.send_text("my-session", {
     "chatId": "628123456789@c.us",
-    "text": "Hello from the OpenWA Python SDK!",
+    "text": "Hello from the MyWhatsapp Python SDK!",
 })
 print(result["messageId"])
 
 client.close()
 ```
 
-`OpenWAClient` is also a context manager, so the connection pool is closed for you:
+`MyWhatsappClient` is also a context manager, so the connection pool is closed for you:
 
 ```python
-with OpenWAClient(base_url="http://localhost:2785", api_key="owa_k1_…") as client:
+with MyWhatsappClient(base_url="http://localhost:2785", api_key="owa_k1_…") as client:
     print(client.health.check())
 ```
 
@@ -466,7 +466,7 @@ with OpenWAClient(base_url="http://localhost:2785", api_key="owa_k1_…") as cli
 Constructor signature (from `client.py`):
 
 ```python
-OpenWAClient(
+MyWhatsappClient(
     base_url: str,
     api_key: str,
     *,
@@ -480,7 +480,7 @@ OpenWAClient(
 | ----------------- | ----------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `base_url`        | `str`                         | _(required)_ | Gateway base URL, e.g. `http://localhost:2785`. Raises `ValueError` if empty. A trailing `/` is stripped; any path prefix is preserved. |
 | `api_key`         | `str`                         | _(required)_ | API key sent as the `X-API-Key` header. Raises `ValueError` if empty.                                                                   |
-| `timeout`         | `float`                       | `30.0`       | Per-request timeout in seconds. A breach raises `OpenWATimeoutError`.                                                                   |
+| `timeout`         | `float`                       | `30.0`       | Per-request timeout in seconds. A breach raises `MyWhatsappTimeoutError`.                                                               |
 | `default_headers` | `Mapping[str, str] \| None`   | `None`       | Extra headers applied to every request. Applied **first**, so the SDK's `X-API-Key` and `Content-Type: application/json` always win.    |
 | `transport`       | `httpx.BaseTransport \| None` | `None`       | Optional `httpx` transport override (e.g. `httpx.MockTransport`) sharing the one connection pool. Useful for testing.                   |
 
@@ -721,52 +721,52 @@ Resources are accessed as properties on the client (e.g. `client.messages`). All
 
 ### Error Handling
 
-Every error inherits from `OpenWAError`. A non-2xx response raises an `OpenWAApiError` (or a more specific subclass picked by status); a timeout raises `OpenWATimeoutError`. The API-error classes carry `.status` (HTTP code), `.body` (parsed JSON or raw text), and `.error_kind` (the NestJS `error` field).
+Every error inherits from `MyWhatsappError`. A non-2xx response raises an `MyWhatsappApiError` (or a more specific subclass picked by status); a timeout raises `MyWhatsappTimeoutError`. The API-error classes carry `.status` (HTTP code), `.body` (parsed JSON or raw text), and `.error_kind` (the NestJS `error` field).
 
-| Exception                       | Trigger                                                                                                                                                                                                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `OpenWAAuthError`               | HTTP `401` — missing or invalid API key                                                                                                                                                                                                                                  |
-| `OpenWAForbiddenError`          | HTTP `403` — insufficient role                                                                                                                                                                                                                                           |
-| `OpenWANotFoundError`           | HTTP `404` — resource not found                                                                                                                                                                                                                                          |
-| `OpenWAConflictError`           | HTTP `409` — typically engine-not-ready                                                                                                                                                                                                                                  |
-| `OpenWARateLimitError`          | HTTP `429` — too many requests                                                                                                                                                                                                                                           |
-| `OpenWANotImplementedError`     | HTTP `501` — active engine doesn't support the operation                                                                                                                                                                                                                 |
-| `OpenWAServiceUnavailableError` | HTTP `503` — engine did not confirm in time; retryable. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on |
-| `OpenWAApiError`                | any other non-2xx status (incl. unfollowed `3xx`)                                                                                                                                                                                                                        |
-| `OpenWATimeoutError`            | request exceeded `timeout` (has a `.timeout` attribute)                                                                                                                                                                                                                  |
+| Exception                           | Trigger                                                                                                                                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MyWhatsappAuthError`               | HTTP `401` — missing or invalid API key                                                                                                                                                                                                                                  |
+| `MyWhatsappForbiddenError`          | HTTP `403` — insufficient role                                                                                                                                                                                                                                           |
+| `MyWhatsappNotFoundError`           | HTTP `404` — resource not found                                                                                                                                                                                                                                          |
+| `MyWhatsappConflictError`           | HTTP `409` — typically engine-not-ready                                                                                                                                                                                                                                  |
+| `MyWhatsappRateLimitError`          | HTTP `429` — too many requests                                                                                                                                                                                                                                           |
+| `MyWhatsappNotImplementedError`     | HTTP `501` — active engine doesn't support the operation                                                                                                                                                                                                                 |
+| `MyWhatsappServiceUnavailableError` | HTTP `503` — engine did not confirm in time; retryable. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on |
+| `MyWhatsappApiError`                | any other non-2xx status (incl. unfollowed `3xx`)                                                                                                                                                                                                                        |
+| `MyWhatsappTimeoutError`            | request exceeded `timeout` (has a `.timeout` attribute)                                                                                                                                                                                                                  |
 
 ```python
-from openwa import (
-    OpenWAClient,
-    OpenWAConflictError,
-    OpenWANotFoundError,
-    OpenWARateLimitError,
-    OpenWATimeoutError,
-    OpenWAApiError,
+from mywhatsapp import (
+    MyWhatsappClient,
+    MyWhatsappConflictError,
+    MyWhatsappNotFoundError,
+    MyWhatsappRateLimitError,
+    MyWhatsappTimeoutError,
+    MyWhatsappApiError,
 )
 
-client = OpenWAClient(base_url="http://localhost:2785", api_key="owa_k1_…")
+client = MyWhatsappClient(base_url="http://localhost:2785", api_key="owa_k1_…")
 
 try:
     client.messages.send_text("my-session", {
         "chatId": "628123456789@c.us",
         "text": "Hi!",
     })
-except OpenWAConflictError:
+except MyWhatsappConflictError:
     print("Session engine not ready yet — start it first.")
-except OpenWANotFoundError:
+except MyWhatsappNotFoundError:
     print("Session does not exist.")
-except OpenWARateLimitError:
+except MyWhatsappRateLimitError:
     print("Rate limited — back off and retry.")
-except OpenWATimeoutError as e:
+except MyWhatsappTimeoutError as e:
     print(f"Timed out after {e.timeout}s")
-except OpenWAApiError as e:
+except MyWhatsappApiError as e:
     print(f"API error {e.status} ({e.error_kind}): {e.body}")
 ```
 
 ### Notable Behaviors
 
-- **Redirects are never followed.** `follow_redirects` is forced off so the `X-API-Key` header is never re-sent to a redirect target. An unfollowed `3xx` therefore surfaces as an `OpenWAApiError` rather than a success.
+- **Redirects are never followed.** `follow_redirects` is forced off so the `X-API-Key` header is never re-sent to a redirect target. An unfollowed `3xx` therefore surfaces as an `MyWhatsappApiError` rather than a success.
 - **Auth/JSON headers always win.** `default_headers` are applied first; the SDK then sets `Content-Type: application/json` and `X-API-Key`, so caller headers can never clobber them.
 - **Path segments are percent-encoded.** Each path value (session/chat/message id, etc.) is encoded so a `/`, `#`, or `?` can't break out of its position; already-safe id characters `@`, `:`, `+` are left readable. Boolean query params are serialized lowercase (`true`/`false`); `None` query values are dropped.
 - **Base-URL path prefix is preserved.** A trailing `/` is stripped from `base_url`, but any path prefix (e.g. when running behind a reverse proxy) is kept on every request.
@@ -777,19 +777,19 @@ except OpenWAApiError as e:
 
 ## 18.4 PHP SDK
 
-The PHP SDK is a hand-written, synchronous client built on Guzzle 7. It mirrors the full user-facing API surface: every resource method maps to one REST endpoint, request/response payloads are plain associative arrays, and non-2xx responses are translated into a typed `OpenWA*Exception` hierarchy.
+The PHP SDK is a hand-written, synchronous client built on Guzzle 7. It mirrors the full user-facing API surface: every resource method maps to one REST endpoint, request/response payloads are plain associative arrays, and non-2xx responses are translated into a typed `MyWhatsapp*Exception` hierarchy.
 
 ### Installation
 
 ```bash
-composer require rmyndharis/openwa
+composer require mywhatsapp/sdk
 ```
 
 Requirements:
 
 - **PHP 8.1+** (`declare(strict_types=1)` throughout; typed properties, `match`).
 - **Guzzle 7** (`guzzlehttp/guzzle: ^7.9`).
-- PSR-4 autoloaded under the `OpenWA\` namespace (`"OpenWA\\": "src/"`).
+- PSR-4 autoloaded under the `MyWhatsapp\` namespace (`"MyWhatsapp\\": "src/"`).
 
 ### Quick Start
 
@@ -797,7 +797,7 @@ Requirements:
 <?php
 require 'vendor/autoload.php';
 
-use OpenWA\Client;
+use MyWhatsapp\Client;
 
 $client = new Client([
     'baseUrl' => 'http://localhost:2785',
@@ -808,13 +808,13 @@ $client->sessions->start('my-session');
 
 $result = $client->messages->sendText('my-session', [
     'chatId' => '628123456789@c.us',
-    'text'   => 'Hello from the OpenWA PHP SDK!',
+    'text'   => 'Hello from the MyWhatsapp PHP SDK!',
 ]);
 
 echo $result['messageId'];
 ```
 
-The entry class is `OpenWA\Client`. It validates that `baseUrl` and `apiKey` are present (throwing `OpenWAException` otherwise), constructs the shared HTTP transport, and exposes each resource as a public property: `$client->sessions`, `$client->messages`, `$client->search`, `$client->contacts`, `$client->groups`, `$client->webhooks`, `$client->chats`, `$client->status`, `$client->health`, `$client->labels`, `$client->channels`, `$client->catalog`, `$client->templates`, `$client->profile`, `$client->calls`.
+The entry class is `MyWhatsapp\Client`. It validates that `baseUrl` and `apiKey` are present (throwing `MyWhatsappException` otherwise), constructs the shared HTTP transport, and exposes each resource as a public property: `$client->sessions`, `$client->messages`, `$client->search`, `$client->contacts`, `$client->groups`, `$client->webhooks`, `$client->chats`, `$client->status`, `$client->health`, `$client->labels`, `$client->channels`, `$client->catalog`, `$client->templates`, `$client->profile`, `$client->calls`.
 
 Two escape hatches sit on the client itself:
 
@@ -835,7 +835,7 @@ The constructor takes a single associative `$config` array:
 | `httpClient`     | `?\GuzzleHttp\ClientInterface` | `null`           | Inject a Guzzle client (e.g. one built on a `MockHandler`) for testing or middleware. When `null`, a default Guzzle client is created with the configured timeout. |
 | `defaultHeaders` | `array<string,string>`         | `[]`             | Extra headers applied on every request, **under** the SDK's auth/JSON headers (which always win).                                                                  |
 
-Missing `baseUrl` or `apiKey` throws `OpenWA\Exceptions\OpenWAException` from the constructor.
+Missing `baseUrl` or `apiKey` throws `MyWhatsapp\Exceptions\MyWhatsappException` from the constructor.
 
 ### Resources & Methods
 
@@ -1066,41 +1066,41 @@ All payloads are associative arrays; all listed methods are synchronous and retu
 
 ### Error Handling
 
-All exceptions live in `OpenWA\Exceptions` and descend from `OpenWAException` (which extends PHP's `\Exception`). Any non-2xx response is raised as an `OpenWAApiException`; the static `classify()` factory picks the most specific subclass by status code. An `OpenWAApiException` carries the HTTP status (`getStatus(): int`), the parsed error body (`getBody(): mixed`), and the NestJS `error` kind when present (`getErrorKind(): ?string`).
+All exceptions live in `MyWhatsapp\Exceptions` and descend from `MyWhatsappException` (which extends PHP's `\Exception`). Any non-2xx response is raised as an `MyWhatsappApiException`; the static `classify()` factory picks the most specific subclass by status code. An `MyWhatsappApiException` carries the HTTP status (`getStatus(): int`), the parsed error body (`getBody(): mixed`), and the NestJS `error` kind when present (`getErrorKind(): ?string`).
 
-| Exception                           | Extends              | Trigger                                                                                                                                                                                                                                                                           |
-| ----------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OpenWAException`                   | `\Exception`         | Base for all SDK errors (also thrown for missing `baseUrl`/`apiKey`).                                                                                                                                                                                                             |
-| `OpenWAApiException`                | `OpenWAException`    | Any non-2xx (including unfollowed 3xx and other 4xx/5xx).                                                                                                                                                                                                                         |
-| `OpenWAAuthException`               | `OpenWAApiException` | `401` — missing/invalid API key.                                                                                                                                                                                                                                                  |
-| `OpenWAForbiddenException`          | `OpenWAApiException` | `403` — insufficient role (e.g. operator-only endpoint).                                                                                                                                                                                                                          |
-| `OpenWANotFoundException`           | `OpenWAApiException` | `404` — resource not found.                                                                                                                                                                                                                                                       |
-| `OpenWAConflictException`           | `OpenWAApiException` | `409` — conflict (e.g. engine not ready).                                                                                                                                                                                                                                         |
-| `OpenWARateLimitException`          | `OpenWAApiException` | `429` — rate limited.                                                                                                                                                                                                                                                             |
-| `OpenWANotImplementedException`     | `OpenWAApiException` | `501` — active engine does not support the operation.                                                                                                                                                                                                                             |
-| `OpenWAServiceUnavailableException` | `OpenWAApiException` | `503` — engine did not confirm in time; the only retryable one. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on. |
-| `OpenWATimeoutException`            | `OpenWAException`    | Request exceeded the timeout (`getTimeout(): float`). Not an API error — has no status/body.                                                                                                                                                                                      |
+| Exception                               | Extends                  | Trigger                                                                                                                                                                                                                                                                           |
+| --------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MyWhatsappException`                   | `\Exception`             | Base for all SDK errors (also thrown for missing `baseUrl`/`apiKey`).                                                                                                                                                                                                             |
+| `MyWhatsappApiException`                | `MyWhatsappException`    | Any non-2xx (including unfollowed 3xx and other 4xx/5xx).                                                                                                                                                                                                                         |
+| `MyWhatsappAuthException`               | `MyWhatsappApiException` | `401` — missing/invalid API key.                                                                                                                                                                                                                                                  |
+| `MyWhatsappForbiddenException`          | `MyWhatsappApiException` | `403` — insufficient role (e.g. operator-only endpoint).                                                                                                                                                                                                                          |
+| `MyWhatsappNotFoundException`           | `MyWhatsappApiException` | `404` — resource not found.                                                                                                                                                                                                                                                       |
+| `MyWhatsappConflictException`           | `MyWhatsappApiException` | `409` — conflict (e.g. engine not ready).                                                                                                                                                                                                                                         |
+| `MyWhatsappRateLimitException`          | `MyWhatsappApiException` | `429` — rate limited.                                                                                                                                                                                                                                                             |
+| `MyWhatsappNotImplementedException`     | `MyWhatsappApiException` | `501` — active engine does not support the operation.                                                                                                                                                                                                                             |
+| `MyWhatsappServiceUnavailableException` | `MyWhatsappApiException` | `503` — engine did not confirm in time; the only retryable one. In a routed deployment a forwarded request answers 503 only when the owner node was never reached; a forward that fails after the request was sent answers 502 or 504, which the owner may already have acted on. |
+| `MyWhatsappTimeoutException`            | `MyWhatsappException`    | Request exceeded the timeout (`getTimeout(): float`). Not an API error — has no status/body.                                                                                                                                                                                      |
 
 ```php
 <?php
-use OpenWA\Client;
-use OpenWA\Exceptions\OpenWAConflictException;
-use OpenWA\Exceptions\OpenWARateLimitException;
-use OpenWA\Exceptions\OpenWATimeoutException;
-use OpenWA\Exceptions\OpenWAApiException;
+use MyWhatsapp\Client;
+use MyWhatsapp\Exceptions\MyWhatsappConflictException;
+use MyWhatsapp\Exceptions\MyWhatsappRateLimitException;
+use MyWhatsapp\Exceptions\MyWhatsappTimeoutException;
+use MyWhatsapp\Exceptions\MyWhatsappApiException;
 
 try {
     $result = $client->messages->sendText('my-session', [
         'chatId' => '628123456789@c.us',
         'text'   => 'Hello!',
     ]);
-} catch (OpenWAConflictException $e) {
+} catch (MyWhatsappConflictException $e) {
     // 409 — engine not ready yet
-} catch (OpenWARateLimitException $e) {
+} catch (MyWhatsappRateLimitException $e) {
     // 429 — back off and retry yourself (no auto-retry)
-} catch (OpenWATimeoutException $e) {
+} catch (MyWhatsappTimeoutException $e) {
     fwrite(STDERR, "timed out after {$e->getTimeout()}s\n");
-} catch (OpenWAApiException $e) {
+} catch (MyWhatsappApiException $e) {
     // any other non-2xx
     fwrite(STDERR, "API {$e->getStatus()}: {$e->getMessage()}\n");
     var_dump($e->getBody());
@@ -1109,7 +1109,7 @@ try {
 
 ### Notable Behaviors
 
-- **Redirects are never followed.** Guzzle is configured with `allow_redirects => false`, so a `3xx` surfaces as an `OpenWAApiException` rather than being followed — the `X-API-Key` header is never re-sent to a redirect target.
+- **Redirects are never followed.** Guzzle is configured with `allow_redirects => false`, so a `3xx` surfaces as an `MyWhatsappApiException` rather than being followed — the `X-API-Key` header is never re-sent to a redirect target.
 - **Auth/JSON headers take precedence.** `defaultHeaders` are merged in first, then `X-API-Key`, `Content-Type: application/json`, and `Accept: application/json` are applied on top, so they can't be clobbered.
 - **Path segments are percent-encoded.** Ids (chat/message/group ids, session names) pass through `encodeSegment()`, which `rawurlencode`s the value but keeps the WhatsApp-id-safe characters `@`, `:`, and `+` readable — so a value containing `/`, `#`, or `?` cannot break out of its path position.
 - **Base-URL path prefix is preserved.** The base URL has its trailing `/` trimmed and requests are issued against an absolute `baseUrl . $path`; Guzzle's `base_uri` is intentionally unset, so a prefix like `/v1` behind a reverse proxy is retained.
@@ -1117,14 +1117,14 @@ try {
 - **No automatic retries.** A failed request throws immediately; wrap calls in your own backoff if you need retries (notably for `429`). The injectable `httpClient` is the extension point for retry/observability middleware.
 - **Empty/204 responses return `null`.** A `204` or empty body decodes to `null`; resource methods that promise an `array` coalesce this to `[]` (or to the resource object for single-item gets).
 - **Testing without the network.** Inject a Guzzle client built on a `GuzzleHttp\Handler\MockHandler` via the `httpClient` config key — no global state, no live calls. The shipped test suite asserts on the exact path, method, and body.
-- **PSR-4 autoloading.** Everything lives under the `OpenWA\` namespace mapped to `src/`; `composer require rmyndharis/openwa` wires up the autoloader.
+- **PSR-4 autoloading.** Everything lives under the `MyWhatsapp\` namespace mapped to `src/`; `composer require mywhatsapp/sdk` wires up the autoloader.
 
 ## 18.5 n8n Community Node
 
-OpenWA's n8n integration is **not** part of these SDK packages. It is a separate community node maintained in its own repository, which speaks the same REST + webhook contract documented in [API Specification](./06-api-specification.md):
+MyWhatsapp's n8n integration is **not** part of these SDK packages. It is a separate community node maintained in its own repository, which speaks the same REST + webhook contract documented in [API Specification](./06-api-specification.md):
 
 - An **action/HTTP** path that calls the REST endpoints (e.g. `POST /api/sessions/:id/messages/send-text`) with the `X-API-Key` header.
-- A **trigger** path that registers a webhook (the `webhooks` resource) and receives inbound events, verifying the `X-OpenWA-Signature` HMAC.
+- A **trigger** path that registers a webhook (the `webhooks` resource) and receives inbound events, verifying the `X-MyWhatsapp-Signature` HMAC.
 
 For installation and node-by-node configuration, see the dedicated [n8n Integration guide](./22-n8n-integration.md). Because the node consumes the public API contract, the verified route/event reference in docs 06 and §6.6 (Webhook Events) is the authority for what it can call and receive.
 
@@ -1136,10 +1136,10 @@ The five SDKs are versioned **independently of the gateway** and of each other, 
 
 | SDK                   | Registry             | Package                               |
 | --------------------- | -------------------- | ------------------------------------- |
-| JavaScript/TypeScript | npm                  | `@rmyndharis/openwa`                  |
-| Python                | PyPI                 | `rmyndharis-openwa`                   |
-| PHP                   | Packagist            | `rmyndharis/openwa`                   |
-| Java                  | Maven Central        | `com.rmyndharis:openwa`               |
+| JavaScript/TypeScript | npm                  | `@mywhatsapp/sdk`                     |
+| Python                | PyPI                 | `mywhatsapp-sdk`                      |
+| PHP                   | Packagist            | `mywhatsapp/sdk`                      |
+| Java                  | Maven Central        | `com.mywhatsapp:mywhatsapp`           |
 | Go                    | (none — module path) | `github.com/rmyndharis/OpenWA/sdk/go` |
 
 ### Contract-drift protection

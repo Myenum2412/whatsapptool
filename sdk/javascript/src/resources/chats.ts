@@ -9,7 +9,7 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type {
   ArchiveChatRequest,
   PinChatRequest,
@@ -30,7 +30,7 @@ export interface ListChatsQuery {
 }
 
 export class ChatsResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** List active chats, most recent first. */
   list(sessionId: string, query?: ListChatsQuery): Promise<ChatSummary[]> {

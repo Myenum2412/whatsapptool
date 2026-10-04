@@ -126,7 +126,7 @@ export class CreateWebhookDto {
   @ApiPropertyOptional({
     description:
       'Secret key for HMAC signature verification. Never returned by any webhook route; it is used to ' +
-      'compute the `X-OpenWA-Signature: sha256=<hex>` header on every delivery.',
+      'compute the `X-MyWhatsapp-Signature: sha256=<hex>` header on every delivery.',
     // Both bounds are spelled out because @MinLength/@MaxLength do not reach the published schema on
     // their own, and the example must satisfy them: the previous 15-character one was rejected by the
     // very route that offered it, so pasting it back from Swagger answered 400
@@ -146,7 +146,7 @@ export class CreateWebhookDto {
   @ApiPropertyOptional({
     description:
       'Custom headers to include in webhook requests. Never returned by any webhook route. At delivery, ' +
-      '`content-type` and `x-openwa-*` names are stripped so a custom header cannot shadow a system one.',
+      '`content-type` and `x-mywhatsapp-*` names are stripped so a custom header cannot shadow a system one.',
     example: { 'X-Custom-Header': 'value' },
   })
   @IsOptional()

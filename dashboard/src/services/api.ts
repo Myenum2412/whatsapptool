@@ -1,4 +1,4 @@
-// API Service Layer for OpenWA Dashboard
+// API Service Layer for MyWhatsapp Dashboard
 // Centralized API client with TypeScript types
 
 import { warnIfInsecureHttpUrl } from '../utils/urlSecurity';
@@ -636,7 +636,7 @@ export interface UpdateCheck {
 }
 
 export interface InfraStatus {
-  // `builtIn` = OpenWA's own bundled container is actually running and backing this service (live),
+  // `builtIn` = MyWhatsapp's own bundled container is actually running and backing this service (live),
   // not just the saved intent — falls back to the saved flag when Docker is unavailable. (#488)
   database: { connected: boolean; type: string; host: string; builtIn: boolean };
   redis: { enabled: boolean; connected: boolean; host: string; port: number; builtIn: boolean };
@@ -788,7 +788,7 @@ export interface SearchResults {
 // throw an Error carrying the HTTP status and, when the gateway supplied one, its machine code.
 async function handleErrorResponse<T>(response: Response): Promise<T> {
   if (response.status === 401) {
-    sessionStorage.removeItem('openwa_api_key');
+    sessionStorage.removeItem('mywhatsapp_api_key');
     if (typeof window !== 'undefined') {
       window.location.assign('/');
       return new Promise<T>(() => {});
@@ -818,7 +818,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const url = `${API_BASE_URL}${endpoint}`;
 
   // Get API key from sessionStorage for authentication
-  const apiKey = sessionStorage.getItem('openwa_api_key');
+  const apiKey = sessionStorage.getItem('mywhatsapp_api_key');
 
   // For FormData (file uploads) let the browser set multipart/form-data + boundary itself.
   const isFormData = options.body instanceof FormData;
@@ -846,7 +846,7 @@ async function requestBlob(endpoint: string): Promise<Blob> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   // Get API key from sessionStorage for authentication
-  const apiKey = sessionStorage.getItem('openwa_api_key');
+  const apiKey = sessionStorage.getItem('mywhatsapp_api_key');
 
   const headers: HeadersInit = {
     ...(apiKey ? { 'X-API-Key': apiKey } : {}),

@@ -2,7 +2,7 @@
 
 ## 11.1 Overview
 
-This document contains Standard Operating Procedures (SOP) for OpenWA operations, including incident response, maintenance procedures, and troubleshooting guides.
+This document contains Standard Operating Procedures (SOP) for MyWhatsapp operations, including incident response, maintenance procedures, and troubleshooting guides.
 
 ### Runbook Structure
 
@@ -38,11 +38,11 @@ Each runbook follows this format:
 # 1. Check container status
 docker compose ps
 
-# 2. Check container logs. Every `docker compose … openwa-api` below names the service as the
+# 2. Check container logs. Every `docker compose … mywhatsapp-api` below names the service as the
 #    production docker-compose.yml defines it — on docker-compose.dev.yml that service is called
-#    `openwa`, so substitute it there. The bare `docker stats`/`docker restart` forms take the
-#    container name, which is `openwa-api` under both files.
-docker compose logs --tail=100 openwa-api
+#    `mywhatsapp`, so substitute it there. The bare `docker stats`/`docker restart` forms take the
+#    container name, which is `mywhatsapp-api` under both files.
+docker compose logs --tail=100 mywhatsapp-api
 
 # 3. Check system resources
 docker stats --no-stream
@@ -51,18 +51,18 @@ free -m
 
 # 4. Identify root cause
 # A. Container crashed
-docker compose logs openwa-api 2>&1 | grep -i "error\|fatal\|crash"
+docker compose logs mywhatsapp-api 2>&1 | grep -i "error\|fatal\|crash"
 
 # B. Out of memory
-docker compose logs openwa-api 2>&1 | grep -i "oom\|memory"
+docker compose logs mywhatsapp-api 2>&1 | grep -i "oom\|memory"
 
 # C. Database connection
-docker compose logs openwa-api 2>&1 | grep -i "database\|connection refused"
+docker compose logs mywhatsapp-api 2>&1 | grep -i "database\|connection refused"
 
 # 5. Apply fix based on cause:
 
 # A. Simple restart
-docker compose restart openwa-api
+docker compose restart mywhatsapp-api
 
 # B. Full restart with cleanup
 docker compose down
@@ -72,12 +72,12 @@ docker compose up -d
 # Edit docker-compose.yml and increase memory limit
 docker compose up -d
 
-# D. Database issues (built-in PostgreSQL runs as container `openwa-postgres`, both when
+# D. Database issues (built-in PostgreSQL runs as container `mywhatsapp-postgres`, both when
 #    started via the compose `postgres`/`full` profile and when orchestrated by the app)
-docker restart openwa-postgres
+docker restart mywhatsapp-postgres
 # Wait for postgres to be ready
 sleep 10
-docker compose restart openwa-api
+docker compose restart mywhatsapp-api
 ```
 
 **Verification:**
@@ -121,7 +121,7 @@ curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/sessions/{sessionId}
 
 # 2. Check if auto-reconnect is working
-docker compose logs openwa-api 2>&1 | grep -i "{sessionId}" | tail -20
+docker compose logs mywhatsapp-api 2>&1 | grep -i "{sessionId}" | tail -20
 
 # 3. Try session restart (stop then start — there is no /restart route)
 curl -X POST -H "X-API-Key: $API_KEY" \
@@ -181,27 +181,27 @@ curl -X POST http://localhost:2785/api/sessions/{sessionId}/messages/send-text \
 **Steps:**
 
 ```bash
-# 1. Check current memory usage (the container is named `openwa-api`)
-docker stats --no-stream openwa-api
+# 1. Check current memory usage (the container is named `mywhatsapp-api`)
+docker stats --no-stream mywhatsapp-api
 free -m
 
 # 2. Identify memory consumers
 # Process-wide memory: scrape /api/metrics (Prometheus text, Bearer METRICS_TOKEN)
 curl -H "Authorization: Bearer $METRICS_TOKEN" \
   http://localhost:2785/api/metrics \
-  | grep -E "openwa_process_resident_memory_bytes|openwa_process_heap_used_bytes"
+  | grep -E "mywhatsapp_process_resident_memory_bytes|mywhatsapp_process_heap_used_bytes"
 
 # 3. Check for memory leaks
-docker compose logs openwa-api 2>&1 | grep -i "heap\|memory\|gc"
+docker compose logs mywhatsapp-api 2>&1 | grep -i "heap\|memory\|gc"
 
 # 4. Immediate actions:
 
 # A. Clear the in-process cache (no runtime cache-clear API — restart the container;
 #    if using Redis, flush via redis-cli)
-docker compose restart openwa-api
+docker compose restart mywhatsapp-api
 
 # B. Restart container (will reconnect sessions)
-docker compose restart openwa-api
+docker compose restart mywhatsapp-api
 
 # C. If caused by too many sessions:
 # List sessions (no sort param); process memory is in stats/overview (memoryUsage, MB)
@@ -219,7 +219,7 @@ curl -H "X-API-Key: $API_KEY" \
 
 ```bash
 # Memory below threshold
-docker stats --no-stream openwa-api
+docker stats --no-stream mywhatsapp-api
 # Expected: Memory usage < 80%
 
 # All sessions still connected
@@ -261,21 +261,21 @@ curl -H "X-API-Key: $API_KEY" \
   "http://localhost:2785/api/webhooks/delivery-failures?sessionId={sessionId}&limit=20"
 
 # Attempts still in flight (not yet exhausted) only appear in the server logs:
-docker compose logs openwa-api 2>&1 | grep -i "webhook" | tail -20
+docker compose logs mywhatsapp-api 2>&1 | grep -i "webhook" | tail -20
 
 # 3. Identify failure reason:
 # A. Endpoint not responding
-curl -v https://your-webhook-endpoint.com/openwa
+curl -v https://your-webhook-endpoint.com/mywhatsapp
 
 # B. SSL certificate issues
-curl -v --insecure https://your-webhook-endpoint.com/openwa
+curl -v --insecure https://your-webhook-endpoint.com/mywhatsapp
 
 # C. Timeout
-curl -v --max-time 30 https://your-webhook-endpoint.com/openwa
+curl -v --max-time 30 https://your-webhook-endpoint.com/mywhatsapp
 
 # D. Authentication failed
 curl -v -H "Authorization: Bearer token" \
-  https://your-webhook-endpoint.com/openwa
+  https://your-webhook-endpoint.com/mywhatsapp
 
 # 4. Test webhook delivery
 curl -X POST -H "X-API-Key: $API_KEY" \
@@ -352,9 +352,9 @@ docker stats --no-stream
 # 3. Create backup
 ./scripts/backup.sh
 
-# Verify backup (backup.sh writes $BACKUP_DIR/openwa-backup-<timestamp>.tar.gz,
+# Verify backup (backup.sh writes $BACKUP_DIR/mywhatsapp-backup-<timestamp>.tar.gz,
 # BACKUP_DIR defaults to ./backups — it creates no dated subdirectories)
-ls -la ./backups/openwa-backup-*.tar.gz
+ls -la ./backups/mywhatsapp-backup-*.tar.gz
 
 # 4. Stop accepting new requests (if using load balancer)
 # Remove from load balancer or set to maintenance mode
@@ -423,8 +423,8 @@ curl -H "X-API-Key: $API_KEY" \
 # Check for breaking changes, migration requirements
 
 # 2. Create backup (BACKUP_DIR must be set BEFORE the script runs — it defaults to ./backups
-#    and the archive is written as $BACKUP_DIR/openwa-backup-<timestamp>.tar.gz)
-export BACKUP_DIR="/backups/openwa"
+#    and the archive is written as $BACKUP_DIR/mywhatsapp-backup-<timestamp>.tar.gz)
+export BACKUP_DIR="/backups/mywhatsapp"
 ./scripts/backup.sh
 
 # 3. Export the Data DB as JSON alongside the archive (admin key)
@@ -432,25 +432,25 @@ curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/infra/export-data > "$BACKUP_DIR/export-data.json"
 
 # Started with docker-compose.dev.yml (the README Quick Start)? Add `-f docker-compose.dev.yml`
-# to every docker compose command in this runbook, the Rollback block included, and write `openwa`
-# wherever a command names the `openwa-api` service (steps 6 and 7, rollback step 2).
+# to every docker compose command in this runbook, the Rollback block included, and write `mywhatsapp`
+# wherever a command names the `mywhatsapp-api` service (steps 6 and 7, rollback step 2).
 
 # 4. Stop services
 docker compose down
 
 # 5. Fetch the new release
-# The shipped docker-compose.yml BUILDS openwa-api from source (`build: context: .`) — there is
+# The shipped docker-compose.yml BUILDS mywhatsapp-api from source (`build: context: .`) — there is
 # no `image:` tag to edit and `docker compose pull` never updates the app, so upgrade the source:
 git pull
 # or pin to a release: git checkout v<new-version>
 
 # 6. Build the new image
-docker compose build openwa-api
+docker compose build mywhatsapp-api
 
 # 7. Run database migrations (if any)
 # Use migration:run:prod in the production image — `migration:run` needs ts-node + the TS
 # source, both stripped from the prod image by `npm ci --omit=dev`.
-docker compose run --rm openwa-api npm run migration:run:prod
+docker compose run --rm mywhatsapp-api npm run migration:run:prod
 
 # 8. Start services
 docker compose up -d
@@ -474,12 +474,12 @@ curl -X POST http://localhost:2785/api/sessions/{sessionId}/messages/send-text \
 ```
 
 > If you deploy the published image instead of building from source — your own compose file with
-> `image: ghcr.io/rmyndharis/openwa:<tag>` — replace steps 5-6 with editing that tag and running
+> `image: ghcr.io/mywhatsapp/sdk:<tag>` — replace steps 5-6 with editing that tag and running
 > `docker compose pull`.
 
-> On Kubernetes with the chart in `charts/openwa`, back up the persistent volume and take the step 3
+> On Kubernetes with the chart in `charts/mywhatsapp`, back up the persistent volume and take the step 3
 > export first, then replace steps 4-8 with checking out the new release and running
-> `helm upgrade openwa ./charts/openwa --reuse-values`. The image tag defaults to the chart's
+> `helm upgrade mywhatsapp ./charts/mywhatsapp --reuse-values`. The image tag defaults to the chart's
 > `appVersion`, so the checkout moves it, unless `image.tag` was set at install: `--reuse-values` keeps
 > that value, so pass `--set image.tag=<new-version>` in that case.
 > Run steps 9-12 through `kubectl port-forward` to the release's Service. `helm rollback` keeps the
@@ -505,12 +505,12 @@ docker compose down
 
 # 2. Check out the previous release and rebuild the image
 git checkout v<old-version>
-docker compose build openwa-api
+docker compose build mywhatsapp-api
 
 # 3. Restore from the pre-upgrade backup (both DBs + sessions) — the archive step 2 produced is
-#    "$BACKUP_DIR/openwa-backup-<timestamp>.tar.gz". The databases in place still hold the failed
+#    "$BACKUP_DIR/mywhatsapp-backup-<timestamp>.tar.gz". The databases in place still hold the failed
 #    upgrade's data, so the restore refuses to touch them without --force
-./scripts/restore.sh "$BACKUP_DIR/openwa-backup-<timestamp>.tar.gz" --force
+./scripts/restore.sh "$BACKUP_DIR/mywhatsapp-backup-<timestamp>.tar.gz" --force
 
 # 4. Start with old version
 docker compose up -d
@@ -560,34 +560,34 @@ User-managed files outside that list (for example the project-level `.env`) must
 ```bash
 # scripts/backup.sh captures:
 #   - main.sqlite   — auth (API keys) + audit log   (ALWAYS SQLite; MAIN_DATABASE_NAME, default ./data/main.sqlite)
-#   - openwa.sqlite — user data                      (DATABASE_NAME, default ./data/openwa.sqlite;
+#   - mywhatsapp.sqlite — user data                      (DATABASE_NAME, default ./data/mywhatsapp.sqlite;
 #                                                     or a pg_dump when DATABASE_TYPE=postgres)
 #   - sessions/     — whatsapp-web.js state (SESSION_DATA_PATH)
 #   - baileys/      — Baileys credentials (BAILEYS_AUTH_DIR)
 #   - media/        — local media                    (skipped automatically when STORAGE_TYPE=s3)
 #   - plugin-packages/ — installed plugin code from PLUGINS_DIR
-#   - plugin-state/    — registry + ctx.storage state under OPENWA_DATA_DIR
+#   - plugin-state/    — registry + ctx.storage state under MYWHATSAPP_DATA_DIR
 #   - .env.generated / .api-key — generated configuration and bootstrap secret
 #
 # The database paths resolve exactly like the app: the explicit MAIN_DATABASE_NAME /
 # DATABASE_NAME env path wins, otherwise the fixed ./data defaults — they are NOT derived from
-# OPENWA_DATA_DIR. A missing source database fails the run (no silent empty backup), the finished
+# MYWHATSAPP_DATA_DIR. A missing source database fails the run (no silent empty backup), the finished
 # archive is checked to contain every configured database, and with the sqlite3 CLI present the
 # databases are snapshotted online via .backup (otherwise plain-copied with a CONSISTENCY-WARNING
 # marker inside the archive).
 
-# Run from the repo root (database defaults are ./data/...; state dirs follow OPENWA_DATA_DIR):
+# Run from the repo root (database defaults are ./data/...; state dirs follow MYWHATSAPP_DATA_DIR):
 ./scripts/backup.sh
 
 # Customize via environment:
-OPENWA_DATA_DIR=/srv/openwa/data \
-  BACKUP_DIR=/backups/openwa \
-  DATABASE_TYPE=postgres DATABASE_URL=postgres://user:pass@host:5432/openwa \
+MYWHATSAPP_DATA_DIR=/srv/mywhatsapp/data \
+  BACKUP_DIR=/backups/mywhatsapp \
+  DATABASE_TYPE=postgres DATABASE_URL=postgres://user:pass@host:5432/mywhatsapp \
   ./scripts/backup.sh
 ```
 
-> The data directory is a Docker **named volume** (`openwa-data`) in the production
-> compose. Run the script where that volume is mounted — e.g. point `OPENWA_DATA_DIR`
+> The data directory is a Docker **named volume** (`mywhatsapp-data`) in the production
+> compose. Run the script where that volume is mounted — e.g. point `MYWHATSAPP_DATA_DIR`
 > at the volume's mountpoint, or run it inside a container with `/app/data` mounted.
 >
 > The shipped compose file and Helm chart mount the container root read-only, so the default
@@ -596,8 +596,8 @@ OPENWA_DATA_DIR=/srv/openwa/data \
 > volume as the data does not survive losing that volume:
 >
 > ```bash
-> docker exec -e BACKUP_DIR=/app/data/backups -e TMPDIR=/app/data/backups openwa-api ./scripts/backup.sh
-> docker cp openwa-api:/app/data/backups/. ./backups/
+> docker exec -e BACKUP_DIR=/app/data/backups -e TMPDIR=/app/data/backups mywhatsapp-api ./scripts/backup.sh
+> docker cp mywhatsapp-api:/app/data/backups/. ./backups/
 > # Helm: kubectl exec <pod> -- env BACKUP_DIR=/app/data/backups ./scripts/backup.sh
 > #       kubectl cp <pod>:/app/data/backups ./backups
 > ```
@@ -621,7 +621,7 @@ OPENWA_DATA_DIR=/srv/openwa/data \
 ```bash
 # The archive MUST contain main.sqlite, the configured data store, and the auth directory for the
 # selected engine (sessions/ for whatsapp-web.js or baileys/ for Baileys).
-tar -tzf ./backups/openwa-backup-*.tar.gz
+tar -tzf ./backups/mywhatsapp-backup-*.tar.gz
 ```
 
 > Backup archives contain API keys, provider credentials, WhatsApp auth state, and plugin secrets.
@@ -654,11 +654,11 @@ docker compose down
 
 # 2. Restore from an archive produced by scripts/backup.sh
 #    (databases land on MAIN_DATABASE_NAME / DATABASE_NAME, default ./data/... — the same paths
-#    the app reads; non-DB state follows OPENWA_DATA_DIR. Pass --strict to refuse an archive
+#    the app reads; non-DB state follows MYWHATSAPP_DATA_DIR. Pass --strict to refuse an archive
 #    whose CONSISTENCY-WARNING marker reports plain-copied, possibly-torn database snapshots.
 #    Restoring over an existing install's live databases requires --force; without it the script
 #    refuses to overwrite them)
-./scripts/restore.sh ./backups/openwa-backup-<timestamp>.tar.gz
+./scripts/restore.sh ./backups/mywhatsapp-backup-<timestamp>.tar.gz
 
 # 3. (Postgres only) the archive contains database.sql — import it manually:
 #    psql "$DATABASE_URL" < ./data/database.sql
@@ -755,7 +755,7 @@ du -sh /var/lib/docker/*
 du -sh ./data/*
 # The app writes no log files — it logs to stdout, so log volume is whatever the Docker
 # log driver retains for the container:
-du -sh "$(docker inspect --format='{{.LogPath}}' openwa-api)"
+du -sh "$(docker inspect --format='{{.LogPath}}' mywhatsapp-api)"
 
 # 3. Clean up:
 
@@ -765,7 +765,7 @@ docker volume prune -f
 
 # B. Container log (Docker-managed; cap it at the daemon/compose log-driver level to stop it
 #    growing back)
-sudo truncate -s 0 "$(docker inspect --format='{{.LogPath}}' openwa-api)"
+sudo truncate -s 0 "$(docker inspect --format='{{.LogPath}}' mywhatsapp-api)"
 
 # C. Old backups
 find /backups -name "*.tar.gz" -mtime +30 -delete

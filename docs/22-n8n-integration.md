@@ -2,23 +2,23 @@
 
 ## Overview
 
-OpenWA provides official n8n community nodes for integrating WhatsApp automation into n8n workflows. This enables users to build powerful automations combining WhatsApp messaging with hundreds of other services available in n8n.
+MyWhatsapp provides official n8n community nodes for integrating WhatsApp automation into n8n workflows. This enables users to build powerful automations combining WhatsApp messaging with hundreds of other services available in n8n.
 
 **Repository:** https://github.com/rmyndharis/OpenWA-n8n
-**npm Package:** `@rmyndharis/n8n-nodes-openwa`
+**npm Package:** `@rmyndharis/n8n-nodes-mywhatsapp`
 
 ## Architecture
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   n8n Workflow  │────▶│  OpenWA Node    │────▶│  OpenWA API     │
+│   n8n Workflow  │────▶│  MyWhatsapp Node    │────▶│  MyWhatsapp API     │
 │                 │     │  (credentials)  │     │  (your server)  │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                                         │
                                                         ▼
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   n8n Workflow  │◀────│ OpenWA Trigger  │◀────│  Webhook POST   │
-│   (triggered)   │     │  (listens)      │     │  from OpenWA    │
+│   n8n Workflow  │◀────│ MyWhatsapp Trigger  │◀────│  Webhook POST   │
+│   (triggered)   │     │  (listens)      │     │  from MyWhatsapp    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
@@ -28,7 +28,7 @@ OpenWA provides official n8n community nodes for integrating WhatsApp automation
 
 1. Go to **Settings > Community Nodes**
 2. Select **Install**
-3. Enter `@rmyndharis/n8n-nodes-openwa`
+3. Enter `@rmyndharis/n8n-nodes-mywhatsapp`
 4. Agree to the risks and install
 5. Restart n8n
 
@@ -36,21 +36,21 @@ OpenWA provides official n8n community nodes for integrating WhatsApp automation
 
 ```bash
 cd ~/.n8n/nodes
-npm install @rmyndharis/n8n-nodes-openwa
+npm install @rmyndharis/n8n-nodes-mywhatsapp
 ```
 
 ## Nodes
 
-### OpenWA Node
+### MyWhatsapp Node
 
-Execute operations on your OpenWA server.
+Execute operations on your MyWhatsapp server.
 
 #### Credentials Setup
 
-| Field      | Description                      | Example                  |
-| ---------- | -------------------------------- | ------------------------ |
-| Server URL | OpenWA server URL (without /api) | `https://wa.example.com` |
-| API Key    | API key from OpenWA dashboard    | `owa_xxxxxxxx...`        |
+| Field      | Description                          | Example                  |
+| ---------- | ------------------------------------ | ------------------------ |
+| Server URL | MyWhatsapp server URL (without /api) | `https://wa.example.com` |
+| API Key    | API key from MyWhatsapp dashboard    | `owa_xxxxxxxx...`        |
 
 #### Resources & Operations
 
@@ -67,7 +67,7 @@ Execute operations on your OpenWA server.
 | Webhook  | Create        | Create a webhook            | `POST /api/sessions/:id/webhooks`               |
 | Webhook  | Delete        | Delete a webhook            | `DELETE /api/sessions/:id/webhooks/:webhookId`  |
 
-### OpenWA Trigger Node
+### MyWhatsapp Trigger Node
 
 Start workflows when WhatsApp events occur.
 
@@ -109,8 +109,8 @@ Start workflows when WhatsApp events occur.
 
 #### How It Works
 
-1. When workflow is activated, the trigger creates a webhook in OpenWA
-2. OpenWA sends events to n8n's webhook URL
+1. When workflow is activated, the trigger creates a webhook in MyWhatsapp
+2. MyWhatsapp sends events to n8n's webhook URL
 3. When workflow is deactivated, the webhook is automatically deleted
 
 #### Output Data Format
@@ -134,9 +134,9 @@ Start workflows when WhatsApp events occur.
 ```
 
 > **Deduplication.** Every delivery includes `idempotencyKey` and `deliveryId` in the body **and** as the
-> `X-OpenWA-Idempotency-Key` / `X-OpenWA-Delivery-Id` headers. `idempotencyKey` is **stable across retries**
+> `X-MyWhatsapp-Idempotency-Key` / `X-MyWhatsapp-Delivery-Id` headers. `idempotencyKey` is **stable across retries**
 > of the same event; `deliveryId` identifies one delivery to one webhook and is stable across that
-> delivery's retry attempts too — read the `X-OpenWA-Retry-Count` header for the attempt number. Because a
+> delivery's retry attempts too — read the `X-MyWhatsapp-Retry-Count` header for the attempt number. Because a
 > webhook can be retried, add a dedup step keyed on `idempotencyKey` (e.g. an n8n IF or "Remove Duplicates"
 > node) so a retried delivery isn't processed twice.
 
@@ -147,7 +147,7 @@ Start workflows when WhatsApp events occur.
 Automatically reply to incoming messages with a welcome message.
 
 ```
-[OpenWA Trigger] → [IF: Check keyword] → [OpenWA: Send Text]
+[MyWhatsapp Trigger] → [IF: Check keyword] → [MyWhatsapp: Send Text]
      │
      └── Events: message.received
 ```
@@ -156,14 +156,14 @@ Automatically reply to incoming messages with a welcome message.
 
 - Trigger: `message.received`
 - IF Node: Check if `{{$json.data.body}}` contains "hello"
-- OpenWA: Send Text with welcome message
+- MyWhatsapp: Send Text with welcome message
 
 ### 2. Lead Collection to Google Sheets
 
 Capture incoming messages and save to Google Sheets.
 
 ```
-[OpenWA Trigger] → [Google Sheets: Append] → [OpenWA: Send Text]
+[MyWhatsapp Trigger] → [Google Sheets: Append] → [MyWhatsapp: Send Text]
      │                    │
      │                    └── Save: name, phone, message
      └── Events: message.received
@@ -174,7 +174,7 @@ Capture incoming messages and save to Google Sheets.
 Get notified on Slack when WhatsApp session disconnects.
 
 ```
-[OpenWA Trigger] → [Slack: Send Message]
+[MyWhatsapp Trigger] → [Slack: Send Message]
      │
      └── Events: session.disconnected
 ```
@@ -192,7 +192,7 @@ Please check and reconnect.
 Send WhatsApp notification when new order is received.
 
 ```
-[Webhook: New Order] → [OpenWA: Send Text]
+[Webhook: New Order] → [MyWhatsapp: Send Text]
                             │
                             └── "Thank you for your order #{{$json.orderId}}"
 ```
@@ -202,7 +202,7 @@ Send WhatsApp notification when new order is received.
 Send daily reminders to a list of contacts.
 
 ```
-[Schedule Trigger] → [Google Sheets: Get Rows] → [Loop] → [OpenWA: Send Text]
+[Schedule Trigger] → [Google Sheets: Get Rows] → [Loop] → [MyWhatsapp: Send Text]
      │                      │                                    │
      └── Daily 9AM          └── Get contacts                     └── Send reminder
 ```
@@ -214,14 +214,14 @@ Collect appointment requests over WhatsApp, check availability in an external sc
 See [n8n Appointment Booking Workflow](./examples/n8n-appointment-booking.md) for a complete example.
 
 ```
-[OpenWA Trigger] → [IF: Booking intent?] → [Set: Normalize request]
+[MyWhatsapp Trigger] → [IF: Booking intent?] → [Set: Normalize request]
                                                │
                                                ▼
                                       [Availability Source]
                                                │
                          ┌─────────────────────┴─────────────────────┐
                          ▼                                           ▼
-              [Create Booking] → [OpenWA: Send Text]      [OpenWA: Send Text]
+              [Create Booking] → [MyWhatsapp: Send Text]      [MyWhatsapp: Send Text]
                   confirmed confirmation                  alternative slots
 ```
 
@@ -232,7 +232,7 @@ See [n8n Appointment Booking Workflow](./examples/n8n-appointment-booking.md) fo
 Always add error handling in your workflows:
 
 ```
-[OpenWA Node] → [IF: Check success] → [Continue...]
+[MyWhatsapp Node] → [IF: Check success] → [Continue...]
                       │
                       └── [Error Handler]
 ```
@@ -242,7 +242,7 @@ Always add error handling in your workflows:
 WhatsApp has rate limits. Add delays between messages:
 
 ```
-[Loop Over Items] → [Wait: 2 seconds] → [OpenWA: Send Text]
+[Loop Over Items] → [Wait: 2 seconds] → [MyWhatsapp: Send Text]
 ```
 
 ### 3. Message Formatting
@@ -265,10 +265,10 @@ Always use the correct format for chat IDs:
 
 ### Credential Test Failed
 
-1. Verify OpenWA server is running
+1. Verify MyWhatsapp server is running
 2. Check API key is correct
 3. Ensure server URL doesn't have trailing slash
-4. Verify network connectivity between n8n and OpenWA
+4. Verify network connectivity between n8n and MyWhatsapp
 
 ### Trigger Not Receiving Events
 
@@ -276,16 +276,16 @@ Always use the correct format for chat IDs:
    node two URLs: a test URL (`https://your-n8n/webhook-test/…`) and a production URL
    (`https://your-n8n/webhook/…`). The test URL is registered only while the editor is listening and
    stops after a single request, so a workflow wired to it receives one event and then goes silent.
-   Activate the workflow and point OpenWA at the production URL.
-2. Check webhook was created in OpenWA dashboard
-3. Verify n8n webhook URL is accessible from OpenWA server
+   Activate the workflow and point MyWhatsapp at the production URL.
+2. Check webhook was created in MyWhatsapp dashboard
+3. Verify n8n webhook URL is accessible from MyWhatsapp server
 4. Check firewall/proxy settings
 5. Ensure session is connected and active
 6. For a call trigger, check the session's engine: the call-outcome events never fire on
    whatsapp-web.js and `call.received` is not reliable there (see the note under the trigger event
    table above)
-7. Ask OpenWA which side dropped the event:
-   `GET /api/webhooks/delivery-failures?sessionId={sessionId}` (ADMIN key). A row means OpenWA
+7. Ask MyWhatsapp which side dropped the event:
+   `GET /api/webhooks/delivery-failures?sessionId={sessionId}` (ADMIN key). A row means MyWhatsapp
    delivered and n8n rejected it; an empty list means the event never reached delivery at all
 
 ### Message Not Sending
@@ -301,7 +301,7 @@ Always use the correct format for chat IDs:
 
 ```bash
 git clone https://github.com/rmyndharis/OpenWA-n8n.git
-cd OpenWA-n8n
+cd MyWhatsapp-n8n
 npm install
 npm run build
 ```
@@ -314,7 +314,7 @@ npm run dev
 
 # Link to local n8n
 cd ~/.n8n/nodes
-npm link /path/to/OpenWA-n8n
+npm link /path/to/MyWhatsapp-n8n
 ```
 
 ### Testing
@@ -334,7 +334,7 @@ docker run -it --rm \
 
 ## Related Documentation
 
-- [OpenWA API Specification](./06-api-specification.md)
+- [MyWhatsapp API Specification](./06-api-specification.md)
 - [Webhook System](./03-system-architecture.md#353-webhook-system)
 - [n8n Appointment Booking Workflow](./examples/n8n-appointment-booking.md)
 - [n8n Documentation](https://docs.n8n.io/)

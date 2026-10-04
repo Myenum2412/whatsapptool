@@ -8,7 +8,7 @@
 
 import { encodeSegment } from '../http.js';
 import type { BinaryResponse } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type {
   SendImageStatusRequest,
   SendTextStatusRequest,
@@ -19,7 +19,7 @@ import type {
 } from '../types.js';
 
 export class StatusResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** Get all status updates. */
   list(sessionId: string): Promise<{ statuses: StatusRecord[] }> {

@@ -1,6 +1,6 @@
 name: Java SDK Release
 
-# Publishes com.rmyndharis:openwa to Maven Central from sdk/java. Requires the one-time setup
+# Publishes com.mywhatsapp:mywhatsapp to Maven Central from sdk/java. Requires the one-time setup
 # (see sdk/java/README.md -> Releasing); the publish secrets are verified up front and their
 # absence FAILS the run instead of silently no-oping green:
 #   - MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD  (Sonatype Central user token halves)

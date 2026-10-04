@@ -23,7 +23,7 @@ set -euo pipefail
 # backup.sh and restore.sh take these from the environment before anything else. An exported value
 # would aim a case at a real install, and restore replaces the state directories wholesale, so every
 # case starts from none of them and sets exactly the paths it uses.
-unset OPENWA_DATA_DIR BACKUP_DIR DATABASE_TYPE MAIN_DATABASE_NAME DATABASE_NAME SESSION_DATA_PATH \
+unset MYWHATSAPP_DATA_DIR BACKUP_DIR DATABASE_TYPE MAIN_DATABASE_NAME DATABASE_NAME SESSION_DATA_PATH \
   BAILEYS_AUTH_DIR STORAGE_LOCAL_PATH PLUGINS_DIR PLUGIN_STATE_DIR
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -85,22 +85,22 @@ make_fixture "$A/custom/store.sqlite" "alpha-data"
   cd "$A"
   MAIN_DATABASE_NAME="$A/custom/auth.sqlite" \
     DATABASE_NAME="$A/custom/store.sqlite" \
-    OPENWA_DATA_DIR="$A/state" \
+    MYWHATSAPP_DATA_DIR="$A/state" \
     BACKUP_DIR="$A/out" \
     "$BACKUP" >/dev/null
 )
-ARCHIVE_A="$(ls "$A"/out/openwa-backup-*.tar.gz)"
+ARCHIVE_A="$(ls "$A"/out/mywhatsapp-backup-*.tar.gz)"
 if ! tar -tzf "$ARCHIVE_A" | grep -qx './main.sqlite'; then
   fail "(a) archive missing ./main.sqlite"
 fi
-if ! tar -tzf "$ARCHIVE_A" | grep -qx './openwa.sqlite'; then
-  fail "(a) archive missing ./openwa.sqlite"
+if ! tar -tzf "$ARCHIVE_A" | grep -qx './mywhatsapp.sqlite'; then
+  fail "(a) archive missing ./mywhatsapp.sqlite"
 fi
 (
   cd "$A/restore"
   MAIN_DATABASE_NAME="$A/restore/custom-main.sqlite" \
     DATABASE_NAME="$A/restore/custom-data.sqlite" \
-    OPENWA_DATA_DIR="$A/restore/state" \
+    MYWHATSAPP_DATA_DIR="$A/restore/state" \
     "$RESTORE" "$ARCHIVE_A" >/dev/null
 )
 if [ "$(db_fingerprint "$A/restore/custom-main.sqlite")" != "alpha-main" ]; then
@@ -116,7 +116,7 @@ echo "==> (b) missing source database fails hard"
 B="$WORK/b"
 mkdir -p "$B"
 set +e
-OUT_B="$(cd "$B" && OPENWA_DATA_DIR="$B/state" BACKUP_DIR="$B/out" "$BACKUP" 2>&1)"
+OUT_B="$(cd "$B" && MYWHATSAPP_DATA_DIR="$B/state" BACKUP_DIR="$B/out" "$BACKUP" 2>&1)"
 RC_B=$?
 set -e
 if [ "$RC_B" -eq 0 ]; then
@@ -128,7 +128,7 @@ fi
 if [ -n "$(ls "$B/out" 2>/dev/null || true)" ]; then
   fail "(b) an archive was written despite the missing database"
 fi
-# Only the data store missing (default paths) must also fail, naming openwa.sqlite.
+# Only the data store missing (default paths) must also fail, naming mywhatsapp.sqlite.
 B2="$WORK/b2"
 mkdir -p "$B2/data"
 make_fixture "$B2/data/main.sqlite" "b2-main"
@@ -139,7 +139,7 @@ set -e
 if [ "$RC_B2" -eq 0 ]; then
   fail "(b) backup.sh exited 0 with the data store missing"
 fi
-if ! printf '%s' "$OUT_B2" | grep -q 'openwa.sqlite'; then
+if ! printf '%s' "$OUT_B2" | grep -q 'mywhatsapp.sqlite'; then
   fail "(b) error message does not name the missing data store"
 fi
 pass "(b) missing DB -> non-zero exit, clear message, no archive"
@@ -150,12 +150,12 @@ if [ "$HAS_SQLITE3" -eq 1 ]; then
   C="$WORK/c"
   mkdir -p "$C/src/data" "$C/dst"
   sqlite3 "$C/src/data/main.sqlite" "CREATE TABLE sentinel(payload TEXT); INSERT INTO sentinel VALUES('c-main');"
-  sqlite3 "$C/src/data/openwa.sqlite" "CREATE TABLE sentinel(payload TEXT); INSERT INTO sentinel VALUES('c-data');"
+  sqlite3 "$C/src/data/mywhatsapp.sqlite" "CREATE TABLE sentinel(payload TEXT); INSERT INTO sentinel VALUES('c-data');"
   (
     cd "$C/src"
     BACKUP_DIR="$C/out" "$BACKUP" >/dev/null
   )
-  ARCHIVE_C="$(ls "$C"/out/openwa-backup-*.tar.gz)"
+  ARCHIVE_C="$(ls "$C"/out/mywhatsapp-backup-*.tar.gz)"
   if tar -tzf "$ARCHIVE_C" | grep -q 'CONSISTENCY-WARNING'; then
     fail "(c) unexpected CONSISTENCY-WARNING marker with sqlite3 present"
   fi
@@ -166,7 +166,7 @@ if [ "$HAS_SQLITE3" -eq 1 ]; then
   if [ "$(sqlite3 "$C/dst/data/main.sqlite" 'SELECT payload FROM sentinel;')" != "c-main" ]; then
     fail "(c) main DB contents did not survive the roundtrip"
   fi
-  if [ "$(sqlite3 "$C/dst/data/openwa.sqlite" 'SELECT payload FROM sentinel;')" != "c-data" ]; then
+  if [ "$(sqlite3 "$C/dst/data/mywhatsapp.sqlite" 'SELECT payload FROM sentinel;')" != "c-data" ]; then
     fail "(c) data store contents did not survive the roundtrip"
   fi
   pass "(c) .backup roundtrip preserves database contents"
@@ -181,13 +181,13 @@ mkdir -p "$D/src/data" "$D/shim" "$D/dst"
 # Plain files are fine here: the shim PATH hides sqlite3, so backup.sh takes the cp branch
 # regardless of what the host provides.
 printf 'd-main\n' >"$D/src/data/main.sqlite"
-printf 'd-data\n' >"$D/src/data/openwa.sqlite"
+printf 'd-data\n' >"$D/src/data/mywhatsapp.sqlite"
 populate_shim "$D/shim"
 (
   cd "$D/src"
   PATH="$D/shim" BACKUP_DIR="$D/out" "$BACKUP" >"$D/backup.log" 2>&1
 )
-ARCHIVE_D="$(ls "$D"/out/openwa-backup-*.tar.gz)"
+ARCHIVE_D="$(ls "$D"/out/mywhatsapp-backup-*.tar.gz)"
 if ! tar -tzf "$ARCHIVE_D" | grep -q 'CONSISTENCY-WARNING'; then
   fail "(d) fallback archive does not carry the CONSISTENCY-WARNING marker"
 fi
@@ -218,13 +218,13 @@ echo "==> (e) archive min-content check rejects an incomplete archive"
 E="$WORK/e"
 mkdir -p "$E/src/data" "$E/shim"
 make_fixture "$E/src/data/main.sqlite" "e-main"
-make_fixture "$E/src/data/openwa.sqlite" "e-data"
+make_fixture "$E/src/data/mywhatsapp.sqlite" "e-data"
 if [ "$HAS_SQLITE3" -eq 1 ]; then
   populate_shim "$E/shim" with-sqlite3
 else
   populate_shim "$E/shim"
 fi
-# Shadow tar: create the archive WITHOUT ./openwa.sqlite to simulate a truncated backup.
+# Shadow tar: create the archive WITHOUT ./mywhatsapp.sqlite to simulate a truncated backup.
 # (remove the populate_shim symlink first — writing through it would target the real tar)
 rm -f "$E/shim/tar"
 REAL_TAR="$(command -v tar)"
@@ -233,7 +233,7 @@ cat >"$E/shim/tar" <<EOF
 if [ "\$1" = "-czf" ]; then
   out="\$2"
   shift 2
-  exec "$REAL_TAR" -czf "\$out" --exclude='./openwa.sqlite' "\$@"
+  exec "$REAL_TAR" -czf "\$out" --exclude='./mywhatsapp.sqlite' "\$@"
 fi
 exec "$REAL_TAR" "\$@"
 EOF
@@ -243,9 +243,9 @@ OUT_E="$(cd "$E/src" && PATH="$E/shim" BACKUP_DIR="$E/out" "$BACKUP" 2>&1)"
 RC_E=$?
 set -e
 if [ "$RC_E" -eq 0 ]; then
-  fail "(e) min-content check passed an archive missing openwa.sqlite"
+  fail "(e) min-content check passed an archive missing mywhatsapp.sqlite"
 fi
-if ! printf '%s' "$OUT_E" | grep -q 'openwa.sqlite'; then
+if ! printf '%s' "$OUT_E" | grep -q 'mywhatsapp.sqlite'; then
   fail "(e) error message does not name the missing archive member"
 fi
 if [ -n "$(ls "$E/out" 2>/dev/null || true)" ]; then
@@ -264,19 +264,19 @@ mkdir -p "$F/state" "$F/live" "$F/data" "$F/extract" "$F/restore/state"
 make_fixture "$F/live/auth.sqlite" "foxtrot-live-main"
 make_fixture "$F/live/store.sqlite" "foxtrot-live-data"
 make_fixture "$F/data/main.sqlite" "STALE-main"
-make_fixture "$F/data/openwa.sqlite" "STALE-data"
+make_fixture "$F/data/mywhatsapp.sqlite" "STALE-data"
 printf 'DATABASE_TYPE=sqlite\nMAIN_DATABASE_NAME=%s\nDATABASE_NAME=%s\n' \
   "$F/live/auth.sqlite" "$F/live/store.sqlite" >"$F/state/.env.generated"
 (
   cd "$F"
-  OPENWA_DATA_DIR="$F/state" BACKUP_DIR="$F/out" "$BACKUP" >/dev/null
+  MYWHATSAPP_DATA_DIR="$F/state" BACKUP_DIR="$F/out" "$BACKUP" >/dev/null
 )
-ARCHIVE_F="$(ls "$F"/out/openwa-backup-*.tar.gz)"
+ARCHIVE_F="$(ls "$F"/out/mywhatsapp-backup-*.tar.gz)"
 tar -xzf "$ARCHIVE_F" -C "$F/extract"
 if [ "$(db_fingerprint "$F/extract/main.sqlite")" != "foxtrot-live-main" ]; then
   fail "(f) backup archived the stale default main DB instead of the one data/.env.generated names"
 fi
-if [ "$(db_fingerprint "$F/extract/openwa.sqlite")" != "foxtrot-live-data" ]; then
+if [ "$(db_fingerprint "$F/extract/mywhatsapp.sqlite")" != "foxtrot-live-data" ]; then
   fail "(f) backup archived the stale default data DB instead of the one data/.env.generated names"
 fi
 # restore.sh must read the SAME layer, or it writes the databases somewhere backup.sh never looked.
@@ -284,7 +284,7 @@ printf 'DATABASE_TYPE=sqlite\nMAIN_DATABASE_NAME=%s\nDATABASE_NAME=%s\n' \
   "$F/restore/auth.sqlite" "$F/restore/store.sqlite" >"$F/restore/state/.env.generated"
 (
   cd "$F/restore"
-  OPENWA_DATA_DIR="$F/restore/state" "$RESTORE" "$ARCHIVE_F" >/dev/null
+  MYWHATSAPP_DATA_DIR="$F/restore/state" "$RESTORE" "$ARCHIVE_F" >/dev/null
 )
 if [ "$(db_fingerprint "$F/restore/auth.sqlite")" != "foxtrot-live-main" ]; then
   fail "(f) restore ignored the MAIN_DATABASE_NAME in data/.env.generated"
@@ -295,11 +295,11 @@ fi
 # An explicit environment value must still win — that is the app's precedence, not ours to change.
 (
   cd "$F"
-  MAIN_DATABASE_NAME="$F/data/main.sqlite" DATABASE_NAME="$F/data/openwa.sqlite" \
-    OPENWA_DATA_DIR="$F/state" BACKUP_DIR="$F/out2" "$BACKUP" >/dev/null
+  MAIN_DATABASE_NAME="$F/data/main.sqlite" DATABASE_NAME="$F/data/mywhatsapp.sqlite" \
+    MYWHATSAPP_DATA_DIR="$F/state" BACKUP_DIR="$F/out2" "$BACKUP" >/dev/null
 )
 rm -rf "${F:?}/extract2" && mkdir -p "$F/extract2"
-tar -xzf "$(ls "$F"/out2/openwa-backup-*.tar.gz)" -C "$F/extract2"
+tar -xzf "$(ls "$F"/out2/mywhatsapp-backup-*.tar.gz)" -C "$F/extract2"
 if [ "$(db_fingerprint "$F/extract2/main.sqlite")" != "STALE-main" ]; then
   fail "(f) an explicit environment path lost to data/.env.generated — precedence is inverted"
 fi
@@ -308,21 +308,21 @@ pass "(f) data/.env.generated resolves paths for both scripts, and the environme
 echo ""
 echo "==> (g) PLUGIN_STATE_DIR moves the registry and ctx.storage, and both scripts follow it"
 # The knob names the ROOT; the app keeps plugin state at <root>/plugins. Both scripts hardcoded
-# $OPENWA_DATA_DIR/plugins, so with the knob set the archive carried neither the registry nor any
+# $MYWHATSAPP_DATA_DIR/plugins, so with the knob set the archive carried neither the registry nor any
 # plugin's persisted storage, and the restore put nothing back. Silent both ways: an empty source
 # directory simply produces no plugin-state entry.
 G="$WORK/g"
 mkdir -p "$G/state" "$G/elsewhere/plugins/chatwoot" "$G/extract" "$G/restore/state"
 make_fixture "$G/state/main.sqlite" "golf-main"
-make_fixture "$G/state/openwa.sqlite" "golf-data"
+make_fixture "$G/state/mywhatsapp.sqlite" "golf-data"
 printf '{"plugins":[{"id":"chatwoot"}]}' >"$G/elsewhere/plugins/registry.json"
 printf 'mapped-conversation' >"$G/elsewhere/plugins/chatwoot/key-Zm9v.json"
 (
   cd "$G"
-  OPENWA_DATA_DIR="$G/state" PLUGIN_STATE_DIR="$G/elsewhere" BACKUP_DIR="$G/out" \
-    MAIN_DATABASE_NAME="$G/state/main.sqlite" DATABASE_NAME="$G/state/openwa.sqlite" "$BACKUP" >/dev/null
+  MYWHATSAPP_DATA_DIR="$G/state" PLUGIN_STATE_DIR="$G/elsewhere" BACKUP_DIR="$G/out" \
+    MAIN_DATABASE_NAME="$G/state/main.sqlite" DATABASE_NAME="$G/state/mywhatsapp.sqlite" "$BACKUP" >/dev/null
 )
-ARCHIVE_G="$(ls "$G"/out/openwa-backup-*.tar.gz)"
+ARCHIVE_G="$(ls "$G"/out/mywhatsapp-backup-*.tar.gz)"
 tar -xzf "$ARCHIVE_G" -C "$G/extract"
 if [ ! -f "$G/extract/plugin-state/registry.json" ]; then
   fail "(g) backup ignored PLUGIN_STATE_DIR: the plugin registry is missing from the archive"
@@ -333,8 +333,8 @@ fi
 # And the restore has to put them back where the knob points, not under the default data dir.
 (
   cd "$G"
-  OPENWA_DATA_DIR="$G/restore/state" PLUGIN_STATE_DIR="$G/restored-elsewhere" \
-    MAIN_DATABASE_NAME="$G/restore/state/main.sqlite" DATABASE_NAME="$G/restore/state/openwa.sqlite" \
+  MYWHATSAPP_DATA_DIR="$G/restore/state" PLUGIN_STATE_DIR="$G/restored-elsewhere" \
+    MAIN_DATABASE_NAME="$G/restore/state/main.sqlite" DATABASE_NAME="$G/restore/state/mywhatsapp.sqlite" \
     "$RESTORE" "$ARCHIVE_G" --force >/dev/null
 )
 if [ ! -f "$G/restored-elsewhere/plugins/registry.json" ]; then
@@ -350,17 +350,17 @@ echo "==> (h) restore refuses a live target without --force, before touching any
 H="$WORK/h"
 mkdir -p "$H/src/data" "$H/live" "$H/out"
 make_fixture "$H/src/data/main.sqlite" "hotel-archive-main"
-make_fixture "$H/src/data/openwa.sqlite" "hotel-archive-data"
+make_fixture "$H/src/data/mywhatsapp.sqlite" "hotel-archive-data"
 (
   cd "$H/src"
   BACKUP_DIR="$H/out" "$BACKUP" >/dev/null
 )
-ARCHIVE_H="$(ls "$H"/out/openwa-backup-*.tar.gz)"
+ARCHIVE_H="$(ls "$H"/out/mywhatsapp-backup-*.tar.gz)"
 make_fixture "$H/live/main.sqlite" "hotel-live-main"
-make_fixture "$H/live/openwa.sqlite" "hotel-live-data"
+make_fixture "$H/live/mywhatsapp.sqlite" "hotel-live-data"
 set +e
 OUT_H="$(cd "$H" && MAIN_DATABASE_NAME="$H/live/main.sqlite" \
-  DATABASE_NAME="$H/live/openwa.sqlite" OPENWA_DATA_DIR="$H/live" \
+  DATABASE_NAME="$H/live/mywhatsapp.sqlite" MYWHATSAPP_DATA_DIR="$H/live" \
   "$RESTORE" "$ARCHIVE_H" 2>&1)"
 RC_H=$?
 set -e
@@ -380,7 +380,7 @@ fi
 if [ "$(db_fingerprint "$H/live/main.sqlite")" != "hotel-live-main" ]; then
   fail "(h) the refused restore modified the live main DB"
 fi
-if [ "$(db_fingerprint "$H/live/openwa.sqlite")" != "hotel-live-data" ]; then
+if [ "$(db_fingerprint "$H/live/mywhatsapp.sqlite")" != "hotel-live-data" ]; then
   fail "(h) the refused restore modified the live data DB"
 fi
 # $H/live is non-empty, so an execution that reached the safety-snapshot step would have left a
@@ -390,13 +390,13 @@ if [ -n "$(ls -d "$H"/live.pre-restore-* 2>/dev/null || true)" ]; then
 fi
 (
   cd "$H"
-  MAIN_DATABASE_NAME="$H/live/main.sqlite" DATABASE_NAME="$H/live/openwa.sqlite" \
-    OPENWA_DATA_DIR="$H/live" "$RESTORE" "$ARCHIVE_H" --force >/dev/null
+  MAIN_DATABASE_NAME="$H/live/main.sqlite" DATABASE_NAME="$H/live/mywhatsapp.sqlite" \
+    MYWHATSAPP_DATA_DIR="$H/live" "$RESTORE" "$ARCHIVE_H" --force >/dev/null
 )
 if [ "$(db_fingerprint "$H/live/main.sqlite")" != "hotel-archive-main" ]; then
   fail "(h) --force did not overwrite the live main DB after the refusal"
 fi
-if [ "$(db_fingerprint "$H/live/openwa.sqlite")" != "hotel-archive-data" ]; then
+if [ "$(db_fingerprint "$H/live/mywhatsapp.sqlite")" != "hotel-archive-data" ]; then
   fail "(h) --force did not overwrite the live data DB after the refusal"
 fi
 pass "(h) live target refused before any state was touched; --force overwrites"
@@ -407,14 +407,14 @@ echo "==> (i) the data-store half of the guard refuses on its own"
 # data store is the only database present.
 I="$WORK/i"
 mkdir -p "$I/bin" "$I/live"
-make_fixture "$I/live/openwa.sqlite" "india-live-data"
+make_fixture "$I/live/mywhatsapp.sqlite" "india-live-data"
 
 # guarded_restore <target dir>: restore ARCHIVE_H without --force over <dir>/main.sqlite and
-# <dir>/openwa.sqlite, with $I/bin first on PATH. Output lands in OUT, the exit code in RC.
+# <dir>/mywhatsapp.sqlite, with $I/bin first on PATH. Output lands in OUT, the exit code in RC.
 guarded_restore() {
   set +e
   OUT="$(cd "$WORK" && PATH="$I/bin:$PATH" MAIN_DATABASE_NAME="$1/main.sqlite" \
-    DATABASE_NAME="$1/openwa.sqlite" OPENWA_DATA_DIR="$1" "$RESTORE" "$ARCHIVE_H" 2>&1)"
+    DATABASE_NAME="$1/mywhatsapp.sqlite" MYWHATSAPP_DATA_DIR="$1" "$RESTORE" "$ARCHIVE_H" 2>&1)"
   RC=$?
   set -e
 }
@@ -425,10 +425,10 @@ expect_refused() {
   if [ "$RC" -eq 0 ]; then
     fail "($1) restore exited 0 over a live data store without --force"
   fi
-  if ! printf '%s' "$OUT" | grep -qF "$I/live/openwa.sqlite"; then
+  if ! printf '%s' "$OUT" | grep -qF "$I/live/mywhatsapp.sqlite"; then
     fail "($1) refusal message does not name the live data store"
   fi
-  if [ "$(db_fingerprint "$I/live/openwa.sqlite")" != "india-live-data" ]; then
+  if [ "$(db_fingerprint "$I/live/mywhatsapp.sqlite")" != "india-live-data" ]; then
     fail "($1) the refused restore modified the live data store"
   fi
 }
@@ -461,7 +461,7 @@ if [ "$HAS_SQLITE3" -eq 1 ]; then
   expect_refused k
   # And a database with no tables yet is still safe to restore over without --force.
   mkdir -p "$I/fresh"
-  : >"$I/fresh/openwa.sqlite"
+  : >"$I/fresh/mywhatsapp.sqlite"
   guarded_restore "$I/fresh"
   if [ "$RC" -ne 0 ]; then
     fail "(k) the rc file made a database with no tables look live"
@@ -479,7 +479,7 @@ if [ "$(id -u)" -ne 0 ]; then
   L="$WORK/l"
   mkdir -p "$L/data" "$L/ro"
   make_fixture "$L/data/main.sqlite" "l-main"
-  make_fixture "$L/data/openwa.sqlite" "l-data"
+  make_fixture "$L/data/mywhatsapp.sqlite" "l-data"
   chmod a-w "$L/ro"
   set +e
   OUT_L="$(cd "$L" && BACKUP_DIR="$L/ro/out" "$BACKUP" 2>&1)"

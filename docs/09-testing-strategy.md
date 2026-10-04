@@ -2,7 +2,7 @@
 
 ## 9.1 Current Status
 
-OpenWA now has an active Jest test suite covering the backend core, engine adapters, security helpers,
+MyWhatsapp now has an active Jest test suite covering the backend core, engine adapters, security helpers,
 database migrations, plugin hooks, and smoke-level e2e boot paths. This document describes the current
 test layout and the expected testing workflow for contributors.
 
@@ -266,7 +266,7 @@ Main CI is defined in `.github/workflows/ci.yml`.
 | `scripts-smoke` | shellcheck on `docker-entrypoint.sh` and every `scripts/*.sh`, plus the backup/restore smoke test                                                                                                                                                                                                                                                                                                                                                                                     |
 | `chart`         | helm lint, helm template with default and fully-toggled values, kubeconform on both renders, the rendered-behaviour check, actionlint on the workflows                                                                                                                                                                                                                                                                                                                                |
 | `build`         | backend build after lint/audit/test/dashboard/scripts-smoke/chart jobs pass                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `docker`        | multi-arch Docker build on pushes and pull requests, then `scripts/smoke-test-non-root.sh` against the built image so the entrypoint's root→openwa drop is verified, not assumed; publishes to GHCR only on push, so fork pull requests validate both architectures without publishing                                                                                                                                                                                                |
+| `docker`        | multi-arch Docker build on pushes and pull requests, then `scripts/smoke-test-non-root.sh` against the built image so the entrypoint's root→mywhatsapp drop is verified, not assumed; publishes to GHCR only on push, so fork pull requests validate both architectures without publishing                                                                                                                                                                                            |
 
 SDK CI is defined in `.github/workflows/sdk-ci.yml` and is path-filtered to SDK sources plus server
 contract surfaces that SDKs mirror (`src/**/dto/**`, `src/**/*.controller.ts`, `src/**/*.service.ts`, and
@@ -340,7 +340,7 @@ For production-compose changes:
 
 ```bash
 docker compose up -d --build
-docker compose logs -f openwa-api
+docker compose logs -f mywhatsapp-api
 ```
 
 Live WhatsApp checks require an operator-owned account and should not be part of CI:

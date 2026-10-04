@@ -6,7 +6,7 @@
     }
   },
   "common": {
-    "appName": "OpenWA",
+    "appName": "MyWhatsapp",
     "updateAvailable": "الإصدار v{{version}} متاح",
     "loading": "جارٍ التحميل...",
     "cancel": "إلغاء",
@@ -358,7 +358,7 @@
     "connectionError": "تعذّر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
     "help": "هل تحتاج مساعدة؟",
     "viewDocs": "عرض التوثيق",
-    "footer": "صُنع بـ ❤️ بواسطة Yudhi Armyndharis ومجتمع OpenWA",
+    "footer": "╪╡┘Å┘å╪╣ ╪¿┘Ç Γ¥ñ∩╕Å ╪¿┘ê╪º╪│╪╖╪⌐ Yudhi Armyndharis ┘ê┘à╪¼╪¬┘à╪╣ MyWhatsapp",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
@@ -1143,7 +1143,7 @@
       "postgres": "PostgreSQL",
       "postgresDesc": "قاعدة بيانات جاهزة للإنتاج",
       "useBuiltIn": "استخدام حاوية PostgreSQL المدمجة",
-      "builtInDesc": "سيدير OpenWA حاوية PostgreSQL نيابةً عنك",
+      "builtInDesc": "سيدير MyWhatsapp حاوية PostgreSQL نيابةً عنك",
       "dbName": "اسم قاعدة البيانات",
       "schema": "المخطط",
       "schemaDesc": "مخطط PostgreSQL (يُتجاهل لـ SQLite). الافتراضي 'public'. يجب أن يكون المخطط موجوداً مسبقاً.",
@@ -1178,7 +1178,7 @@
       "enable": "تفعيل Redis",
       "enableDesc": "مطلوب للتخزين المؤقت وتخزين الجلسات وقوائم BullMQ",
       "useBuiltIn": "استخدام حاوية Redis المدمجة",
-      "builtInDesc": "سيدير OpenWA حاوية Redis نيابةً عنك",
+      "builtInDesc": "سيدير MyWhatsapp حاوية Redis نيابةً عنك",
       "queueTitle": "تفعيل نظام قوائم BullMQ",
       "queueDesc": "استخدام قوائم الرسائل لتوصيل موثوق للرسائل والويب هوك",
       "statsTitle": "إحصائيات القوائم",
@@ -1200,7 +1200,7 @@
       "s3": "Amazon S3",
       "s3Desc": "تخزين سحابي (متوافق مع S3)",
       "useBuiltIn": "استخدام حاوية MinIO المدمجة",
-      "builtInDesc": "سيدير OpenWA حاوية MinIO (متوافقة مع S3) نيابةً عنك",
+      "builtInDesc": "سيدير MyWhatsapp حاوية MinIO (متوافقة مع S3) نيابةً عنك",
       "storagePath": "مسار التخزين",
       "bucket": "اسم الحاوية",
       "region": "المنطقة",
@@ -1251,7 +1251,7 @@
       "importFailed": "تعذّر استيراد البيانات",
       "importOk": "تمّ استيراد البيانات",
       "importConfirm": "سيؤدّي الاستيراد إلى استبدال جميع البيانات الحالية بالنسخة الاحتياطية ({{rows}} صفًّا). لا يمكن التراجع عن هذا الإجراء. هل تريد المتابعة؟",
-      "invalidFile": "هذا الملفّ ليس نسخة احتياطية صالحة لبيانات OpenWA.",
+      "invalidFile": "هذا الملفّ ليس نسخة احتياطية صالحة لبيانات MyWhatsapp.",
       "importTooLarge": "النسخة الاحتياطية أكبر من حدّ الطلب. زِد قيمة BODY_SIZE_LIMIT على الخادم ثم أعد المحاولة."
     },
     "statusLoadError": "تعذّر تحميل حالة البنية التحتية الحالية. حدّث الصفحة لإعادة المحاولة."

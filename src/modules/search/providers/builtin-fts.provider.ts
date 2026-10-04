@@ -40,7 +40,7 @@ export class BuiltInFtsProvider implements SearchProvider, OnModuleInit {
   readonly label = 'Built-in database full-text search';
   private readonly logger = new Logger('BuiltInFtsProvider');
 
-  // OpenWA has two TypeORM connections (main: auth/audit SQLite, data: messages). Bind explicitly to
+  // MyWhatsapp has two TypeORM connections (main: auth/audit SQLite, data: messages). Bind explicitly to
   // 'data' so the provider queries the connection that owns the `messages` table + the FTS migration,
   // never the default/`main` one. The bare `DataSource` type alone is ambiguous with two connections.
   constructor(@InjectDataSource('data') private readonly dataSource: DataSource) {}

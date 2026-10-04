@@ -14,7 +14,7 @@ const {
 } = require('./patch-wwebjs-group-description.js');
 
 function makeDependency(source) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-group-description-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-group-description-'));
   const groupChat = path.join(root, 'src', 'structures', 'GroupChat.js');
   fs.mkdirSync(path.dirname(groupChat), { recursive: true });
   fs.writeFileSync(groupChat, source);
@@ -76,7 +76,7 @@ test('rejects an ambiguous dependency shape without changing it', () => {
 });
 
 test('reports a missing dependency tree', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-group-description-empty-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-group-description-empty-'));
 
   assert.throws(() => applyGroupDescriptionFix(root), /GroupChat\.js not found/);
 });

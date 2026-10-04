@@ -6,11 +6,11 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type { CallLinkResponse, CreateCallLinkRequest, SuccessResult } from '../types.js';
 
 export class CallsResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /**
    * Reject a ringing incoming call. **Baileys only**: whatsapp-web.js answers 501.

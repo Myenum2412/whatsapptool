@@ -18,12 +18,12 @@ export class InfraDatabaseStatusDto {
   @ApiProperty({ description: 'Configured driver.', example: 'postgres' })
   type!: string;
 
-  @ApiProperty({ description: 'Host the app is configured to reach.', example: 'openwa-postgres' })
+  @ApiProperty({ description: 'Host the app is configured to reach.', example: 'mywhatsapp-postgres' })
   host!: string;
 
   @ApiProperty({
     description:
-      "Whether OpenWA's own bundled container is actually running and backing this service, " +
+      "Whether MyWhatsapp's own bundled container is actually running and backing this service, " +
       'detected live from the labelled container rather than read from the saved intent. Falls back ' +
       'to the saved flag when Docker is unavailable.',
     example: true,
@@ -38,13 +38,13 @@ export class InfraRedisStatusDto {
   @ApiProperty({ description: 'Whether a live probe reached it.', example: true })
   connected!: boolean;
 
-  @ApiProperty({ example: 'openwa-redis' })
+  @ApiProperty({ example: 'mywhatsapp-redis' })
   host!: string;
 
   @ApiProperty({ example: 6379 })
   port!: number;
 
-  @ApiProperty({ description: "Whether OpenWA's bundled Redis container is backing this.", example: true })
+  @ApiProperty({ description: "Whether MyWhatsapp's bundled Redis container is backing this.", example: true })
   builtIn!: boolean;
 }
 
@@ -74,10 +74,10 @@ export class InfraStorageStatusDto {
   @ApiPropertyOptional({ description: 'Local storage root. Present only for `local`.', example: './data/storage' })
   path?: string;
 
-  @ApiPropertyOptional({ description: 'Bucket name. Present only for `s3`.', example: 'openwa-media' })
+  @ApiPropertyOptional({ description: 'Bucket name. Present only for `s3`.', example: 'mywhatsapp-media' })
   bucket?: string;
 
-  @ApiProperty({ description: "Whether OpenWA's bundled MinIO container is backing this.", example: false })
+  @ApiProperty({ description: "Whether MyWhatsapp's bundled MinIO container is backing this.", example: false })
   builtIn!: boolean;
 
   @ApiPropertyOptional({ description: 'Whether the S3 endpoint answered a probe. Present only for `s3`.' })
@@ -231,16 +231,16 @@ export class InfraConfigDatabaseDto {
   @ApiProperty({ example: true })
   builtIn!: boolean;
 
-  @ApiProperty({ example: 'openwa-postgres' })
+  @ApiProperty({ example: 'mywhatsapp-postgres' })
   host!: string;
 
   @ApiProperty({ description: 'Kept as a string: it is echoed back from the saved env verbatim.', example: '5432' })
   port!: string;
 
-  @ApiProperty({ example: 'openwa' })
+  @ApiProperty({ example: 'mywhatsapp' })
   username!: string;
 
-  @ApiProperty({ description: 'Database name, or the SQLite file path.', example: 'openwa' })
+  @ApiProperty({ description: 'Database name, or the SQLite file path.', example: 'mywhatsapp' })
   database!: string;
 
   @ApiProperty({ example: 'public' })
@@ -266,7 +266,7 @@ export class InfraConfigRedisDto {
   @ApiProperty({ example: true })
   builtIn!: boolean;
 
-  @ApiProperty({ example: 'openwa-redis' })
+  @ApiProperty({ example: 'mywhatsapp-redis' })
   host!: string;
 
   @ApiProperty({ description: 'Echoed from the saved env verbatim.', example: '6379' })

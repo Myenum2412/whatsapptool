@@ -1,16 +1,16 @@
-# rmyndharis/openwa
+# mywhatsapp/sdk
 
-Official PHP SDK for the [OpenWA](https://github.com/rmyndharis/OpenWA) WhatsApp API Gateway.
+Official PHP SDK for the [MyWhatsapp](https://github.com/rmyndharis/OpenWA) WhatsApp API Gateway.
 
 A synchronous client built on [Guzzle](https://docs.guzzlephp.org/), PSR-4 autoloaded.
 
 ## Install
 
 ```bash
-composer require rmyndharis/openwa
+composer require mywhatsapp/sdk
 ```
 
-Requires PHP 8.1+ and Guzzle 7. The namespace is `OpenWA\`.
+Requires PHP 8.1+ and Guzzle 7. The namespace is `MyWhatsapp\`.
 
 ## Usage
 
@@ -18,7 +18,7 @@ Requires PHP 8.1+ and Guzzle 7. The namespace is `OpenWA\`.
 <?php
 require 'vendor/autoload.php';
 
-use OpenWA\Client;
+use MyWhatsapp\Client;
 
 $client = new Client([
     'baseUrl' => 'https://your-gateway.example.com',
@@ -29,7 +29,7 @@ $client->sessions->start('my-session');
 
 $result = $client->messages->sendText('my-session', [
     'chatId' => '628123456789@c.us',
-    'text'   => 'Hello from the OpenWA PHP SDK!',
+    'text'   => 'Hello from the MyWhatsapp PHP SDK!',
 ]);
 echo $result['messageId'];
 ```
@@ -50,21 +50,21 @@ $client = new Client([
 
 ## Errors
 
-A non-2xx response throws a typed `OpenWA\Exceptions\OpenWAApiException` subclass —
-`OpenWAAuthException` (401), `OpenWAForbiddenException` (403), `OpenWANotFoundException` (404),
-`OpenWAConflictException` (409), `OpenWARateLimitException` (429),
-`OpenWANotImplementedException` (501), `OpenWAServiceUnavailableException` (503 — the only
+A non-2xx response throws a typed `MyWhatsapp\Exceptions\MyWhatsappApiException` subclass —
+`MyWhatsappAuthException` (401), `MyWhatsappForbiddenException` (403), `MyWhatsappNotFoundException` (404),
+`MyWhatsappConflictException` (409), `MyWhatsappRateLimitException` (429),
+`MyWhatsappNotImplementedException` (501), `MyWhatsappServiceUnavailableException` (503 — the only
 retryable one) — each exposing `getStatus()` and the parsed `getBody()`.
-A timeout throws `OpenWATimeoutException`. In a routed deployment only 503 proves the request
+A timeout throws `MyWhatsappTimeoutException`. In a routed deployment only 503 proves the request
 was never carried out: a forward that fails after the request reached the owner node answers
 502 or 504.
 
 ```php
-use OpenWA\Exceptions\OpenWANotFoundException;
+use MyWhatsapp\Exceptions\MyWhatsappNotFoundException;
 
 try {
     $client->sessions->get('missing');
-} catch (OpenWANotFoundException $e) {
+} catch (MyWhatsappNotFoundException $e) {
     echo $e->getStatus();  // 404
 }
 ```
@@ -81,7 +81,7 @@ try {
 ## Releasing
 
 Packagist installs this SDK from the mirror repository
-[`rmyndharis/openwa-php`](https://github.com/rmyndharis/openwa-php), not from the
+[`mywhatsapp/sdk`](https://github.com/mywhatsapp/sdk), not from the
 monorepo — Composer needs `composer.json` at a repository root and does not
 support subdirectories. Two workflows keep that mirror correct:
 

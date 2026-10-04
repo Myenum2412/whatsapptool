@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
-const THEME_KEY = 'openwa_theme';
+const THEME_KEY = 'mywhatsapp_theme';
 // Legacy key from the removed palette picker (pre-0.9.0). Cleaned up on mount so old installs
 // don't carry dead state; the picker was dropped for being hard to maintain and off-brand.
-const LEGACY_PALETTE_KEY = 'openwa_palette';
+const LEGACY_PALETTE_KEY = 'mywhatsapp_palette';
 
 function isTheme(value: string | null): value is Theme {
   return value === 'light' || value === 'dark' || value === 'system';

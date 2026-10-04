@@ -21,10 +21,10 @@ import { wwjsAuthDir } from '../auth-dir-paths';
 type HygieneLogger = Pick<LoggerService, 'debug' | 'log'>;
 
 /**
- * SIGKILL any Chromium orphaned by a previous lifetime of this process. When OpenWA dies hard
+ * SIGKILL any Chromium orphaned by a previous lifetime of this process. When MyWhatsapp dies hard
  * (kill -9, crash, host reboot) Puppeteer's exit hook never runs, so the browser survives as an
  * orphan — leaking memory and pinning the session profile dir. Orphans are identified by the
- * `--openwa-session=<id>` marker arg appended to the puppeteer args at launch (Chromium ignores
+ * `--mywhatsapp-session=<id>` marker arg appended to the puppeteer args at launch (Chromium ignores
  * the unknown flag; it is purely a `ps` label). Best-effort: never throws — a `ps` failure only
  * logs at debug, so the sweep can never block an engine start.
  */
@@ -48,7 +48,7 @@ export async function killOrphanedChromiumProcesses(sessionId: string, logger: H
     // Token-exact marker match: the marker is a single argv token, so it must appear delimited by
     // whitespace or string boundaries. A plain substring test would let restarting session
     // `sales` SIGKILL the LIVE browser of sibling `sales2` (their markers share a prefix).
-    const marker = `--openwa-session=${sessionId}`;
+    const marker = `--mywhatsapp-session=${sessionId}`;
     const markerRe = new RegExp('(?:^|\\s)' + marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=\\s|$)');
     const killedPids: number[] = [];
     for (const line of psOutput.split('\n')) {
@@ -58,7 +58,7 @@ export async function killOrphanedChromiumProcesses(sessionId: string, logger: H
       const args = match[2];
       if (pid === process.pid || !markerRe.test(args)) continue;
       // Never kill a non-browser process that happens to carry the marker string
-      // (e.g. a `grep --openwa-session=…` probing the process table).
+      // (e.g. a `grep --mywhatsapp-session=…` probing the process table).
       if (!/chrome|chromium|headless/i.test(args)) continue;
       try {
         process.kill(pid, 'SIGKILL');

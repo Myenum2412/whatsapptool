@@ -98,7 +98,7 @@ export class SendTextMessageDto {
 
   @ApiProperty({
     description: 'Text message content',
-    example: 'Hello from OpenWA!',
+    example: 'Hello from MyWhatsapp!',
     maxLength: MESSAGE_TEXT_MAX_LENGTH,
   })
   @IsString()
@@ -172,7 +172,7 @@ export class SendTextMessageDto {
 export const SEND_TEXT_BODY_EXAMPLES = {
   minimal: {
     summary: 'Plain text message',
-    value: { chatId: '628123456789@c.us', text: 'Hello from OpenWA!' },
+    value: { chatId: '628123456789@c.us', text: 'Hello from MyWhatsapp!' },
   },
   withMentions: {
     summary: 'Group message with an @mention (the text must carry the @<number> token)',

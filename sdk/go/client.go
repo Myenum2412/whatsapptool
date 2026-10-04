@@ -1,9 +1,9 @@
-// Package openwa is the official Go client for the OpenWA WhatsApp API Gateway.
+// Package mywhatsapp is the official Go client for the MyWhatsapp WhatsApp API Gateway.
 //
 // The single entry point is New, which returns a *Client whose exported fields
 // are the domain services:
 //
-//	client, err := openwa.New("http://localhost:2785", "owa_k1_…")
+//	client, err := mywhatsapp.New("http://localhost:2785", "owa_k1_…")
 //	if err != nil {
 //	    log.Fatal(err)
 //	}
@@ -12,9 +12,9 @@
 //	if _, err := client.Sessions.Start(ctx, "my-session"); err != nil {
 //	    log.Fatal(err)
 //	}
-//	res, err := client.Messages.SendText(ctx, "my-session", openwa.SendTextRequest{
+//	res, err := client.Messages.SendText(ctx, "my-session", mywhatsapp.SendTextRequest{
 //	    ChatID: "628123456789@c.us",
-//	    Text:   "Hello from the OpenWA Go SDK!",
+//	    Text:   "Hello from the MyWhatsapp Go SDK!",
 //	})
 //
 // Every network method is context-first. Configuration and dependency injection
@@ -26,7 +26,7 @@
 // Use HTTPS in production: the API key is sent as X-API-Key on every request
 // and is bearer-equivalent. Redirects are never followed, so the key is never
 // re-sent to a redirect target.
-package openwa
+package mywhatsapp
 
 import (
 	"bytes"
@@ -44,7 +44,7 @@ import (
 	"time"
 )
 
-// Client is the entry point to the OpenWA API. Construct it with New. It is safe
+// Client is the entry point to the MyWhatsapp API. Construct it with New. It is safe
 // for concurrent use by multiple goroutines. The exported service fields group
 // the API by domain.
 type Client struct {
@@ -78,10 +78,10 @@ var localhostHosts = map[string]bool{"localhost": true, "127.0.0.1": true, "::1"
 // Both are required. Everything else is configured through Options.
 func New(baseURL, apiKey string, opts ...Option) (*Client, error) {
 	if strings.TrimSpace(baseURL) == "" {
-		return nil, errors.New("openwa: baseURL is required")
+		return nil, errors.New("mywhatsapp: baseURL is required")
 	}
 	if strings.TrimSpace(apiKey) == "" {
-		return nil, errors.New("openwa: apiKey is required")
+		return nil, errors.New("mywhatsapp: apiKey is required")
 	}
 
 	cfg := &config{
@@ -155,7 +155,7 @@ func New(baseURL, apiKey string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
-const insecureWarning = "openwa: baseURL uses insecure http:// — the API key is sent in cleartext; use https:// in production"
+const insecureWarning = "mywhatsapp: baseURL uses insecure http:// — the API key is sent in cleartext; use https:// in production"
 
 // warnIfInsecure warns once, at construction, when the API key would travel in
 // cleartext to a non-localhost host.
@@ -216,7 +216,7 @@ func (c *Client) do(ctx context.Context, method, path string, query url.Values, 
 			*text = string(data)
 			return nil
 		}
-		return fmt.Errorf("openwa: decoding response: %w", err)
+		return fmt.Errorf("mywhatsapp: decoding response: %w", err)
 	}
 	return nil
 }
@@ -229,7 +229,7 @@ func (c *Client) doRaw(ctx context.Context, method, path string, query url.Value
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
-			return nil, "", fmt.Errorf("openwa: encoding request body: %w", err)
+			return nil, "", fmt.Errorf("mywhatsapp: encoding request body: %w", err)
 		}
 		bodyBytes = b
 		reader = bytes.NewReader(b)
@@ -242,7 +242,7 @@ func (c *Client) doRaw(ctx context.Context, method, path string, query url.Value
 
 	req, err := http.NewRequestWithContext(ctx, method, rawURL, reader)
 	if err != nil {
-		return nil, "", fmt.Errorf("openwa: building request: %w", err)
+		return nil, "", fmt.Errorf("mywhatsapp: building request: %w", err)
 	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
@@ -258,13 +258,13 @@ func (c *Client) doRaw(ctx context.Context, method, path string, query url.Value
 		if isTimeout(err) {
 			return nil, "", &TimeoutError{Timeout: c.timeout, Err: err}
 		}
-		return nil, "", fmt.Errorf("openwa: %s %s: %w", method, path, err)
+		return nil, "", fmt.Errorf("mywhatsapp: %s %s: %w", method, path, err)
 	}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", fmt.Errorf("openwa: reading response body: %w", err)
+		return nil, "", fmt.Errorf("mywhatsapp: reading response body: %w", err)
 	}
 
 	// Any non-2xx (including an unfollowed 3xx) is an error.

@@ -50,7 +50,7 @@ function makeRoot({
   baileysPatcher = false,
   baileysNewsletterPatcher = false,
 } = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-postinstall-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-postinstall-'));
   if (dashboard) fs.mkdirSync(path.join(root, 'dashboard'));
   if (
     patchers.length ||

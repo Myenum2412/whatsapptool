@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Tests;
+namespace MyWhatsapp\Tests;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
-use OpenWA\Client as OpenWAClient;
+use MyWhatsapp\Client as MyWhatsappClient;
 use Psr\Http\Message\RequestInterface;
 
 /**
@@ -72,9 +72,9 @@ class MockBackend
         return new GuzzleClient(['handler' => HandlerStack::create($recorder)]);
     }
 
-    public function makeClient(string $baseUrl = 'http://localhost:2785', string $apiKey = 'owa_k1_test'): OpenWAClient
+    public function makeClient(string $baseUrl = 'http://localhost:2785', string $apiKey = 'owa_k1_test'): MyWhatsappClient
     {
-        return new OpenWAClient([
+        return new MyWhatsappClient([
             'baseUrl' => $baseUrl,
             'apiKey' => $apiKey,
             'httpClient' => $this->httpClient(),

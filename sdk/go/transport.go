@@ -1,4 +1,4 @@
-package openwa
+package mywhatsapp
 
 import (
 	"net/http"
@@ -20,8 +20,8 @@ func (f RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 // out, last on the way back). Inject cross-cutting concerns like this instead
 // of subclassing the client.
 //
-//	client, _ := openwa.New(baseURL, apiKey,
-//	    openwa.WithMiddleware(tracingMiddleware, metricsMiddleware),
+//	client, _ := mywhatsapp.New(baseURL, apiKey,
+//	    mywhatsapp.WithMiddleware(tracingMiddleware, metricsMiddleware),
 //	)
 type Middleware func(next http.RoundTripper) http.RoundTripper
 
@@ -82,12 +82,12 @@ func loggingMiddleware(log Logger) Middleware {
 			resp, err := next.RoundTrip(req)
 			dur := time.Since(start)
 			if err != nil {
-				log.Log(req.Context(), LevelError, "openwa request failed",
+				log.Log(req.Context(), LevelError, "mywhatsapp request failed",
 					"method", req.Method, "url", req.URL.String(),
 					"duration_ms", dur.Milliseconds(), "error", err.Error())
 				return resp, err
 			}
-			log.Log(req.Context(), LevelDebug, "openwa request",
+			log.Log(req.Context(), LevelDebug, "mywhatsapp request",
 				"method", req.Method, "url", req.URL.String(),
 				"status", resp.StatusCode, "duration_ms", dur.Milliseconds())
 			return resp, nil

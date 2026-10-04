@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mywhatsapp.fullname" . }}
+  labels:
+    {{- include "mywhatsapp.labels" . | nindent 4 }}
+    # Marks this Service as the single scrape target. Deliberately NOT in `mywhatsapp.labels`: the
+    # headless Service must not carry it, or the ServiceMonitor matches both again. The headless
+    # Service exists for StatefulSet DNS and sets publishNotReadyAddresses, so scraping it also
+    # produces `up=0` for a pod that is still starting.
+    mywhatsapp.io/scrape-target: "primary"
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "mywhatsapp.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

@@ -50,7 +50,7 @@ function parseWebhookSecret(secret: string): string | undefined {
  * signature header may carry multiple space-separated `v1,` candidates (key rotation); any match passes.
  * Pure and total: never throws. Ported from supabase-otp-hook/verify.ts; idiomatic changes: reuse the
  * existing safeEqualStr (identical to the reference's safeEqual) and the lowercasing `header()` helper
- * (the reference lowercases separately — OpenWA already delivers lowercased keys).
+ * (the reference lowercases separately — MyWhatsapp already delivers lowercased keys).
  */
 function verifyStandardWebhooks(spec: IngressSignatureSpec, input: VerifyInput): { ok: boolean; reason?: string } {
   const keyB64 = parseWebhookSecret(input.secret);

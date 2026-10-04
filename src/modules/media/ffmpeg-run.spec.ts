@@ -19,7 +19,7 @@ describePosix('runFfmpeg', () => {
   let workDir: string;
 
   beforeAll(async () => {
-    workDir = await mkdtemp(join(tmpdir(), 'openwa-ffmpeg-stub-'));
+    workDir = await mkdtemp(join(tmpdir(), 'mywhatsapp-ffmpeg-stub-'));
     stubPath = join(workDir, 'fake-ffmpeg');
     // Behaves like ffmpeg to the degree this code depends on: writes the file named last, and
     // reports failure on stderr with a non-zero exit.
@@ -60,7 +60,7 @@ esac
 
   /** Temp directories this module creates, so cleanup can be asserted rather than assumed. */
   const convertDirs = async (): Promise<string[]> =>
-    (await readdir(tmpdir())).filter(name => name.startsWith('openwa-convert-'));
+    (await readdir(tmpdir())).filter(name => name.startsWith('mywhatsapp-convert-'));
 
   it('returns the bytes the process produced', async () => {
     const output = await runFfmpeg(Buffer.from('input'), 'bin', 'ogg', [], options());

@@ -59,7 +59,7 @@ describe('isStorageRootWritable', () => {
   let tmp: string;
 
   beforeEach(() => {
-    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-storage-root-'));
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-storage-root-'));
   });
 
   afterEach(() => {

@@ -65,8 +65,8 @@ test('isUserRole accepts exactly the three known roles', () => {
 // saved key). Harness mirrors Infrastructure.test.ts: jsdom globals, a fetch stub recording every
 // call, i18n catalogues awaited before render. App brings its own providers, so no wrapper here.
 
-const LOGIN_KEY = 'openwa_api_key';
-const ROLE_KEY = 'openwa_user_role';
+const LOGIN_KEY = 'mywhatsapp_api_key';
+const ROLE_KEY = 'mywhatsapp_user_role';
 
 interface FetchCall {
   method: string;

@@ -17,7 +17,7 @@ export default function teardown(): void {
   const cutoff = Date.now() - MAX_AGE_MS;
   let entries: string[];
   try {
-    entries = readdirSync(root).filter(name => name.startsWith('openwa-e2e-'));
+    entries = readdirSync(root).filter(name => name.startsWith('mywhatsapp-e2e-'));
   } catch {
     return;
   }

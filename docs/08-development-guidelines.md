@@ -3,7 +3,7 @@
 ## 8.1 Project Structure
 
 ```
-openwa/
+mywhatsapp/
 ├── src/
 │   ├── main.ts                    # Application entry
 │   ├── app.module.ts              # Root module
@@ -626,7 +626,7 @@ Add a new one only when the condition is engine-agnostic and recurs; a one-off s
 ```bash
 # 1. Clone repository
 git clone https://github.com/rmyndharis/OpenWA.git
-cd OpenWA
+cd MyWhatsapp
 
 # 2. Install the locked dependencies (also installs dashboard dependencies)
 npm ci
@@ -691,7 +691,7 @@ docker compose --profile full up -d
 
 ### Environment Variables
 
-OpenWA supports multiple infrastructure configurations. Choose based on your needs:
+MyWhatsapp supports multiple infrastructure configurations. Choose based on your needs:
 
 #### Minimal Profile (Development / Single Session)
 
@@ -703,7 +703,7 @@ LOG_LEVEL=debug
 
 # Database: SQLite (zero config)
 DATABASE_TYPE=sqlite
-DATABASE_NAME=./data/openwa.sqlite
+DATABASE_NAME=./data/mywhatsapp.sqlite
 DATABASE_SYNCHRONIZE=true
 
 # Storage: Local filesystem
@@ -714,7 +714,7 @@ STORAGE_LOCAL_PATH=./data/media
 REDIS_ENABLED=false
 QUEUE_ENABLED=false
 
-# Optional: seed a known admin key. If omitted, OpenWA generates a random key and writes data/.api-key.
+# Optional: seed a known admin key. If omitted, MyWhatsapp generates a random key and writes data/.api-key.
 API_MASTER_KEY=
 
 # Session
@@ -741,9 +741,9 @@ LOG_LEVEL=info
 DATABASE_TYPE=postgres
 DATABASE_HOST=postgres
 DATABASE_PORT=5432
-DATABASE_USERNAME=openwa
+DATABASE_USERNAME=mywhatsapp
 DATABASE_PASSWORD=<set-a-strong-password>
-DATABASE_NAME=openwa
+DATABASE_NAME=mywhatsapp
 DATABASE_SYNCHRONIZE=false
 DATABASE_POOL_SIZE=10
 
@@ -920,9 +920,9 @@ npm run lint -- --fix
 # PII warning: this logs full queries WITH bound parameters — message bodies and phone
 # numbers end up in the application log. Use on a local/debug data set only, never in production.
 
-# View Docker logs (service is `openwa-api` in docker-compose.yml, `openwa` in
+# View Docker logs (service is `mywhatsapp-api` in docker-compose.yml, `mywhatsapp` in
 # docker-compose.dev.yml — there is no service named `app`)
-docker compose logs -f openwa-api
+docker compose logs -f mywhatsapp-api
 ```
 
 ## 8.10 Performance Best Practices
@@ -1133,7 +1133,7 @@ constructor(
 
 **Check logs:**
 ```bash
-docker compose logs openwa-api --tail 100
+docker compose logs mywhatsapp-api --tail 100
 ````
 
 **Common causes:**
@@ -1148,14 +1148,14 @@ docker compose logs openwa-api --tail 100
 
 ```dockerfile
 # Add shared memory size
-docker run --shm-size=2gb openwa
+docker run --shm-size=2gb mywhatsapp
 ```
 
 Or in docker-compose.yml:
 
 ```yaml
 services:
-  openwa-api:
+  mywhatsapp-api:
     shm_size: '2gb'
 ```
 

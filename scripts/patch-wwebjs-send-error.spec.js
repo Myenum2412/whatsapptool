@@ -23,7 +23,7 @@ function pristineClient() {
 }
 
 function makeDependency(source) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-send-error-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-send-error-'));
   const client = path.join(root, 'src', 'Client.js');
   fs.mkdirSync(path.dirname(client), { recursive: true });
   fs.writeFileSync(client, source);
@@ -69,7 +69,7 @@ test('reports the patch as applied only once the transform has run', () => {
 });
 
 test('reads an unreadable tree as applied rather than raising a false alarm', () => {
-  assert.equal(isApplied(path.join(os.tmpdir(), 'openwa-send-error-absent')), true);
+  assert.equal(isApplied(path.join(os.tmpdir(), 'mywhatsapp-send-error-absent')), true);
 });
 
 test('rejects an unknown dependency shape without changing it', () => {
@@ -98,7 +98,7 @@ test('rejects a capture present alongside a second anchor', () => {
 
 test('fails the CLI on an unknown shape without --best-effort, and only warns with it', () => {
   // The CLI patches the tree beside the script, so run a copy from a scripts/ dir in a scratch root.
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-send-error-cli-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-send-error-cli-'));
   const script = path.join(root, 'scripts', 'patch-wwebjs-send-error.js');
   fs.mkdirSync(path.dirname(script));
   fs.copyFileSync(path.join(__dirname, 'patch-wwebjs-send-error.js'), script);
@@ -186,7 +186,7 @@ test('returns a successful send exactly as the unpatched code did', async () => 
   }
 });
 
-test('rethrows a plain Error as the same object, so its text reaches OpenWA unchanged', async () => {
+test('rethrows a plain Error as the same object, so its text reaches MyWhatsapp unchanged', async () => {
   for (const make of [() => new Error('No LID for user'), () => new Error('Could not get the quoted message.')]) {
     const thrown = make();
     assert.equal(await rejectionFor(thrown), thrown);

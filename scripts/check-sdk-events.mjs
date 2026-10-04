@@ -45,7 +45,7 @@ const SDKS = [
   },
   {
     name: 'python',
-    file: 'sdk/python/openwa/types.py',
+    file: 'sdk/python/mywhatsapp/types.py',
     harvest: text => {
       const literal = text.slice(text.indexOf('WebhookEvent = Literal['));
       return [...literal.slice(0, literal.indexOf(']')).matchAll(/"([^"]+)"/g)].map(m => m[1]);
@@ -58,7 +58,7 @@ const SDKS = [
   },
   {
     name: 'java',
-    file: 'sdk/java/src/main/java/com/rmyndharis/openwa/model/WebhookEvent.java',
+    file: 'sdk/java/src/main/java/com/mywhatsapp/sdk/model/WebhookEvent.java',
     harvest: text => [...text.matchAll(/@SerializedName\("([^"]+)"\)/g)].map(m => m[1]),
   },
 ];

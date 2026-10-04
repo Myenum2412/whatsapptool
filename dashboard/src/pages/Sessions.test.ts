@@ -282,8 +282,8 @@ before(async () => {
   installFetchStub();
   // RoleProvider seeds from localStorage; 'admin' makes canWrite true, or every action button
   // (New Session, Stop/Start, Unlink, Delete, Kill Stuck) is hidden and there is nothing to test.
-  window.localStorage.setItem('openwa_user_role', 'admin');
-  // Deliberately NOT setting sessionStorage['openwa_api_key'] here: useWebSocket.connect() bails
+  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  // Deliberately NOT setting sessionStorage['mywhatsapp_api_key'] here: useWebSocket.connect() bails
   // with a console.warn when it's absent, so the page opens no socket. A case that drives the live
   // feed sets the key itself; the client it reaches is the socket.io double, which dials nothing.
   // Awaited, not just imported: catalogues are fetched now, so the import only starts the load and
@@ -298,7 +298,7 @@ before(async () => {
 
 afterEach(() => {
   rtl.cleanup();
-  window.sessionStorage.removeItem('openwa_api_key');
+  window.sessionStorage.removeItem('mywhatsapp_api_key');
   resetSocketDouble();
   queryClient?.clear();
   queryClient = undefined;
@@ -763,7 +763,7 @@ function pushSessionStatus(sessionId: string, status: string): void {
 test('a failed status push closes that session QR modal', async () => {
   const { screen, fireEvent, within, waitFor } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   renderSessions();
 
   const card = (await screen.findByText('new-device')).closest('.session-card') as HTMLElement;
@@ -783,7 +783,7 @@ test('a failed status push closes that session QR modal', async () => {
 test('a disconnected push closes the QR modal once the re-read shows no engine', async () => {
   const { screen, fireEvent, within, waitFor } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   const row: Session = { ...SESSION_QR, id: 'sess-dropped-1', name: 'dropped', status: 'qr_ready', engineLoaded: true };
   SESSIONS.push(row);
   try {
@@ -808,7 +808,7 @@ test('a disconnected push closes the QR modal once the re-read shows no engine',
 test('a QR pushed while the disconnect re-read is in flight keeps the modal open', async () => {
   const { screen, fireEvent, within, waitFor, act } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   const row: Session = { ...SESSION_QR, id: 'sess-raced-1', name: 'raced', status: 'qr_ready', engineLoaded: true };
   SESSIONS.push(row);
   try {
@@ -859,7 +859,7 @@ test('a QR pushed while the disconnect re-read is in flight keeps the modal open
 test('a disconnected push keeps the QR modal while the engine is still registered', async () => {
   const { screen, fireEvent, within } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   const row: Session = { ...SESSION_QR, id: 'sess-backoff-1', name: 'backoff', status: 'qr_ready', engineLoaded: true };
   SESSIONS.push(row);
   try {
@@ -887,7 +887,7 @@ test('a disconnected push keeps the QR modal while the engine is still registere
 test('a disconnected push blanks the displayed QR code', async () => {
   const { screen, fireEvent, within, waitFor } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   const row: Session = { ...SESSION_QR, id: 'sess-blank-1', name: 'blanked', status: 'qr_ready', engineLoaded: true };
   SESSIONS.push(row);
   try {
@@ -911,7 +911,7 @@ test('a disconnected push blanks the displayed QR code', async () => {
 test('a disconnected push keeps the QR modal when the re-read fails', async () => {
   const { screen, fireEvent, within, act } = rtl;
   resetFetchCalls();
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   const row: Session = { ...SESSION_QR, id: 'sess-unknown-1', name: 'unknown', status: 'qr_ready', engineLoaded: true };
   SESSIONS.push(row);
   try {
@@ -964,7 +964,7 @@ test('Refresh on a feed that never connected re-reads the list once the socket i
   const { screen, fireEvent, waitFor, act, within } = rtl;
   resetFetchCalls();
   sessionListFailures = 1;
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   holdConnect();
   renderSessions();
 
@@ -1006,7 +1006,7 @@ test('a failed mount read is retried when the feed first connects after its own 
   const { screen, waitFor, act } = rtl;
   resetFetchCalls();
   sessionListFailures = 1;
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   holdConnect();
   renderSessions();
 
@@ -1033,7 +1033,7 @@ test('a later failure on the same connection is retried too, once the first reco
   const { screen, waitFor, act } = rtl;
   resetFetchCalls();
   sessionListFailures = 1;
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   holdConnect();
   renderSessions();
 
@@ -1075,7 +1075,7 @@ test('a connect retries a failed list read once, even when each failure carries 
   resetFetchCalls();
   sessionListFailures = 10;
   distinctFailureMessages = true;
-  window.sessionStorage.setItem('openwa_api_key', 'test-key');
+  window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
   holdConnect();
   renderSessions();
 
@@ -1094,7 +1094,7 @@ test('a connect retries a failed list read once, even when each failure carries 
 test('a read-only key gets no Show QR button, since the QR is operator-only', async () => {
   const { screen, within } = rtl;
   resetFetchCalls();
-  window.localStorage.setItem('openwa_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
   try {
     renderSessions();
     const card = (await screen.findByText('new-device')).closest('.session-card') as HTMLElement;
@@ -1102,7 +1102,7 @@ test('a read-only key gets no Show QR button, since the QR is operator-only', as
     assert.ok(card.querySelector('.qr-placeholder'));
     assert.equal(within(card).queryByRole('button', { name: 'Show QR' }) === null, true);
   } finally {
-    window.localStorage.setItem('openwa_user_role', 'admin');
+    window.localStorage.setItem('mywhatsapp_user_role', 'admin');
   }
 });
 

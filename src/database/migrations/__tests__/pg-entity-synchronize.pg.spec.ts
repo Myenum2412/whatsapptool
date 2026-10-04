@@ -33,7 +33,7 @@ import { join } from 'path';
 const POSTGRES_ENABLED = process.env.DATABASE_TYPE === 'postgres';
 
 /** Named for the suite so a crashed run leaves an obvious orphan rather than a mystery database. */
-const SCRATCH_DB = 'openwa_entity_synchronize_probe';
+const SCRATCH_DB = 'mywhatsapp_entity_synchronize_probe';
 
 const repoRoot = join(__dirname, '../../../..');
 
@@ -54,8 +54,8 @@ const connection = (database: string): DataSourceOptions => ({
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'localhost',
   port: Number(process.env.DATABASE_PORT || 5432),
-  username: process.env.DATABASE_USERNAME || 'openwa',
-  password: process.env.DATABASE_PASSWORD || 'openwa',
+  username: process.env.DATABASE_USERNAME || 'mywhatsapp',
+  password: process.env.DATABASE_PASSWORD || 'mywhatsapp',
   database,
 });
 
@@ -64,7 +64,7 @@ const connection = (database: string): DataSourceOptions => ({
   let scratch: DataSource | undefined;
 
   beforeAll(async () => {
-    admin = new DataSource(connection(process.env.DATABASE_NAME || 'openwa'));
+    admin = new DataSource(connection(process.env.DATABASE_NAME || 'mywhatsapp'));
     await admin.initialize();
     // CREATE/DROP DATABASE cannot run inside a transaction, so they are issued on the admin
     // connection rather than through a query runner.

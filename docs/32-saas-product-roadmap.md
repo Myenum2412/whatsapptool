@@ -18,7 +18,7 @@
 
 ## 32.1 The finding that shapes this document
 
-OpenWA is **world-class at the protocol layer and empty at the product layer.** Those are two different
+MyWhatsapp is **world-class at the protocol layer and empty at the product layer.** Those are two different
 skills, and only one of them is finished.
 
 | Layer                                                 | State                                                                                                                                                                                                    | Evidence                                                                                                                                  |
@@ -79,7 +79,7 @@ the constraint (see 32.7).
   template pre-approval, no business verification, no onboarding window. Providers mark Meta's rates
   up by roughly 10–25%; "0% markup" is now an explicit headline claim across the category.
 - **The agent surface is being recognised as a feature.** At least one major provider now sells a
-  managed messaging MCP tier. OpenWA's 51-tool MCP surface with read-only-by-default, per-chat scoped
+  managed messaging MCP tier. MyWhatsapp's 51-tool MCP surface with read-only-by-default, per-chat scoped
   keys and per-tool-call chat checks is ahead of that, not behind it.
 - **Price anchors for a plan tier** (indicative, publicly listed): per-number-per-month in the
   €49–249 range by provider tier; seats commonly $15–30/month; broad platform plans from roughly
@@ -109,7 +109,7 @@ same product serve a bank next to a freelancer, and it is a much larger investme
 because `docs/29` documents how unforgiving the official surface is by comparison.
 
 A note on honesty rather than law: this project's own README states that for deployments where
-ethical, legal or regulatory compliance matters, OpenWA should be treated as not approved. That
+ethical, legal or regulatory compliance matters, MyWhatsapp should be treated as not approved. That
 sentence is a strategic asset under B and C, and a liability under A. Do not quietly delete it.
 
 ---
@@ -202,7 +202,7 @@ either; assignment and status survive a reconnect; an SLA breach is measurable p
 ### P1.2 — A flow builder
 
 The category's headline feature — every serious competitor sells a drag-and-drop flow builder as the
-thing you can build in ten minutes — and OpenWA has one rule that sends one message.
+thing you can build in ten minutes — and MyWhatsapp has one rule that sends one message.
 
 **Design:** evolve `AutomationRule` into a versioned flow document: triggers (inbound message,
 schedule, contact attribute change, campaign event), steps (send text/media/template, interactive
@@ -258,7 +258,7 @@ Expensive to copy, and the reason a customer stays rather than switches.
 
 ### 32.6.1 The number-safety control plane
 
-The strongest objection to an unofficial gateway is that the number dies. OpenWA already carries the
+The strongest objection to an unofficial gateway is that the number dies. MyWhatsapp already carries the
 deepest instrumentation in this category — restriction kinds, a three-tier pacing model with warmup
 and cold-reachout ramps, a failure circuit breaker, reconnect metrics — and almost none of it is
 surfaced.
@@ -267,7 +267,7 @@ surfaced.
 the remaining daily allowance before a campaign is started rather than as a pause reason afterwards;
 surface the account's quality signals as a readable health score; recommend the safe action instead of
 just refusing; support number rotation and failover to a healthy number; publish proposed metrics for
-allowance and health alongside the existing `openwa_*` series in `docs/10`.
+allowance and health alongside the existing `mywhatsapp_*` series in `docs/10`.
 **Accept when:** an operator can see, before sending, why a campaign would be throttled; a number
 under restriction raises an actionable alert instead of a status code.
 **Effort:** L–XL. High value per unit of work; the instrumentation is already paid for.

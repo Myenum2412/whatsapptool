@@ -1,6 +1,6 @@
-package openwa
+package mywhatsapp
 
-// Wire types for the OpenWA API, split by domain into types_*.go files. Field
+// Wire types for the MyWhatsapp API, split by domain into types_*.go files. Field
 // names / JSON tags mirror the backend DTOs exactly (camelCase). Optional
 // request fields use `omitempty` (and pointers where the zero value is
 // meaningful); nullable response fields use pointers so absent and empty are
@@ -12,7 +12,7 @@ package openwa
 
 // Ptr returns a pointer to v — handy for optional pointer fields:
 //
-//	openwa.DeleteMessageRequest{ChatID: id, MessageID: mid, ForEveryone: openwa.Ptr(false)}
+//	mywhatsapp.DeleteMessageRequest{ChatID: id, MessageID: mid, ForEveryone: mywhatsapp.Ptr(false)}
 func Ptr[T any](v T) *T { return &v }
 
 // SuccessResult is the generic {success, message} acknowledgement.

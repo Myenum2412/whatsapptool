@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with OpenWA
+description: Report a problem with MyWhatsapp
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -22,7 +22,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: OpenWA version
+      label: MyWhatsapp version
       description: e.g. 0.2.1 (shown on the dashboard Login screen) or a commit SHA
       placeholder: "0.2.1"
     validations:

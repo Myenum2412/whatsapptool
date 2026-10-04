@@ -369,7 +369,7 @@ export class WebhookDeliveryService implements OnModuleInit, OnModuleDestroy {
       const finalPayload = usable ? (hookPayload as WebhookPayload) : payload;
       // Re-assert EVERY identity field after the (untrusted) hook chain. A hook may rewrite data,
       // but event/sessionId/timestamp and the dedupe ids must remain the server's values: the
-      // receiver verifies the signature over this body and compares it against the X-OpenWA-*
+      // receiver verifies the signature over this body and compares it against the X-MyWhatsapp-*
       // headers, and failure records are filed by these fields — a rewritten sessionId/event
       // misfiles them across sessions.
       finalPayload.event = event;
@@ -529,7 +529,7 @@ export class WebhookDeliveryService implements OnModuleInit, OnModuleDestroy {
       // Fallback: deliver directly when the queue add failed (e.g. Redis unreachable with the
       // producer's enableOfflineQueue:false). This is at-least-once — if add() actually reached
       // Redis before rejecting, the queued job AND this fallback may both POST. Both paths carry the
-      // same X-OpenWA-Idempotency-Key / X-OpenWA-Delivery-Id, so a conformant receiver dedupes.
+      // same X-MyWhatsapp-Idempotency-Key / X-MyWhatsapp-Delivery-Id, so a conformant receiver dedupes.
       try {
         await this.deliverWebhook(webhook, finalPayload, headers, body);
 
@@ -747,11 +747,11 @@ export class WebhookDeliveryService implements OnModuleInit, OnModuleDestroy {
     attempt = 1,
   ): Promise<void> {
     // Update retry count header
-    headers['X-OpenWA-Retry-Count'] = String(attempt - 1);
+    headers['X-MyWhatsapp-Retry-Count'] = String(attempt - 1);
 
     // Add signature if secret is configured and not already present
-    if (webhook.secret && !headers['X-OpenWA-Signature']) {
-      headers['X-OpenWA-Signature'] = this.generateSignature(body, webhook.secret);
+    if (webhook.secret && !headers['X-MyWhatsapp-Signature']) {
+      headers['X-MyWhatsapp-Signature'] = this.generateSignature(body, webhook.secret);
     }
 
     try {

@@ -6,11 +6,11 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type { HealthReadyResponse, HealthResponse } from '../types.js';
 
 export class HealthResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** General health (also returns the running version). */
   check(): Promise<HealthResponse> {

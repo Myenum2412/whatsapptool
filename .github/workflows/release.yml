@@ -177,16 +177,16 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: openwa
-          POSTGRES_PASSWORD: openwa
-          POSTGRES_DB: openwa
+          POSTGRES_USER: mywhatsapp
+          POSTGRES_PASSWORD: mywhatsapp
+          POSTGRES_DB: mywhatsapp
           # Same as ci.yml: initdb takes the server's default TimeZone from this, so the data
           # connection's session pin has something to override.
           TZ: Asia/Jakarta
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U openwa"
+          --health-cmd "pg_isready -U mywhatsapp"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -213,9 +213,9 @@ jobs:
           DATABASE_TYPE: postgres
           DATABASE_HOST: localhost
           DATABASE_PORT: '5432'
-          DATABASE_USERNAME: openwa
-          DATABASE_PASSWORD: openwa
-          DATABASE_NAME: openwa
+          DATABASE_USERNAME: mywhatsapp
+          DATABASE_PASSWORD: mywhatsapp
+          DATABASE_NAME: mywhatsapp
 
       # Runtime-proves BuiltInFtsProvider on Postgres (websearch_to_tsquery + ts_headline against the
       # STORED body_ts tsvector), the boot-migration advisory lock (two concurrent migrators on one
@@ -238,9 +238,9 @@ jobs:
           DATABASE_TYPE: postgres
           DATABASE_HOST: localhost
           DATABASE_PORT: '5432'
-          DATABASE_USERNAME: openwa
-          DATABASE_PASSWORD: openwa
-          DATABASE_NAME: openwa
+          DATABASE_USERNAME: mywhatsapp
+          DATABASE_PASSWORD: mywhatsapp
+          DATABASE_NAME: mywhatsapp
 
   dashboard:
     name: Dashboard
@@ -322,7 +322,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: helm lint
-        run: docker run --rm -v "$PWD/charts:/charts:ro" alpine/helm:4.2.3 lint /charts/openwa
+        run: docker run --rm -v "$PWD/charts:/charts:ro" alpine/helm:4.2.3 lint /charts/mywhatsapp
 
       # Two value sets: the defaults an operator gets, and every optional resource switched on, so a
       # template that only breaks under a toggle cannot pass unnoticed.
@@ -330,9 +330,9 @@ jobs:
         run: |
           mkdir -p rendered
           docker run --rm -v "$PWD/charts:/charts:ro" alpine/helm:4.2.3 \
-            template ci /charts/openwa > rendered/default.yaml
+            template ci /charts/mywhatsapp > rendered/default.yaml
           docker run --rm -v "$PWD/charts:/charts:ro" alpine/helm:4.2.3 \
-            template ci /charts/openwa \
+            template ci /charts/mywhatsapp \
             --set ingress.enabled=true \
             --set podDisruptionBudget.enabled=true \
             --set serviceMonitor.enabled=true > rendered/toggled.yaml
@@ -473,11 +473,11 @@ jobs:
           # verify-published via job outputs, so the promoted set cannot drift from the build.
           images: |
             ghcr.io/${{ github.repository }}
-            docker.io/rmyndharis/openwa
+            docker.io/mywhatsapp/sdk
           tags: |
             type=semver,pattern={{version}}
             # The mutable channels (X.Y, latest) are disabled for prereleases: an rc/beta/alpha
-            # build must never become what `docker pull openwa:0.11` or `:latest` resolves to.
+            # build must never become what `docker pull mywhatsapp:0.11` or `:latest` resolves to.
             # The exact prerelease tag ({{version}}) is still published.
             type=semver,pattern={{major}}.{{minor}},enable=${{ !contains(github.ref_name, '-') }}
             type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
@@ -544,19 +544,19 @@ jobs:
         # The image under test carries only the staging tag at this point — the release tags are
         # applied by `promote`, after this job passes. ${REPO,,} lowercases github.repository: GHCR
         # normalizes the repo name to lowercase on push and `docker run` rejects a mixed-case
-        # reference, so the pull target must be lowercase too (this repo is rmyndharis/OpenWA).
+        # reference, so the pull target must be lowercase too (this repo is ).
         env:
           REPO: ${{ github.repository }}
         run: echo "ref=ghcr.io/${REPO,,}:smoke-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
 
       # The tag path is the one that promotes to `latest`, so it must not be laxer than the PR gate —
-      # the same rule this workflow's own audit step states. ci.yml verifies the root→openwa drop on
+      # the same rule this workflow's own audit step states. ci.yml verifies the root→mywhatsapp drop on
       # the built image; without it here, a change leaving Node on uid 0 reaches `latest` through the
       # only path that publishes it.
-      - name: Verify the image drops from root to the openwa user
+      - name: Verify the image drops from root to the mywhatsapp user
         env:
           IMAGE: ${{ steps.image.outputs.ref }}
-        run: OPENWA_SMOKE_IMAGE="$IMAGE" ./scripts/smoke-test-non-root.sh
+        run: MYWHATSAPP_SMOKE_IMAGE="$IMAGE" ./scripts/smoke-test-non-root.sh
 
       - name: Boot + liveness check on each architecture
         env:
@@ -565,11 +565,11 @@ jobs:
           exit_code=0
           for platform in linux/amd64 linux/arm64; do
             echo "::group::boot-smoke $platform"
-            docker rm -f openwa-smoke >/dev/null 2>&1 || true
+            docker rm -f mywhatsapp-smoke >/dev/null 2>&1 || true
             # Deliberately NOT --rm: a container that exits on its own is auto-removed by --rm, so
             # `docker logs` below finds nothing and the failure reports no cause. The explicit
             # `docker rm -f` at the end of each iteration handles cleanup instead.
-            if ! docker run --platform "$platform" -d -p 2785:2785 --name openwa-smoke "$IMAGE" >/dev/null; then
+            if ! docker run --platform "$platform" -d -p 2785:2785 --name mywhatsapp-smoke "$IMAGE" >/dev/null; then
               echo "FAIL: $platform — could not start container (image pull/run error)"
               exit_code=1
               echo "::endgroup::"
@@ -584,11 +584,11 @@ jobs:
               echo "OK: $platform — /api/health/live returned 200"
             else
               echo "FAIL: $platform — /api/health/live did not return 200 within ~200s; container logs follow:"
-              docker logs openwa-smoke 2>&1 | tail -60 || true
+              docker logs mywhatsapp-smoke 2>&1 | tail -60 || true
               exit_code=1
             fi
-            docker stop openwa-smoke >/dev/null 2>&1 || true
-            docker rm -f openwa-smoke >/dev/null 2>&1 || true
+            docker stop mywhatsapp-smoke >/dev/null 2>&1 || true
+            docker rm -f mywhatsapp-smoke >/dev/null 2>&1 || true
             echo "::endgroup::"
           done
           exit "$exit_code"
@@ -775,7 +775,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           staging="smoke-${{ github.run_id }}"
-          version_json=$(gh api "/users/${{ github.repository_owner }}/packages/container/openwa/versions" \
+          version_json=$(gh api "/users/${{ github.repository_owner }}/packages/container/mywhatsapp/versions" \
             --jq ".[] | select(.metadata.container.tags[]? == \"$staging\") | {id, tags: .metadata.container.tags}" | head -1)
           if [ -z "$version_json" ]; then
             echo "staging tag not found (docker job failed before pushing, or already cleaned up)"
@@ -785,7 +785,7 @@ jobs:
           tags=$(printf '%s' "$version_json" | jq -r '.tags | join(",")')
           tag_count=$(printf '%s' "$version_json" | jq -r '.tags | length')
           if [ "$tag_count" = "1" ]; then
-            gh api -X DELETE "/users/${{ github.repository_owner }}/packages/container/openwa/versions/$version_id" \
+            gh api -X DELETE "/users/${{ github.repository_owner }}/packages/container/mywhatsapp/versions/$version_id" \
               && echo "removed staging-only version $version_id"
           else
             echo "keeping version $version_id — the release tags share it (tags: $tags)."

@@ -6,7 +6,7 @@
     }
   },
   "common": {
-    "appName": "OpenWA",
+    "appName": "MyWhatsapp",
     "updateAvailable": "v{{version}} verfügbar",
     "loading": "Wird geladen...",
     "cancel": "Abbrechen",
@@ -347,7 +347,7 @@
     "connectionError": "Verbindung zum Server nicht möglich. Bitte versuche es erneut.",
     "help": "Brauchst du Hilfe?",
     "viewDocs": "Dokumentation ansehen",
-    "footer": "Mit ❤️ erstellt von Yudhi Armyndharis und der OpenWA-Community",
+    "footer": "Mit Γ¥ñ∩╕Å erstellt von Yudhi Armyndharis und der MyWhatsapp-Community",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
@@ -1128,7 +1128,7 @@
       "postgres": "PostgreSQL",
       "postgresDesc": "Produktionsreife Datenbank",
       "useBuiltIn": "Integrierten PostgreSQL-Container verwenden",
-      "builtInDesc": "OpenWA verwaltet einen PostgreSQL-Container für dich",
+      "builtInDesc": "MyWhatsapp verwaltet einen PostgreSQL-Container für dich",
       "dbName": "Datenbankname",
       "schema": "Schema",
       "schemaDesc": "PostgreSQL-Schema (wird bei SQLite ignoriert). Standard: „public“. Das Schema muss bereits existieren.",
@@ -1163,7 +1163,7 @@
       "enable": "Redis aktivieren",
       "enableDesc": "Erforderlich für Caching, Sitzungsspeicherung und BullMQ-Warteschlangen",
       "useBuiltIn": "Integrierten Redis-Container verwenden",
-      "builtInDesc": "OpenWA verwaltet einen Redis-Container für dich",
+      "builtInDesc": "MyWhatsapp verwaltet einen Redis-Container für dich",
       "queueTitle": "BullMQ-Warteschlangensystem aktivieren",
       "queueDesc": "Nachrichtenwarteschlangen für die zuverlässige Zustellung von Nachrichten und Webhooks verwenden",
       "statsTitle": "Warteschlangenstatistiken",
@@ -1186,7 +1186,7 @@
       "s3": "Amazon S3",
       "s3Desc": "Cloud-Speicher (S3-kompatibel)",
       "useBuiltIn": "Integrierten MinIO-Container verwenden",
-      "builtInDesc": "OpenWA verwaltet einen MinIO-Container (S3-kompatibel) für dich",
+      "builtInDesc": "MyWhatsapp verwaltet einen MinIO-Container (S3-kompatibel) für dich",
       "storagePath": "Speicherpfad",
       "bucket": "Bucket-Name",
       "region": "Region",
@@ -1217,7 +1217,7 @@
       "importFailed": "Daten konnten nicht importiert werden",
       "importOk": "Daten wurden importiert",
       "importConfirm": "Beim Import werden alle aktuellen Daten durch die Sicherung ERSETZT ({{rows}} Zeilen). Dies kann nicht rückgängig gemacht werden. Fortfahren?",
-      "invalidFile": "Diese Datei ist keine gültige OpenWA-Datensicherung.",
+      "invalidFile": "Diese Datei ist keine gültige MyWhatsapp-Datensicherung.",
       "importTooLarge": "Die Sicherung ist für das Anfragelimit zu groß. Erhöhe BODY_SIZE_LIMIT auf dem Server und versuche es erneut."
     },
     "restart": {

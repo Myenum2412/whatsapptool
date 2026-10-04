@@ -1,14 +1,14 @@
 # 28 - Multitenancy
 
 > **Status:** Draft (design proposal — nothing here is implemented). This document defines the target
-> architecture for operating OpenWA as a multi-tenant platform: tenant identity, access control, 2FA,
+> architecture for operating MyWhatsapp as a multi-tenant platform: tenant identity, access control, 2FA,
 > per-tenant branding, isolation, quotas, and the migration path from today's single-operator model.
 
 ## 28.1 Goals & non-goals
 
 **Goals**
 
-- One OpenWA deployment safely hosts many independent organizations (tenants), each with its own
+- One MyWhatsapp deployment safely hosts many independent organizations (tenants), each with its own
   WhatsApp sessions, users, API keys, branding, plugins, and data — with no cross-tenant visibility.
 - Enterprise-grade identity: named users with per-tenant roles and optional/enforced two-factor
   authentication (TOTP), alongside the existing API-key model for programmatic access.
@@ -23,7 +23,7 @@
 
 ## 28.2 Current state assessment
 
-OpenWA today is **multi-session, not multi-tenant**. What already exists and is reused by this design:
+MyWhatsapp today is **multi-session, not multi-tenant**. What already exists and is reused by this design:
 
 | Primitive                                                                                                         | Where                                                                           | Reuse                                                                                                                            |
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,7 +119,7 @@ without schema change.
 
 - **Linked-device identity**: the engine's browser display name (the `BAILEYS_BROWSER` tuple)
   resolves per session: `session.config.browserName` → `tenant.branding.deviceName` → global
-  `BAILEYS_BROWSER_NAME` env → `'OpenWA'`. This supersedes the global-only env approach for
+  `BAILEYS_BROWSER_NAME` env → `'MyWhatsapp'`. This supersedes the global-only env approach for
   white-label tenants while keeping a global fallback.
 - **Dashboard**: `tenant.branding` (display name, logo URL, optional accent color within the
   existing token system) applied at login and in the shell; global defaults when absent.

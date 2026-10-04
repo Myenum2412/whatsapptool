@@ -1,6 +1,6 @@
-# OpenWA SDKs
+# MyWhatsapp SDKs
 
-Official client libraries for the [OpenWA](https://github.com/rmyndharis/OpenWA)
+Official client libraries for the [MyWhatsapp](https://github.com/rmyndharis/OpenWA)
 WhatsApp API Gateway.
 
 All five SDKs are **hand-written** against the exact API surface (paths, DTOs,
@@ -12,10 +12,10 @@ hand-written resource methods.
 
 | Language                | Package                                      | Notes                                                       |
 | ----------------------- | -------------------------------------------- | ----------------------------------------------------------- |
-| JavaScript / TypeScript | [`@rmyndharis/openwa`](javascript/)          | dual ESM/CJS, bundled types                                 |
-| Python                  | [`rmyndharis-openwa`](python/)               | sync (httpx), PEP 561 typed                                 |
-| PHP                     | [`rmyndharis/openwa`](php/)                  | sync (Guzzle, PHP 8.1+)                                     |
-| Java                    | [`com.rmyndharis:openwa`](java/)             | sync (java.net.http + Gson, Java 17)                        |
+| JavaScript / TypeScript | [`@mywhatsapp/sdk`](javascript/)             | dual ESM/CJS, bundled types                                 |
+| Python                  | [`mywhatsapp-sdk`](python/)                  | sync (httpx), PEP 561 typed                                 |
+| PHP                     | [`mywhatsapp/sdk`](php/)                     | sync (Guzzle, PHP 8.1+)                                     |
+| Java                    | [`com.mywhatsapp:mywhatsapp`](java/)         | sync (java.net.http + Gson, Java 17)                        |
 | Go                      | [`github.com/rmyndharis/OpenWA/sdk/go`](go/) | stdlib-only, context-first, injectable transport (Go 1.22+) |
 
 ## Coverage
@@ -76,13 +76,13 @@ All five SDKs expose the same fluent resource surface:
 ## JavaScript / TypeScript
 
 ```bash
-npm install @rmyndharis/openwa
+npm install @mywhatsapp/sdk
 ```
 
 ```typescript
-import { OpenWAClient } from '@rmyndharis/openwa';
+import { MyWhatsappClient } from '@mywhatsapp/sdk';
 
-const client = new OpenWAClient({
+const client = new MyWhatsappClient({
   baseUrl: 'http://localhost:2785',
   apiKey: 'owa_k1_…',
 });
@@ -90,7 +90,7 @@ const client = new OpenWAClient({
 await client.sessions.start('my-session');
 const result = await client.messages.sendText('my-session', {
   chatId: '628123456789@c.us',
-  text: 'Hello from the OpenWA SDK!',
+  text: 'Hello from the MyWhatsapp SDK!',
 });
 console.log(result.messageId);
 ```
@@ -98,11 +98,11 @@ console.log(result.messageId);
 Errors are typed — branch with `instanceof`:
 
 ```typescript
-import { OpenWANotFoundError, OpenWAConflictError } from '@rmyndharis/openwa';
+import { MyWhatsappNotFoundError, MyWhatsappConflictError } from '@mywhatsapp/sdk';
 try {
   await client.messages.sendText(/* … */);
 } catch (e) {
-  if (e instanceof OpenWAConflictError) {
+  if (e instanceof MyWhatsappConflictError) {
     /* engine not ready (409) */
   }
 }
@@ -114,13 +114,13 @@ try {
 ## Python
 
 ```bash
-pip install rmyndharis-openwa
+pip install mywhatsapp-sdk
 ```
 
 ```python
-from openwa import OpenWAClient, OpenWANotFoundError
+from mywhatsapp import MyWhatsappClient, MyWhatsappNotFoundError
 
-client = OpenWAClient(
+client = MyWhatsappClient(
     base_url="http://localhost:2785",
     api_key="owa_k1_…",
 )
@@ -128,7 +128,7 @@ client = OpenWAClient(
 client.sessions.start("my-session")
 result = client.messages.send_text("my-session", {
     "chatId": "628123456789@c.us",
-    "text": "Hello from the OpenWA Python SDK!",
+    "text": "Hello from the MyWhatsapp Python SDK!",
 })
 print(result["messageId"])
 ```
@@ -139,12 +139,12 @@ monkey-patching required.
 ## PHP
 
 ```bash
-composer require rmyndharis/openwa
+composer require mywhatsapp/sdk
 ```
 
 ```php
 <?php
-use OpenWA\Client;
+use MyWhatsapp\Client;
 
 $client = new Client([
     'baseUrl' => 'http://localhost:2785',
@@ -154,7 +154,7 @@ $client = new Client([
 $client->sessions->start('my-session');
 $result = $client->messages->sendText('my-session', [
     'chatId' => '628123456789@c.us',
-    'text'   => 'Hello from the OpenWA PHP SDK!',
+    'text'   => 'Hello from the MyWhatsapp PHP SDK!',
 ]);
 echo $result['messageId'];
 ```
@@ -166,30 +166,30 @@ handler is a `MockHandler` — no global state, no network.
 
 ```xml
 <dependency>
-  <groupId>com.rmyndharis</groupId>
-  <artifactId>openwa</artifactId>
+  <groupId>com.mywhatsapp</groupId>
+  <artifactId>mywhatsapp</artifactId>
   <version>0.5.0</version>
 </dependency>
 ```
 
 ```java
-import com.rmyndharis.openwa.OpenWAClient;
-import com.rmyndharis.openwa.model.MessageResponse;
-import com.rmyndharis.openwa.model.SendTextRequest;
+import com.mywhatsapp.MyWhatsappClient;
+import com.mywhatsapp.model.MessageResponse;
+import com.mywhatsapp.model.SendTextRequest;
 
-OpenWAClient client = new OpenWAClient("http://localhost:2785", "owa_k1_…");
+MyWhatsappClient client = new MyWhatsappClient("http://localhost:2785", "owa_k1_…");
 
 client.sessions.start("my-session");
 MessageResponse result = client.messages.sendText("my-session",
     SendTextRequest.builder()
         .chatId("628123456789@c.us")
-        .text("Hello from the OpenWA Java SDK!")
+        .text("Hello from the MyWhatsapp Java SDK!")
         .build());
 System.out.println(result.messageId());
 ```
 
 Requires Java 17+. Errors are a typed, unchecked hierarchy — branch with
-`instanceof OpenWANotFoundError` / `OpenWAConflictError`. For testing, inject a
+`instanceof MyWhatsappNotFoundError` / `MyWhatsappConflictError`. For testing, inject a
 custom `HttpTransport` that records the request — no network. See
 [`java/README.md`](java/README.md) for the full guide.
 
@@ -205,26 +205,26 @@ import (
     "fmt"
     "log"
 
-    openwa "github.com/rmyndharis/OpenWA/sdk/go"
+    mywhatsapp "github.com/rmyndharis/OpenWA/sdk/go"
 )
 
-client, err := openwa.New("http://localhost:2785", "owa_k1_…")
+client, err := mywhatsapp.New("http://localhost:2785", "owa_k1_…")
 if err != nil {
     log.Fatal(err)
 }
 
 ctx := context.Background()
 client.Sessions.Start(ctx, "my-session")
-res, err := client.Messages.SendText(ctx, "my-session", openwa.SendTextRequest{
+res, err := client.Messages.SendText(ctx, "my-session", mywhatsapp.SendTextRequest{
     ChatID: "628123456789@c.us",
-    Text:   "Hello from the OpenWA Go SDK!",
+    Text:   "Hello from the MyWhatsapp Go SDK!",
 })
 fmt.Println(res.MessageID)
 ```
 
 Requires Go 1.22+. Stdlib-only, context-first. Errors are typed — match with
-`errors.Is(err, openwa.ErrConflict)` or unwrap `*openwa.APIError` with
-`errors.As`. Inject an `http.RoundTripper` with `openwa.WithTransport(...)` for
+`errors.Is(err, mywhatsapp.ErrConflict)` or unwrap `*mywhatsapp.APIError` with
+`errors.As`. Inject an `http.RoundTripper` with `mywhatsapp.WithTransport(...)` for
 testing, retry, tracing, or metrics. See [`go/README.md`](go/README.md).
 
 ## Reliability & security

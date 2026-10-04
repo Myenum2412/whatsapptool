@@ -23,7 +23,7 @@ describe('RedisThrottlerStorage', () => {
     expect(redis.eval).toHaveBeenCalledWith(
       expect.stringContaining("redis.call('INCR', KEYS[1])"),
       1,
-      'openwa:throttle:short:1.2.3.4',
+      'mywhatsapp:throttle:short:1.2.3.4',
       '1000',
     );
     expect(rec).toEqual({ totalHits: 1, timeToExpire: 2, isBlocked: false, timeToBlockExpire: 0 });

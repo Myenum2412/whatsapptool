@@ -2,7 +2,7 @@
 // costs something, because the catalogue is now a network round trip that first paint waits on.
 // `lazy-locales.test.ts` cannot cover it: the i18n module is a singleton, so one process only ever
 // has one initial language, and there it is English. Detection is steered the way a returning
-// visitor steers it, through the `openwa_language` key the detector caches into, which also
+// visitor steers it, through the `mywhatsapp_language` key the detector caches into, which also
 // exercises the localStorage branch of `detection.order` that nothing else reaches.
 //
 // Runner constraints honored here: loader hooks registered before any app-module import (see
@@ -23,7 +23,7 @@ before(async () => {
     installJsdomGlobals: typeof installJsdomGlobalsFn;
   };
   await installJsdomGlobals();
-  localStorage.setItem('openwa_language', 'ar');
+  localStorage.setItem('mywhatsapp_language', 'ar');
   const module = (await import('./index.ts')) as I18nModule;
   i18n = module.default;
   await module.i18nReady;

@@ -151,14 +151,14 @@ export function validateEnv(config: EnvConfig): EnvConfig {
     }
     const dataDbName = str('DATABASE_NAME');
     // Reject a bare name with no path separator and no .sqlite/.db suffix — the exact signature of a
-    // PostgreSQL DATABASE_NAME (e.g. 'openwa') leaking into a SQLite run (#677). That bare name becomes
-    // the SQLite file PATH, opening a file named 'openwa' under the read-only app rootfs →
+    // PostgreSQL DATABASE_NAME (e.g. 'mywhatsapp') leaking into a SQLite run (#677). That bare name becomes
+    // the SQLite file PATH, opening a file named 'mywhatsapp' under the read-only app rootfs →
     // SQLITE_CANTOPEN boot-loop. A genuine SQLite path always has a separator or a file suffix.
     if (dataDbName && !dataDbName.includes('/') && !dataDbName.includes('\\') && !/\.(sqlite|db)$/i.test(dataDbName)) {
       errors.push(
-        `DATABASE_NAME must be a file path under the data volume for SQLite (e.g. ./data/openwa.sqlite); got ${JSON.stringify(
+        `DATABASE_NAME must be a file path under the data volume for SQLite (e.g. ./data/mywhatsapp.sqlite); got ${JSON.stringify(
           dataDbName,
-        )}. A bare name is the PostgreSQL DB name — leave DATABASE_NAME unset for SQLite to use the default ./data/openwa.sqlite.`,
+        )}. A bare name is the PostgreSQL DB name — leave DATABASE_NAME unset for SQLite to use the default ./data/mywhatsapp.sqlite.`,
       );
     }
   }

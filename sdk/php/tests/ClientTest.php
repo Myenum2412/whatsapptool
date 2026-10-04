@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Tests;
+namespace MyWhatsapp\Tests;
 
-use OpenWA\Exceptions\OpenWAApiException;
-use OpenWA\Exceptions\OpenWAAuthException;
-use OpenWA\Exceptions\OpenWANotFoundException;
-use OpenWA\Exceptions\OpenWATimeoutException;
+use MyWhatsapp\Exceptions\MyWhatsappApiException;
+use MyWhatsapp\Exceptions\MyWhatsappAuthException;
+use MyWhatsapp\Exceptions\MyWhatsappNotFoundException;
+use MyWhatsapp\Exceptions\MyWhatsappTimeoutException;
 use PHPUnit\Framework\TestCase;
 
 class ClientTest extends TestCase
 {
     public function testRequiresBaseUrlAndApiKey(): void
     {
-        $this->expectException(\OpenWA\Exceptions\OpenWAException::class);
-        new \OpenWA\Client(['baseUrl' => '', 'apiKey' => 'k']);
+        $this->expectException(\MyWhatsapp\Exceptions\MyWhatsappException::class);
+        new \MyWhatsapp\Client(['baseUrl' => '', 'apiKey' => 'k']);
     }
 
     public function testRequiresApiKey(): void
     {
-        $this->expectException(\OpenWA\Exceptions\OpenWAException::class);
-        new \OpenWA\Client(['baseUrl' => 'https://x', 'apiKey' => '']);
+        $this->expectException(\MyWhatsapp\Exceptions\MyWhatsappException::class);
+        new \MyWhatsapp\Client(['baseUrl' => 'https://x', 'apiKey' => '']);
     }
 
     public function testSendsApiKeyHeader(): void
@@ -37,7 +37,7 @@ class ClientTest extends TestCase
     public function testDefaultHeadersApplledUnderAuth(): void
     {
         $backend = (new MockBackend())->on(200, []);
-        $client = new \OpenWA\Client([
+        $client = new \MyWhatsapp\Client([
             'baseUrl' => 'https://x',
             'apiKey' => 'REAL_KEY',
             'httpClient' => $backend->httpClient(),
@@ -89,7 +89,7 @@ class ClientTest extends TestCase
         $threw = false;
         try {
             $backend->makeClient()->sessions->list();
-        } catch (OpenWAApiException $e) {
+        } catch (MyWhatsappApiException $e) {
             $threw = true;
         }
         $this->assertTrue($threw, 'an unfollowed 3xx must surface as an API error');
@@ -110,7 +110,7 @@ class ClientTest extends TestCase
             'message' => 'Session not found',
             'error' => 'Not Found',
         ]);
-        $this->expectException(OpenWANotFoundException::class);
+        $this->expectException(MyWhatsappNotFoundException::class);
         $backend->makeClient()->sessions->get('missing');
     }
 
@@ -121,7 +121,7 @@ class ClientTest extends TestCase
             'message' => 'Unauthorized',
             'error' => 'Unauthorized',
         ]);
-        $this->expectException(OpenWAAuthException::class);
+        $this->expectException(MyWhatsappAuthException::class);
         $backend->makeClient()->sessions->list();
     }
 
@@ -143,7 +143,7 @@ class ClientTest extends TestCase
         try {
             $backend->makeClient()->sessions->get('x');
             $this->fail('Expected exception');
-        } catch (OpenWANotFoundException $e) {
+        } catch (MyWhatsappNotFoundException $e) {
             $this->assertSame(404, $e->getStatus());
             $this->assertSame('Not Found', $e->getErrorKind());
             $this->assertIsArray($e->getBody());
@@ -153,7 +153,7 @@ class ClientTest extends TestCase
     public function testTimeoutWithErrno28MapsToTimeoutException(): void
     {
         // Regression guard: cURL error 28 (CURLE_OPERATION_TIMEDOUT) must map to
-        // OpenWATimeoutException, regardless of the message wording.
+        // MyWhatsappTimeoutException, regardless of the message wording.
         $timeoutRequest = new \GuzzleHttp\Exception\ConnectException(
             'cURL error 28: Operation timed out',
             new \GuzzleHttp\Psr7\Request('GET', '/api/sessions'),
@@ -162,13 +162,13 @@ class ClientTest extends TestCase
         );
         $mock = new \GuzzleHttp\Handler\MockHandler([$timeoutRequest]);
         $httpClient = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $client = new \OpenWA\Client([
+        $client = new \MyWhatsapp\Client([
             'baseUrl' => 'http://localhost:2785',
             'apiKey' => 'k',
             'httpClient' => $httpClient,
         ]);
 
-        $this->expectException(OpenWATimeoutException::class);
+        $this->expectException(MyWhatsappTimeoutException::class);
         $client->sessions->list();
     }
 
@@ -184,7 +184,7 @@ class ClientTest extends TestCase
         );
         $mock = new \GuzzleHttp\Handler\MockHandler([$refused]);
         $httpClient = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $client = new \OpenWA\Client([
+        $client = new \MyWhatsapp\Client([
             'baseUrl' => 'http://localhost:2785',
             'apiKey' => 'k',
             'httpClient' => $httpClient,

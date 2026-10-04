@@ -101,7 +101,7 @@ process.env.NODE_ENV = 'test';
 // would be one directory shared by every suite in the run, and wiping it at each suite's start
 // would pull the tree out from under any app a previous suite left running.
 const e2eRunId = `${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-const e2ePluginState = join(tmpdir(), `openwa-e2e-plugins-${e2eRunId}`);
+const e2ePluginState = join(tmpdir(), `mywhatsapp-e2e-plugins-${e2eRunId}`);
 process.env.PLUGIN_STATE_DIR = e2ePluginState;
 
 // The remaining data paths. Each already carries its own knob, and leaving them unset pointed every
@@ -112,23 +112,23 @@ for (const [key, name] of [
   ['BAILEYS_AUTH_DIR', 'baileys'],
   ['STORAGE_LOCAL_PATH', 'media'],
 ] as const) {
-  process.env[key] = join(tmpdir(), `openwa-e2e-${name}-${e2eRunId}`);
+  process.env[key] = join(tmpdir(), `mywhatsapp-e2e-${name}-${e2eRunId}`);
 }
 process.env.DATABASE_TYPE = 'sqlite';
 // Isolate the e2e data DB to a throwaway temp file so suites never pollute the developer's
-// ./data/openwa.sqlite. e2e creates sessions/webhooks and doesn't self-clean, so without this they
+// ./data/mywhatsapp.sqlite. e2e creates sessions/webhooks and doesn't self-clean, so without this they
 // pile up across runs. Start each run from a fresh file.
-const e2eDataDb = join(tmpdir(), `openwa-e2e-${process.pid}.sqlite`);
+const e2eDataDb = join(tmpdir(), `mywhatsapp-e2e-${process.pid}.sqlite`);
 rmSync(e2eDataDb, { force: true });
 process.env.DATABASE_NAME = e2eDataDb;
 // Likewise isolate the auth/audit (main) DB, so e2e api-keys don't accumulate in ./data/main.sqlite.
-const e2eMainDb = join(tmpdir(), `openwa-e2e-main-${process.pid}.sqlite`);
+const e2eMainDb = join(tmpdir(), `mywhatsapp-e2e-main-${process.pid}.sqlite`);
 rmSync(e2eMainDb, { force: true });
 process.env.MAIN_DATABASE_NAME = e2eMainDb;
 // The bootstrap key file is written on first boot (no keys yet — which every e2e run is) and unlinked
 // when that key is revoked or deleted. Without a lever it resolves under the repo root, so an e2e run
 // rewrote the DEVELOPER'S ./data/.api-key. Point it at the same throwaway temp dir as the databases.
-const e2eKeyFile = join(tmpdir(), `openwa-e2e-key-${process.pid}`);
+const e2eKeyFile = join(tmpdir(), `mywhatsapp-e2e-key-${process.pid}`);
 rmSync(e2eKeyFile, { force: true });
 process.env.BOOTSTRAP_KEY_FILE = e2eKeyFile;
 process.env.QUEUE_ENABLED = 'false';

@@ -8,7 +8,7 @@
 # The only copies left in the image are the ones bundled inside the npm CLI
 # (/usr/local/lib/node_modules/npm/node_modules/brace-expansion, currently 5.0.7). npm is never on
 # the request path: the entrypoint runs `node dist/main`, and npm is present only for the
-# documented operator runbooks (`docker exec openwa npm run cli …`). Reaching this code requires an
+# documented operator runbooks (`docker exec mywhatsapp npm run cli …`). Reaching this code requires an
 # operator to run an npm command with an attacker-chosen glob inside the container.
 #
 # npm 12 — the newest release, already installed by the Dockerfile — still bundles 5.0.7, so there
@@ -43,12 +43,12 @@ CVE-2026-69192
 # one. Those are dpkg packages, so the scan sees them and a fixable HIGH/CRITICAL fails it.
 # `ignore-unfixed` still hides every chromium CVE Debian has not fixed yet, so a passing arm64 scan
 # does not mean the browser has no open advisories. Measured on 2026-09-15 against
-# ghcr.io/rmyndharis/openwa:main (arm64, the release flags minus `ignore-unfixed`): `chromium`,
+# ghcr.io/mywhatsapp/sdk:main (arm64, the release flags minus `ignore-unfixed`): `chromium`,
 # `chromium-common` and `chromium-sandbox` each carry 2 CRITICAL and 15 HIGH advisories in state
 # "affected", i.e. Debian has published no fix. That exposure is accepted for the release: the
 # alternative is moving arm64 off the Debian package to Chrome for Testing, which publishes
 # linux-arm64 builds from 153 on. Re-measure with
-# `trivy image --severity CRITICAL,HIGH --platform linux/arm64 ghcr.io/rmyndharis/openwa:<tag>`
+# `trivy image --severity CRITICAL,HIGH --platform linux/arm64 ghcr.io/mywhatsapp/sdk:<tag>`
 # when deciding whether the number still fits. The eleven chromium CVEs this file used to accept
 # (between CVE-2026-76033 and CVE-2026-76047) were fixed in 151.0.7922.169, and bookworm-security has
 # shipped newer chromium builds since.

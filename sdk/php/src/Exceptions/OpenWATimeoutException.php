@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenWA\Exceptions;
+namespace MyWhatsapp\Exceptions;
 
 /** Raised when a request exceeds the configured timeout. */
-class OpenWATimeoutException extends OpenWAException
+class MyWhatsappTimeoutException extends MyWhatsappException
 {
     private float $timeout;
 

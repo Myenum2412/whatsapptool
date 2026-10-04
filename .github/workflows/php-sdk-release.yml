@@ -1,7 +1,7 @@
 name: PHP SDK Release
 
 # Cuts a versioned release of the PHP SDK by pushing a tag to the mirror repo
-# rmyndharis/openwa-php, which is what Packagist reads versions from.
+# mywhatsapp/sdk, which is what Packagist reads versions from.
 #
 # Why a tag on the MIRROR and not here: Packagist installs from the mirror (it needs composer.json at
 # a repository root and does not support subdirectories), and it derives versions from that
@@ -93,13 +93,13 @@ jobs:
             exit 1
           fi
           VERSION="${REF_NAME#php-sdk-v}"
-          MIRROR="https://x-access-token:${SPLIT_TOKEN}@github.com/rmyndharis/openwa-php.git"
+          MIRROR="https://x-access-token:${SPLIT_TOKEN}@github.com/mywhatsapp/sdk.git"
 
           # A published Composer version is effectively immutable: Packagist caches the tag's contents,
           # so moving it does not reliably reach anyone who already resolved it. Refuse rather than
           # force-push over a released version.
           if git ls-remote --tags --exit-code "$MIRROR" "refs/tags/${VERSION}" >/dev/null 2>&1; then
-            echo "::error::rmyndharis/openwa-php already has tag '${VERSION}'. Released versions are immutable — bump the version instead of re-tagging."
+            echo "::error::mywhatsapp/sdk already has tag '${VERSION}'. Released versions are immutable — bump the version instead of re-tagging."
             exit 1
           fi
 
@@ -112,4 +112,4 @@ jobs:
           # Tag without the `v` prefix, matching the existing 0.1.0 tag on the mirror. Composer accepts
           # both, but mixing the two in one repository makes the version list read as two series.
           git push "$MIRROR" "${SPLIT_SHA}:refs/tags/${VERSION}"
-          echo "Tagged rmyndharis/openwa-php ${VERSION} -> ${SPLIT_SHA}"
+          echo "Tagged mywhatsapp/sdk ${VERSION} -> ${SPLIT_SHA}"

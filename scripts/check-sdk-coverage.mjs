@@ -157,7 +157,7 @@ function harvestGo(dir) {
 
 const SDKS = [
   { name: 'javascript', dir: 'sdk/javascript/src', exts: ['.ts'] },
-  { name: 'python', dir: 'sdk/python/openwa', exts: ['.py'] },
+  { name: 'python', dir: 'sdk/python/mywhatsapp', exts: ['.py'] },
   { name: 'php', dir: 'sdk/php/src', exts: ['.php'] },
   { name: 'java', dir: 'sdk/java/src/main', exts: ['.java'] },
   { name: 'go', dir: 'sdk/go', exts: ['.go'], harvest: harvestGo },

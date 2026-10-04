@@ -6,7 +6,7 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type {
   CreateSessionRequest,
   PairingCodeResponse,
@@ -31,7 +31,7 @@ export interface ListSessionsQuery {
 }
 
 export class SessionsResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** List all sessions (scoped to the API key's `allowedSessions`). */
   list(query?: ListSessionsQuery): Promise<SessionResponse[]> {

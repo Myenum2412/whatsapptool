@@ -79,7 +79,7 @@ if (process.env.MCP_ENABLED === 'true') {
   mcpModules.push(
     McpModule.forRoot({
       basePath: '/mcp',
-      serverInfo: { name: 'openwa', version },
+      serverInfo: { name: 'mywhatsapp', version },
     }),
   );
 }
@@ -108,12 +108,12 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
       // EVERY unmatched GET with index.html, so a mistyped `<script src>` came back 200 HTML and
       // the browser reported a JavaScript parse error instead of the real 404, hiding broken
       // builds behind a confusing symptom. It is also outright broken when the install path
-      // contains a dot-segment (~/.openwa, a checkout under ~/.cache): it sends the index by
+      // contains a dot-segment (~/.mywhatsapp, a checkout under ~/.cache): it sends the index by
       // ABSOLUTE path and Express's `send` refuses dot-segments, 404ing every client-side route.
       // Turning it off fixes both, and makes behaviour identical on either path shape.
       // ServeStaticModule has no explicit off switch, so this is a renderPath literal that no
       // real request can match.
-      renderPath: '/__openwa_spa_fallback_owned_by_main_ts__',
+      renderPath: '/__mywhatsapp_spa_fallback_owned_by_main_ts__',
     }),
   );
 }
@@ -213,7 +213,7 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
             port: configService.get<number>('dataDatabase.port'),
             username: configService.get<string>('dataDatabase.username'),
             password: configService.get<string>('dataDatabase.password'),
-            database: configService.get<string>('dataDatabase.name', 'openwa'),
+            database: configService.get<string>('dataDatabase.name', 'mywhatsapp'),
 
             ssl: configService.get<boolean>('dataDatabase.ssl', false)
               ? {
@@ -255,7 +255,7 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
           ...baseConfig,
           name: 'data',
           type: 'better-sqlite3' as const,
-          database: configService.get<string>('dataDatabase.database', './data/openwa.sqlite'),
+          database: configService.get<string>('dataDatabase.database', './data/mywhatsapp.sqlite'),
           synchronize,
           migrationsRun: !synchronize,
         };

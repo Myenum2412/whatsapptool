@@ -81,7 +81,7 @@ export function useInfraConfigForm(
     port: '5432',
     username: 'postgres',
     password: '',
-    database: 'openwa',
+    database: 'mywhatsapp',
     schema: 'public',
     poolSize: 10,
     sslEnabled: false,
@@ -142,7 +142,7 @@ export function useInfraConfigForm(
       ...prev,
       type: (infraStatus.database.type as 'sqlite' | 'postgres') || 'sqlite',
       host: infraStatus.database.host || 'localhost',
-      // builtIn reflects whether OpenWA's bundled container is actually running (live), not saved intent.
+      // builtIn reflects whether MyWhatsapp's bundled container is actually running (live), not saved intent.
       builtIn: infraStatus.database.builtIn,
     }));
     setRedisConfig(prev => ({

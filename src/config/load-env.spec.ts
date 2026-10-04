@@ -11,7 +11,7 @@ describe('loadEnvironment', () => {
   // and point process.cwd() at it. The loader reads `.env` / `data/.env.generated` from process.cwd(),
   // so this drives it without touching the real project tree.
   const makeTempCwd = (files: Record<string, string>): string => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-loadenv-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-loadenv-'));
     tempDirs.push(dir);
     for (const [rel, content] of Object.entries(files)) {
       const full = path.join(dir, rel);

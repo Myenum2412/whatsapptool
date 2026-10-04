@@ -5,7 +5,7 @@ import { executableLines } from './workflow-lines';
 
 /**
  * The published image has no `USER` directive by design: docker-entrypoint.sh starts as root to fix
- * named-volume ownership and then drops via `exec gosu openwa`. That drop is the only thing keeping
+ * named-volume ownership and then drops via `exec gosu mywhatsapp`. That drop is the only thing keeping
  * an internet-facing Node process (and its Chromium subprocess) off uid 0, and
  * `scripts/smoke-test-non-root.sh` is the only check of it.
  *
@@ -59,7 +59,7 @@ describe('the non-root drop is enforced, not merely documented', () => {
   // it out is the exact shape that let the script go unrun while this file reported it enforced.
   it('does not count a commented-out invocation as running the script', () => {
     expect(executableLines('# ./scripts/smoke-test-non-root.sh\necho skipped')).not.toContain('smoke-test-non-root.sh');
-    expect(executableLines('  OPENWA_SMOKE_IMAGE="$IMAGE" ./scripts/smoke-test-non-root.sh # run it')).toContain(
+    expect(executableLines('  MYWHATSAPP_SMOKE_IMAGE="$IMAGE" ./scripts/smoke-test-non-root.sh # run it')).toContain(
       'smoke-test-non-root.sh',
     );
     // A '#' inside a quoted string is data; truncating there would drop a real command.
@@ -78,7 +78,7 @@ describe('the non-root drop is enforced, not merely documented', () => {
   // absent, so its absence is never read as an oversight and "fixed" by deleting the drop.
   it('keeps the entrypoint gosu drop the image depends on', () => {
     const entrypoint = fs.readFileSync(path.join(__dirname, '..', '..', 'docker-entrypoint.sh'), 'utf8');
-    expect(entrypoint).toMatch(/exec\s+gosu\s+openwa/);
+    expect(entrypoint).toMatch(/exec\s+gosu\s+mywhatsapp/);
   });
 });
 

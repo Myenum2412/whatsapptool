@@ -45,7 +45,7 @@ function load(file) {
 const REAL_RESPONSE = {
   id: '120363428347011596@newsletter',
   thread_metadata: {
-    name: { text: 'openwa-probe' },
+    name: { text: 'mywhatsapp-probe' },
     creation_time: '1786405315',
     description: null, // the caller omitted one; newsletterCreate sends `description ?? null`
     invite: '0029VbCs400HAdNLkrTlCt0r',
@@ -75,7 +75,7 @@ test('the patched parser survives an absent picture AND keeps the new channel id
   assert.equal(parsed.id, '120363428347011596@newsletter');
   assert.equal(parsed.picture, undefined);
   assert.equal(parsed.description, undefined);
-  assert.equal(parsed.name, 'openwa-probe');
+  assert.equal(parsed.name, 'mywhatsapp-probe');
   assert.equal(parsed.invite, '0029VbCs400HAdNLkrTlCt0r');
   assert.equal(parsed.creation_time, 1786405315);
   fs.rmSync(dir, { recursive: true, force: true });

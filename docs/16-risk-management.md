@@ -603,11 +603,11 @@ flowchart TB
 
 **Backup Coverage:**
 
-| Data Type                                                                                   | Frequency                                                                     | Retention                                            | Storage                                                                                                                |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Databases (`main.sqlite` plus the data store, or a `pg_dump` when `DATABASE_TYPE=postgres`) | Each operator-run of `scripts/backup.sh` — the repo ships no scheduled backup | Whatever the operator keeps; the script never prunes | One `openwa-backup-<timestamp>.tar.gz` under `BACKUP_DIR` (default `./backups`) — local disk, no object-storage upload |
-| Session auth state                                                                          | On change                                                                     | Indefinite                                           | Filesystem — `SESSION_DATA_PATH` (default `./data/sessions`), `BAILEYS_AUTH_DIR` (default `./data/baileys`)            |
-| Configuration                                                                               | On change                                                                     | Indefinite                                           | Git                                                                                                                    |
+| Data Type                                                                                   | Frequency                                                                     | Retention                                            | Storage                                                                                                                    |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Databases (`main.sqlite` plus the data store, or a `pg_dump` when `DATABASE_TYPE=postgres`) | Each operator-run of `scripts/backup.sh` — the repo ships no scheduled backup | Whatever the operator keeps; the script never prunes | One `mywhatsapp-backup-<timestamp>.tar.gz` under `BACKUP_DIR` (default `./backups`) — local disk, no object-storage upload |
+| Session auth state                                                                          | On change                                                                     | Indefinite                                           | Filesystem — `SESSION_DATA_PATH` (default `./data/sessions`), `BAILEYS_AUTH_DIR` (default `./data/baileys`)                |
+| Configuration                                                                               | On change                                                                     | Indefinite                                           | Git                                                                                                                        |
 
 > Session auth state is **not** in the database: whatsapp-web.js `LocalAuth` writes under
 > `SESSION_DATA_PATH` and Baileys writes multi-file auth state under `BAILEYS_AUTH_DIR/<sessionId>`.
@@ -658,7 +658,7 @@ flowchart TB
 ```yaml
 # Example PagerDuty/Opsgenie configuration
 schedule:
-  name: 'OpenWA On-Call'
+  name: 'MyWhatsapp On-Call'
   rotation:
     - week: 1
       primary: 'developer-a'

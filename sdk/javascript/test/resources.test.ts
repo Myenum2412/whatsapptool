@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { OpenWAClient } from '../src';
+import { MyWhatsappClient } from '../src';
 import type { WebhookFilters } from '../src/types';
 import { MockTransport } from './helpers';
 
-function client(t: MockTransport): OpenWAClient {
-  return new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: t.asFetch() });
+function client(t: MockTransport): MyWhatsappClient {
+  return new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: t.asFetch() });
 }
 
 describe('GroupsResource — exact paths and bodies', () => {

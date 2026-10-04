@@ -1,4 +1,4 @@
-package openwa
+package mywhatsapp
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ const DefaultTimeout = 30 * time.Second
 
 // DefaultUserAgent is sent on every request unless overridden with
 // WithUserAgent or a caller-supplied User-Agent header.
-const DefaultUserAgent = "openwa-go/0.5.0"
+const DefaultUserAgent = "mywhatsapp-go/0.5.0"
 
 // config is the resolved, internal configuration assembled from the options.
 type config struct {
@@ -69,9 +69,9 @@ func WithLogger(l Logger) Option {
 }
 
 // WithRetry enables automatic retries with the given policy. Retries are off by
-// default. Use openwa.DefaultRetryPolicy() for sensible defaults:
+// default. Use mywhatsapp.DefaultRetryPolicy() for sensible defaults:
 //
-//	openwa.WithRetry(openwa.DefaultRetryPolicy())
+//	mywhatsapp.WithRetry(mywhatsapp.DefaultRetryPolicy())
 func WithRetry(p RetryPolicy) Option {
 	return func(c *config) { c.retry = &p }
 }

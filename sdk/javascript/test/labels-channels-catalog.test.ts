@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { OpenWAClient } from '../src';
+import { MyWhatsappClient } from '../src';
 import { MockTransport } from './helpers';
 
-function client(t: MockTransport): OpenWAClient {
-  return new OpenWAClient({ baseUrl: 'http://localhost:2785', apiKey: 'k', fetch: t.asFetch() });
+function client(t: MockTransport): MyWhatsappClient {
+  return new MyWhatsappClient({ baseUrl: 'http://localhost:2785', apiKey: 'k', fetch: t.asFetch() });
 }
 
 describe('LabelsResource — exact paths', () => {

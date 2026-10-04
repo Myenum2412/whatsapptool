@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 // better-sqlite3 creates its database files with 0666 & umask (0644 under the usual 022), so the
 // SQLite files end up group/world-readable while every sibling secret in data/ was tightened to
-// 0600/0700. That matters because these files ARE secret stores: openwa.sqlite holds the webhook
+// 0600/0700. That matters because these files ARE secret stores: mywhatsapp.sqlite holds the webhook
 // and plugin-instance HMAC secrets and session proxy URLs in plaintext. The container deployment is
 // insulated (named volume, non-root user), but bare-metal and bind-mount hosts get world-readable
 // secrets. Tighten on every boot, the same re-tighten-on-start posture the credential dirs use, so
@@ -51,7 +51,7 @@ export class SqlitePermissionsBoot implements OnApplicationBootstrap {
   onApplicationBootstrap(): void {
     const paths: string[] = [this.config.get<string>('database.database', './data/main.sqlite')];
     if (this.config.get<string>('dataDatabase.type', 'sqlite') !== 'postgres') {
-      paths.push(this.config.get<string>('dataDatabase.database', './data/openwa.sqlite'));
+      paths.push(this.config.get<string>('dataDatabase.database', './data/mywhatsapp.sqlite'));
     }
     tightenSqliteFilePermissions(paths, message => this.logger.warn(message));
   }

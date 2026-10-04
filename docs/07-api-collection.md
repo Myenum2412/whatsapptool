@@ -2,7 +2,7 @@
 
 ## 07.1 Overview
 
-This collection gives a runnable cURL for the primary OpenWA REST endpoints; the complete route list lives in `openapi.json` at the repository root. The Swagger UI at `/api/docs` serves the same schema, but it defaults off under `NODE_ENV=production` — set `ENABLE_SWAGGER=true` to serve it there. The examples assume two environment variables — set them once and reuse them:
+This collection gives a runnable cURL for the primary MyWhatsapp REST endpoints; the complete route list lives in `openapi.json` at the repository root. The Swagger UI at `/api/docs` serves the same schema, but it defaults off under `NODE_ENV=production` — set `ENABLE_SWAGGER=true` to serve it there. The examples assume two environment variables — set them once and reuse them:
 
 ```bash
 export BASE=http://localhost:2785
@@ -26,7 +26,7 @@ Responses are the **raw payload** — no `{ success, data }` envelope. A resourc
 
 ### Sections
 
-Sessions · Messages · Webhooks · Groups · Contacts · Chats · Labels · Channels · Catalog · Templates ·  · Settings · Auth (API Keys) · Health · Infrastructure · Stats · Audit · Metrics · Profile · Search · Media conversion · Events (WebSocket).
+Sessions · Messages · Webhooks · Groups · Contacts · Chats · Labels · Channels · Catalog · Templates · · Settings · Auth (API Keys) · Health · Infrastructure · Stats · Audit · Metrics · Profile · Search · Media conversion · Events (WebSocket).
 
 ## 07.2 Endpoints
 
@@ -418,7 +418,7 @@ Send a plain text message.
 curl -X POST "$BASE/api/sessions/$SESSION_ID/messages/send-text" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "chatId": "628123456789@c.us", "text": "Hello from OpenWA!" }'
+  -d '{ "chatId": "628123456789@c.us", "text": "Hello from MyWhatsapp!" }'
 ```
 
 #### POST /api/sessions/:sessionId/messages/send-template
@@ -900,7 +900,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/templates" \
   -d '{
     "name": "order-confirmation",
     "body": "Hi {{customer}}, your order {{orderId}} has shipped.",
-    "header": "OpenWA Store",
+    "header": "MyWhatsapp Store",
     "footer": "Reply STOP to unsubscribe."
   }'
 ```
@@ -1068,7 +1068,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/status/6281234567890@c.us" \
 curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-text" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "text": "Hello from OpenWA!", "backgroundColor": "#25D366", "font": 2 }'
+  -d '{ "text": "Hello from MyWhatsapp!", "backgroundColor": "#25D366", "font": 2 }'
 ```
 
 ```bash
@@ -1428,7 +1428,7 @@ curl -X PUT "$BASE/api/infra/config" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "database": { "type": "postgres", "host": "db.example.com", "port": "5432", "username": "openwa", "password": "s3cret", "database": "openwa", "poolSize": 10, "sslEnabled": true, "sslRejectUnauthorized": false },
+    "database": { "type": "postgres", "host": "db.example.com", "port": "5432", "username": "mywhatsapp", "password": "s3cret", "database": "mywhatsapp", "poolSize": 10, "sslEnabled": true, "sslRejectUnauthorized": false },
     "redis": { "enabled": true, "builtIn": true },
     "queue": { "enabled": true },
     "storage": { "type": "s3", "s3Bucket": "my-bucket", "s3Region": "ap-southeast-1", "s3AccessKey": "AKIA...", "s3SecretKey": "...", "s3Endpoint": "https://s3.example.com" },
@@ -1518,7 +1518,7 @@ MCP JSON-RPC 2.0 transport (no `/api` prefix; gated by `MCP_ENABLED=true`). The 
 curl -X POST "$BASE/mcp" \
   -H "X-Api-Key: $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "jsonrpc": "2.0", "id": 1, "method": "initialize", "params": { "protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": { "name": "openwa-collection", "version": "1.0.0" } } }'
+  -d '{ "jsonrpc": "2.0", "id": 1, "method": "initialize", "params": { "protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": { "name": "mywhatsapp-collection", "version": "1.0.0" } } }'
 
 # List available tools
 curl -X POST "$BASE/mcp" \

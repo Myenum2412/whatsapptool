@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke test: verify the built image runs its process as the openwa user (not root).
+# Smoke test: verify the built image runs its process as the mywhatsapp user (not root).
 # Usage: ./scripts/smoke-test-non-root.sh
 # Requires Docker to be running locally.
 set -e
@@ -8,12 +8,12 @@ set -e
 # so the build requires BuildKit. It's the modern default, but force it on in case the host disabled it.
 export DOCKER_BUILDKIT=1
 
-# CI already builds the image; set OPENWA_SMOKE_IMAGE to reuse that tag instead of paying for a
+# CI already builds the image; set MYWHATSAPP_SMOKE_IMAGE to reuse that tag instead of paying for a
 # second build. Unset (the local default) keeps the original behaviour: build here, remove after.
-IMAGE_TAG="${OPENWA_SMOKE_IMAGE:-openwa-test-non-root:smoke}"
+IMAGE_TAG="${MYWHATSAPP_SMOKE_IMAGE:-mywhatsapp-test-non-root:smoke}"
 BUILT_HERE=0
 
-if [ -z "${OPENWA_SMOKE_IMAGE:-}" ]; then
+if [ -z "${MYWHATSAPP_SMOKE_IMAGE:-}" ]; then
   BUILT_HERE=1
   echo "==> Building test image..."
   docker build -t "$IMAGE_TAG" .
@@ -30,7 +30,7 @@ cleanup() {
 
 echo ""
 echo "==> Checking process user inside container..."
-# Override CMD with 'id' so docker-entrypoint.sh runs: exec gosu openwa id
+# Override CMD with 'id' so docker-entrypoint.sh runs: exec gosu mywhatsapp id
 USER_OUTPUT=$(docker run --rm "$IMAGE_TAG" id)
 echo "    $USER_OUTPUT"
 
@@ -40,10 +40,10 @@ if echo "$USER_OUTPUT" | grep -q "uid=0(root)"; then
   exit 1
 fi
 
-if echo "$USER_OUTPUT" | grep -q "openwa"; then
-  echo "PASS: process runs as openwa (non-root)"
+if echo "$USER_OUTPUT" | grep -q "mywhatsapp"; then
+  echo "PASS: process runs as mywhatsapp (non-root)"
 else
-  echo "FAIL: process is not running as the openwa user" >&2
+  echo "FAIL: process is not running as the mywhatsapp user" >&2
   cleanup
   exit 1
 fi

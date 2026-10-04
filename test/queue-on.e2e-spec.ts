@@ -274,6 +274,6 @@ describeQueueOn('Queued dispatch paths (e2e, QUEUE_ENABLED=true)', () => {
     // The WebhookProcessor worker picked the job up and delivered it over HTTP.
     await waitFor(() => received.length >= 1);
     expect(received[0].body.event).toBe('message.received');
-    expect(received[0].headers['x-openwa-event']).toBe('message.received');
+    expect(received[0].headers['x-mywhatsapp-event']).toBe('message.received');
   }, 30000);
 });

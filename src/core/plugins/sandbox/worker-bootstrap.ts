@@ -15,7 +15,7 @@ import { WorkerSearchRegistry, WorkerSearchHandler } from './worker-search-regis
  * boundary. Plugin code can `require('fs' | 'net' | 'child_process')` and reach the host's files and
  * sockets directly — `parentPort` is NOT the worker's only channel out, and the capability permission
  * model gates only the `ctx.*` verbs, not raw Node access. Load only trusted plugin code, or run
- * OpenWA under an OS-level sandbox (container / seccomp) when untrusted plugins must be supported.
+ * MyWhatsapp under an OS-level sandbox (container / seccomp) when untrusted plugins must be supported.
  */
 
 interface LifecyclePlugin {

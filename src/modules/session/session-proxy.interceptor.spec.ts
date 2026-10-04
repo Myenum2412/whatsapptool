@@ -212,7 +212,7 @@ describe('SessionProxyInterceptor', () => {
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.setHeader).toHaveBeenCalledWith('content-type', 'application/json');
-      expect(res.setHeader).toHaveBeenCalledWith('x-openwa-served-by', 'peer-node');
+      expect(res.setHeader).toHaveBeenCalledWith('x-mywhatsapp-served-by', 'peer-node');
       expect(res.setHeader).not.toHaveBeenCalledWith('x-hop-by-hop', expect.anything());
       const sentBody = (res.send.mock.calls[0] as [Buffer])[0];
       expect(JSON.parse(String(sentBody))).toEqual({ servedBy: 'the-owner' });

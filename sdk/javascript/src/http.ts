@@ -1,5 +1,5 @@
 /**
- * Injectable HTTP transport for the OpenWA SDK.
+ * Injectable HTTP transport for the MyWhatsapp SDK.
  *
  * The client never calls `globalThis.fetch` directly. Instead it accepts a
  * `FetchLike` implementation (defaulting to the global `fetch`). This makes the
@@ -10,7 +10,7 @@
  * @packageDocumentation
  */
 
-import { classifyApiError, OpenWAApiError, OpenWATimeoutError } from './errors.js';
+import { classifyApiError, MyWhatsappApiError, MyWhatsappTimeoutError } from './errors.js';
 
 /** Subset of the WHATWG `fetch` signature the SDK relies on. */
 export type FetchLike = typeof globalThis.fetch;
@@ -32,7 +32,7 @@ export interface RequestOptions {
 }
 
 export interface ClientConfig {
-  /** Base URL of the OpenWA API, e.g. `http://localhost:2785`. */
+  /** Base URL of the MyWhatsapp API, e.g. `http://localhost:2785`. */
   baseUrl: string;
   /** API key sent as `X-API-Key`. */
   apiKey: string;
@@ -68,9 +68,9 @@ export function buildUrl(baseUrl: string, path: string, query?: object): string 
 }
 
 /**
- * Perform a single request against the OpenWA API and return the parsed JSON
- * body (or `null` for 204). Throws a typed {@link OpenWAApiError} subclass on
- * non-2xx, or {@link OpenWATimeoutError} on timeout.
+ * Perform a single request against the MyWhatsapp API and return the parsed JSON
+ * body (or `null` for 204). Throws a typed {@link MyWhatsappApiError} subclass on
+ * non-2xx, or {@link MyWhatsappTimeoutError} on timeout.
  */
 export async function request<T>(
   config: Required<Omit<ClientConfig, 'fetch'>> & { fetch: FetchLike },
@@ -154,14 +154,14 @@ async function send<T>(
 
     if (!res.ok) {
       const context = `${options.method} ${options.path}`;
-      const apiError = await OpenWAApiError.fromResponse(res, context);
+      const apiError = await MyWhatsappApiError.fromResponse(res, context);
       throw classifyApiError(apiError.status, apiError.message, apiError.body, apiError.errorKind);
     }
 
     return await consume(res);
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new OpenWATimeoutError(timeoutMs);
+      throw new MyWhatsappTimeoutError(timeoutMs);
     }
     throw err;
   } finally {
@@ -181,7 +181,7 @@ export function warnIfInsecureHttpUrl(url: string, label = 'baseUrl'): void {
     const parsed = new URL(url);
     if (parsed.protocol === 'http:' && !LOCALHOST_HOSTS.has(parsed.hostname.toLowerCase())) {
       console.warn(
-        `[OpenWA SDK] ${label} uses an insecure http:// URL (host: ${parsed.hostname}). ` +
+        `[MyWhatsapp SDK] ${label} uses an insecure http:// URL (host: ${parsed.hostname}). ` +
           'The API key will be sent in cleartext. Use https:// in production.',
       );
     }

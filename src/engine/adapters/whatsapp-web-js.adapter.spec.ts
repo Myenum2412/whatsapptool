@@ -2489,7 +2489,7 @@ describe('WhatsAppWebJsAdapter ready reconciliation (#251/#273)', () => {
   // #981: clearing the auth dir destroys the ONLY copy of the session's WhatsApp credentials, and the
   // loss is permanent — every later start finds an empty profile and can only show a QR. Until now the
   // adapter logged only the FAILURE to delete, so a successful wipe left no trace at all and triage
-  // could not tell an OpenWA self-heal apart from a WhatsApp-side logout or an untouched profile.
+  // could not tell an MyWhatsapp self-heal apart from a WhatsApp-side logout or an untouched profile.
   it('records the credential deletion, naming the session and the directory removed', async () => {
     const rmSpy = jest.spyOn(fs.promises, 'rm').mockResolvedValue(undefined);
     const adapter = newAdapter();
@@ -5550,13 +5550,13 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
     }
   });
 
-  it('appends the --openwa-session marker to the puppeteer args handed to the Client', async () => {
+  it('appends the --mywhatsapp-session marker to the puppeteer args handed to the Client', async () => {
     const adapter = newAdapter();
 
     await adapter.initialize({});
 
     const client = (adapter as unknown as { client: { options: { puppeteer?: { args?: string[] } } } }).client;
-    expect(client.options.puppeteer?.args).toContain(`--openwa-session=${SESSION_ID}`);
+    expect(client.options.puppeteer?.args).toContain(`--mywhatsapp-session=${SESSION_ID}`);
   });
 
   it('does not mutate the caller-owned puppeteer args array shared across sessions', async () => {
@@ -5581,10 +5581,10 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
     const argsB = await argsFor('sess-b');
 
     expect(sharedArgs).toEqual(['--no-sandbox']);
-    expect(argsB).toContain('--openwa-session=sess-b');
+    expect(argsB).toContain('--mywhatsapp-session=sess-b');
     // The cross-session leak that let a restart of sess-a SIGKILL sess-b's live browser: the sweep
     // substring-matches this marker against the full `ps` command line.
-    expect(argsB).not.toContain('--openwa-session=sess-a');
+    expect(argsB).not.toContain('--mywhatsapp-session=sess-a');
   });
 
   it('SIGKILLs a Chromium process carrying this session marker and logs the sweep', async () => {
@@ -5592,7 +5592,7 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
       stdout: psTable([
         [
           1501,
-          `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --headless --openwa-session=${SESSION_ID}`,
+          `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --headless --mywhatsapp-session=${SESSION_ID}`,
         ],
         [1502, '/usr/bin/node dist/main.js'],
       ]),
@@ -5619,8 +5619,8 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
   it('does NOT kill a non-browser process that merely carries the marker string', async () => {
     mockPsResult({
       stdout: psTable([
-        [1601, `/bin/grep --openwa-session=${SESSION_ID}`],
-        [1602, `/usr/bin/node scan-sessions.js --openwa-session=${SESSION_ID}`],
+        [1601, `/bin/grep --mywhatsapp-session=${SESSION_ID}`],
+        [1602, `/usr/bin/node scan-sessions.js --mywhatsapp-session=${SESSION_ID}`],
       ]),
     });
 
@@ -5631,7 +5631,7 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
 
   it('does NOT kill a Chromium process belonging to a different session', async () => {
     mockPsResult({
-      stdout: psTable([[1701, '/usr/lib/chromium/chromium --headless --no-sandbox --openwa-session=session-lain']]),
+      stdout: psTable([[1701, '/usr/lib/chromium/chromium --headless --no-sandbox --mywhatsapp-session=session-lain']]),
     });
 
     await newAdapter().initialize({});
@@ -5640,12 +5640,12 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
   });
 
   it('does NOT kill a live sibling whose marker merely SHARES A PREFIX with ours (sess vs sess-2)', async () => {
-    // `--openwa-session=sess-orphan` is a substring of `--openwa-session=sess-orphan-2`: a substring
+    // `--mywhatsapp-session=sess-orphan` is a substring of `--mywhatsapp-session=sess-orphan-2`: a substring
     // match would SIGKILL the sibling's live browser; the token-exact match must spare it.
     mockPsResult({
       stdout: psTable([
-        [1801, `/usr/lib/chromium/chromium --headless --no-sandbox --openwa-session=${SESSION_ID}-2`],
-        [1802, `/usr/lib/chromium/chromium --headless --no-sandbox --openwa-session=${SESSION_ID}extra`],
+        [1801, `/usr/lib/chromium/chromium --headless --no-sandbox --mywhatsapp-session=${SESSION_ID}-2`],
+        [1802, `/usr/lib/chromium/chromium --headless --no-sandbox --mywhatsapp-session=${SESSION_ID}extra`],
       ]),
     });
 
@@ -5656,7 +5656,9 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
 
   it('kills the orphan when the marker is the LAST token on the command line', async () => {
     mockPsResult({
-      stdout: psTable([[1803, `/usr/lib/chromium/chromium --headless --no-sandbox --openwa-session=${SESSION_ID}`]]),
+      stdout: psTable([
+        [1803, `/usr/lib/chromium/chromium --headless --no-sandbox --mywhatsapp-session=${SESSION_ID}`],
+      ]),
     });
 
     await newAdapter().initialize({});
@@ -5693,7 +5695,7 @@ describe('WhatsAppWebJsAdapter orphaned Chromium sweep (pre-launch)', () => {
       order.push('ps');
       (args[args.length - 1] as ExecFileCallback)(
         null,
-        psTable([[1801, `/usr/bin/chromium --headless --openwa-session=${SESSION_ID}`]]),
+        psTable([[1801, `/usr/bin/chromium --headless --mywhatsapp-session=${SESSION_ID}`]]),
         '',
       );
     });

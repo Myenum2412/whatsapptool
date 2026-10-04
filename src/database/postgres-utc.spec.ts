@@ -83,8 +83,8 @@ const acquireThrough = async (fake: FakeServer): Promise<{ rejection?: string; u
   const pool = new Pool({
     host: '127.0.0.1',
     port: fake.port,
-    user: 'openwa',
-    database: 'openwa',
+    user: 'mywhatsapp',
+    database: 'mywhatsapp',
     connectionTimeoutMillis: 5000,
     ...postgresUtcExtra(),
   });

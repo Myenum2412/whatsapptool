@@ -30,7 +30,7 @@ export function useDataBackup(): DataBackup {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `openwa-backup-${dump.exportedAt?.slice(0, 10) || 'data'}.json`;
+      a.download = `mywhatsapp-backup-${dump.exportedAt?.slice(0, 10) || 'data'}.json`;
       a.click();
       URL.revokeObjectURL(url);
 

@@ -1,6 +1,6 @@
-# OpenWA Go SDK
+# MyWhatsapp Go SDK
 
-Idiomatic Go client for the [OpenWA](https://github.com/rmyndharis/OpenWA) WhatsApp
+Idiomatic Go client for the [MyWhatsapp](https://github.com/rmyndharis/OpenWA) WhatsApp
 API Gateway. Stdlib-only (no dependencies), context-first, with typed errors and
 an injectable transport pipeline.
 
@@ -19,11 +19,11 @@ import (
 	"context"
 	"log"
 
-	openwa "github.com/rmyndharis/OpenWA/sdk/go"
+	mywhatsapp "github.com/rmyndharis/OpenWA/sdk/go"
 )
 
 func main() {
-	client, err := openwa.New("http://localhost:2785", "owa_k1_…")
+	client, err := mywhatsapp.New("http://localhost:2785", "owa_k1_…")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,9 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	res, err := client.Messages.SendText(ctx, "my-session", openwa.SendTextRequest{
+	res, err := client.Messages.SendText(ctx, "my-session", mywhatsapp.SendTextRequest{
 		ChatID: "628123456789@c.us",
-		Text:   "Hello from the OpenWA Go SDK!",
+		Text:   "Hello from the MyWhatsapp Go SDK!",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +46,7 @@ func main() {
 
 ## Design
 
-- **Client entry point** — `openwa.New(baseURL, apiKey, opts...)` returns a
+- **Client entry point** — `mywhatsapp.New(baseURL, apiKey, opts...)` returns a
   `*Client`. Required credentials are positional; everything else is a functional
   Option. The client is safe for concurrent use.
 - **Services by domain** — the API is grouped onto exported fields:
@@ -82,12 +82,12 @@ func main() {
 ```go
 res, err := client.Messages.SendText(ctx, "my-session", req)
 switch {
-case errors.Is(err, openwa.ErrConflict):
+case errors.Is(err, mywhatsapp.ErrConflict):
 	// 409 — engine not ready; retry once the session is "ready".
-case errors.Is(err, openwa.ErrNotFound):
+case errors.Is(err, mywhatsapp.ErrNotFound):
 	// 404 — unknown session/resource.
 case err != nil:
-	var apiErr *openwa.APIError
+	var apiErr *mywhatsapp.APIError
 	if errors.As(err, &apiErr) {
 		log.Printf("API %d: %s (body: %v)", apiErr.StatusCode, apiErr.Message, apiErr.Body)
 	}
@@ -97,7 +97,7 @@ case err != nil:
 Sentinels: `ErrUnauthorized` (401), `ErrForbidden` (403), `ErrNotFound` (404),
 `ErrConflict` (409), `ErrRateLimited` (429), `ErrNotImplemented` (501),
 `ErrServiceUnavailable` (503 — the only retryable one). A timeout
-surfaces as `*openwa.TimeoutError`. In a routed deployment only 503 proves
+surfaces as `*mywhatsapp.TimeoutError`. In a routed deployment only 503 proves
 the request was never carried out: a forward that fails after the request
 reached the owner node answers 502 or 504.
 
@@ -108,8 +108,8 @@ Off by default. Opt in with a policy; only network errors and retryable statuses
 Request bodies are safely rewound on each attempt.
 
 ```go
-client, _ := openwa.New(baseURL, apiKey,
-	openwa.WithRetry(openwa.DefaultRetryPolicy()),
+client, _ := mywhatsapp.New(baseURL, apiKey,
+	mywhatsapp.WithRetry(mywhatsapp.DefaultRetryPolicy()),
 )
 ```
 
@@ -121,12 +121,12 @@ retry layers sit inside yours, so every attempt is authenticated and observable.
 
 ```go
 tracing := func(next http.RoundTripper) http.RoundTripper {
-	return openwa.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
+	return mywhatsapp.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		// start span, inject headers…
 		return next.RoundTrip(req)
 	})
 }
-client, _ := openwa.New(baseURL, apiKey, openwa.WithMiddleware(tracing))
+client, _ := mywhatsapp.New(baseURL, apiKey, mywhatsapp.WithMiddleware(tracing))
 ```
 
 ## Dependency injection & testing
@@ -143,7 +143,7 @@ func (mockRT) RoundTrip(r *http.Request) (*http.Response, error) {
 	}, nil
 }
 
-client, _ := openwa.New("https://api.test", "key", openwa.WithTransport(mockRT{}))
+client, _ := mywhatsapp.New("https://api.test", "key", mywhatsapp.WithTransport(mockRT{}))
 ```
 
 ## Escape hatch

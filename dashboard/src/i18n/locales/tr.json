@@ -6,7 +6,7 @@
     }
   },
   "common": {
-    "appName": "OpenWA",
+    "appName": "MyWhatsapp",
     "updateAvailable": "v{{version}} mevcut",
     "loading": "Yükleniyor...",
     "cancel": "İptal",
@@ -347,7 +347,7 @@
     "connectionError": "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.",
     "help": "Yardıma mı ihtiyacınız var?",
     "viewDocs": "Dokümantasyonu Görüntüle",
-    "footer": "Yudhi Armyndharis ve OpenWA Topluluğu tarafından ❤️ ile yapılmıştır",
+    "footer": "Yudhi Armyndharis ve MyWhatsapp Toplulu─ƒu taraf─▒ndan Γ¥ñ∩╕Å ile yap─▒lm─▒┼ƒt─▒r",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
@@ -1128,7 +1128,7 @@
       "postgres": "PostgreSQL",
       "postgresDesc": "Prodüksiyona hazır veritabanı",
       "useBuiltIn": "Dahili PostgreSQL Konteynerini Kullan",
-      "builtInDesc": "OpenWA sizin için bir PostgreSQL konteynerini yönetecektir",
+      "builtInDesc": "MyWhatsapp sizin için bir PostgreSQL konteynerini yönetecektir",
       "dbName": "Veritabanı Adı",
       "schema": "Şema (Schema)",
       "schemaDesc": "PostgreSQL şeması (SQLite için yok sayılır). Varsayılan 'public'. Şema zaten mevcut olmalıdır.",
@@ -1163,7 +1163,7 @@
       "enable": "Redis'i Etkinleştir",
       "enableDesc": "Önbelleğe alma, oturum depolama ve BullMQ kuyrukları için gereklidir",
       "useBuiltIn": "Dahili Redis Konteynerini Kullan",
-      "builtInDesc": "OpenWA sizin için bir Redis konteynerini yönetecektir",
+      "builtInDesc": "MyWhatsapp sizin için bir Redis konteynerini yönetecektir",
       "queueTitle": "BullMQ Kuyruk Sistemini Etkinleştir",
       "queueDesc": "Güvenilir mesaj ve webhook iletimi için mesaj kuyruklarını kullanın",
       "statsTitle": "Kuyruk İstatistikleri",
@@ -1186,7 +1186,7 @@
       "s3": "Amazon S3",
       "s3Desc": "Bulut depolama (S3 uyumlu)",
       "useBuiltIn": "Dahili MinIO Konteynerini Kullan",
-      "builtInDesc": "OpenWA sizin için bir MinIO (S3 uyumlu) konteynerini yönetecektir",
+      "builtInDesc": "MyWhatsapp sizin için bir MinIO (S3 uyumlu) konteynerini yönetecektir",
       "storagePath": "Depolama Yolu",
       "bucket": "Kova (Bucket) Adı",
       "region": "Bölge (Region)",
@@ -1217,7 +1217,7 @@
       "importFailed": "Veriler içe aktarılamadı",
       "importOk": "Veriler içe aktarıldı",
       "importConfirm": "İçe aktarma işlemi mevcut tüm verileri yedekle ({{rows}} satır) DEĞİŞTİRECEKTİR. Bu işlem geri alınamaz. Devam edilsin mi?",
-      "invalidFile": "Bu dosya geçerli bir OpenWA veri yedeği değil.",
+      "invalidFile": "Bu dosya geçerli bir MyWhatsapp veri yedeği değil.",
       "importTooLarge": "Yedekleme, istek sınırı için çok büyük. Sunucudaki BODY_SIZE_LIMIT değerini artırın ve tekrar deneyin."
     },
     "restart": {

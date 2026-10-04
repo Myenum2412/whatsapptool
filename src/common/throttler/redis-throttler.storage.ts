@@ -89,7 +89,7 @@ export class RedisThrottlerStorage implements ThrottlerStorage, OnModuleDestroy 
     blockDuration: number,
     throttlerName: string,
   ): Promise<ThrottlerRecord> {
-    const redisKey = `openwa:throttle:${throttlerName}:${key}`;
+    const redisKey = `mywhatsapp:throttle:${throttlerName}:${key}`;
     try {
       const [hits, ttlMs] = (await this.redis.eval(INCREMENT_WITH_TTL_LUA, 1, redisKey, String(ttl))) as [
         number,

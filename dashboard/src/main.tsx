@@ -7,7 +7,7 @@ import App from './App.tsx';
 // Apply the stored theme BEFORE first paint: useTheme() only runs inside Layout, so standalone
 // routes (Login) otherwise flash the OS theme on reload even when the user explicitly picked one.
 // Mirrors applyTheme: an explicit choice sets data-theme; system/absent leaves it to the media query.
-const storedTheme = localStorage.getItem('openwa_theme');
+const storedTheme = localStorage.getItem('mywhatsapp_theme');
 if (storedTheme === 'light' || storedTheme === 'dark') {
   document.documentElement.setAttribute('data-theme', storedTheme);
 }

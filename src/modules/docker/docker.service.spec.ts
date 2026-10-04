@@ -14,7 +14,7 @@ describe('DockerService.getRunningBuiltinServices', () => {
     name,
     state,
     status: state,
-    labels: { 'com.openwa.service': service, 'com.openwa.builtin': 'true' },
+    labels: { 'com.mywhatsapp.service': service, 'com.mywhatsapp.builtin': 'true' },
   });
 
   it('reports a service built-in only when its labeled container is actually running', async () => {
@@ -22,8 +22,8 @@ describe('DockerService.getRunningBuiltinServices', () => {
     jest
       .spyOn(service, 'listContainers')
       .mockResolvedValue([
-        container('openwa-postgres', 'database', 'running'),
-        container('openwa-redis', 'cache', 'exited'),
+        container('mywhatsapp-postgres', 'database', 'running'),
+        container('mywhatsapp-redis', 'cache', 'exited'),
       ]);
 
     expect(await service.getRunningBuiltinServices()).toEqual({ database: true, cache: false, storage: false });
@@ -136,7 +136,7 @@ describe('DockerService.stopManagedService (stop-only teardown)', () => {
 
 describe('DockerService.getContainerByService exact-name fallback', () => {
   // Label lookup returns nothing → exercises the name fallback. The fallback must match the exact
-  // OpenWA-managed container name, never a substring (a substring — and especially the empty string —
+  // MyWhatsapp-managed container name, never a substring (a substring — and especially the empty string —
   // would let an arbitrary container be resolved and torn down).
   function withFakeDocker(containers: Array<{ Id: string; Names: string[] }>) {
     const service = new DockerService();
@@ -153,22 +153,22 @@ describe('DockerService.getContainerByService exact-name fallback', () => {
   }
 
   it('does not resolve any container for an empty service name', async () => {
-    const { service, getContainer } = withFakeDocker([{ Id: 'abc', Names: ['/openwa-postgres'] }]);
+    const { service, getContainer } = withFakeDocker([{ Id: 'abc', Names: ['/mywhatsapp-postgres'] }]);
     expect(await service.getContainerByService('')).toBeNull();
     expect(getContainer).not.toHaveBeenCalled();
   });
 
   it('does not resolve a container by substring of its name', async () => {
-    const { service, getContainer } = withFakeDocker([{ Id: 'abc', Names: ['/openwa-postgres-primary'] }]);
-    // 'postgres' is a substring of 'openwa-postgres-primary' but not the exact managed name.
+    const { service, getContainer } = withFakeDocker([{ Id: 'abc', Names: ['/mywhatsapp-postgres-primary'] }]);
+    // 'postgres' is a substring of 'mywhatsapp-postgres-primary' but not the exact managed name.
     expect(await service.getContainerByService('postgres')).toBeNull();
     expect(getContainer).not.toHaveBeenCalled();
   });
 
-  it('resolves the exact openwa-<service> container', async () => {
+  it('resolves the exact mywhatsapp-<service> container', async () => {
     const { service, getContainer } = withFakeDocker([
-      { Id: 'p', Names: ['/openwa-postgres'] },
-      { Id: 'r', Names: ['/openwa-redis'] },
+      { Id: 'p', Names: ['/mywhatsapp-postgres'] },
+      { Id: 'r', Names: ['/mywhatsapp-redis'] },
     ]);
     const result = await service.getContainerByService('redis');
     expect(getContainer).toHaveBeenCalledWith('r');
@@ -227,7 +227,7 @@ describe('DockerService.onModuleInit', () => {
     await expect(service.onModuleInit()).resolves.toBeUndefined();
 
     expect(service.isDockerAvailable()).toBe(true);
-    expect(docker.createContainer).toHaveBeenCalledWith(expect.objectContaining({ name: 'openwa-redis' }));
+    expect(docker.createContainer).toHaveBeenCalledWith(expect.objectContaining({ name: 'mywhatsapp-redis' }));
   });
 
   it('logs a warning but still resolves when bootstrap orchestration fails', async () => {
@@ -264,7 +264,7 @@ describe('prestartBuiltinDatabase', () => {
 
     expect(docker.listContainers).toHaveBeenCalledWith({
       all: true,
-      filters: { label: ['com.openwa.service=database'] },
+      filters: { label: ['com.mywhatsapp.service=database'] },
     });
     expect(container.start).toHaveBeenCalledTimes(1);
   });
@@ -340,19 +340,19 @@ describe('DockerService.listContainers', () => {
     expect(await new DockerService().listContainers()).toEqual([]);
   });
 
-  it('maps only OpenWA containers (label or /openwa- name) to ContainerInfo', async () => {
+  it('maps only MyWhatsapp containers (label or /mywhatsapp- name) to ContainerInfo', async () => {
     const service = makeService(
       jest.fn().mockResolvedValue([
         {
           Id: 'aabbccddeeff00112233',
-          Names: ['/openwa-postgres'],
+          Names: ['/mywhatsapp-postgres'],
           State: 'running',
           Status: 'Up 2 hours',
-          Labels: { 'com.openwa.service': 'database', 'com.openwa.builtin': 'true' },
+          Labels: { 'com.mywhatsapp.service': 'database', 'com.mywhatsapp.builtin': 'true' },
         },
-        { Id: '11223344556677889900', Names: ['/openwa-redis'], State: 'exited', Status: 'Exited (0) yesterday' },
+        { Id: '11223344556677889900', Names: ['/mywhatsapp-redis'], State: 'exited', Status: 'Exited (0) yesterday' },
         // Label-only match with sparse fields: falls back to 'unknown' placeholders.
-        { Id: 'ffee0011223344556677', Labels: { 'com.openwa.service': 'cache' } },
+        { Id: 'ffee0011223344556677', Labels: { 'com.mywhatsapp.service': 'cache' } },
         { Id: 'deadbeef0011', Names: ['/unrelated'], State: 'running', Status: 'Up', Labels: {} },
       ]),
     );
@@ -360,18 +360,18 @@ describe('DockerService.listContainers', () => {
     expect(await service.listContainers()).toEqual([
       {
         id: 'aabbccddeeff',
-        name: 'openwa-postgres',
+        name: 'mywhatsapp-postgres',
         state: 'running',
         status: 'Up 2 hours',
-        labels: { 'com.openwa.service': 'database', 'com.openwa.builtin': 'true' },
+        labels: { 'com.mywhatsapp.service': 'database', 'com.mywhatsapp.builtin': 'true' },
       },
-      { id: '112233445566', name: 'openwa-redis', state: 'exited', status: 'Exited (0) yesterday', labels: {} },
+      { id: '112233445566', name: 'mywhatsapp-redis', state: 'exited', status: 'Exited (0) yesterday', labels: {} },
       {
         id: 'ffee00112233',
         name: 'unknown',
         state: 'unknown',
         status: 'unknown',
-        labels: { 'com.openwa.service': 'cache' },
+        labels: { 'com.mywhatsapp.service': 'cache' },
       },
     ]);
   });
@@ -387,9 +387,9 @@ describe('DockerService.getContainerByService label match and guard rails', () =
     expect(await new DockerService().getContainerByService('database')).toBeNull();
   });
 
-  it('resolves the container by its com.openwa.service label', async () => {
+  it('resolves the container by its com.mywhatsapp.service label', async () => {
     const service = new DockerService();
-    const listContainers = jest.fn().mockResolvedValue([{ Id: 'label-hit-1', Names: ['/openwa-postgres'] }]);
+    const listContainers = jest.fn().mockResolvedValue([{ Id: 'label-hit-1', Names: ['/mywhatsapp-postgres'] }]);
     const getContainer = jest.fn((id: string) => ({ id }));
     Object.assign(service as unknown as Record<string, unknown>, {
       docker: { listContainers, getContainer },
@@ -400,7 +400,7 @@ describe('DockerService.getContainerByService label match and guard rails', () =
 
     expect(listContainers).toHaveBeenCalledWith({
       all: true,
-      filters: { label: ['com.openwa.service=database'] },
+      filters: { label: ['com.mywhatsapp.service=database'] },
     });
     expect(getContainer).toHaveBeenCalledWith('label-hit-1');
     expect(result).toEqual({ id: 'label-hit-1' });
@@ -466,9 +466,9 @@ describe('DockerService.createService', () => {
 
     await expect(service.createService('redis')).resolves.toBe(true);
 
-    expect(docker.createVolume).toHaveBeenCalledWith({ Name: 'openwa_redis-data' });
+    expect(docker.createVolume).toHaveBeenCalledWith({ Name: 'mywhatsapp_redis-data' });
     expect(docker.createContainer).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'openwa-redis', Image: 'redis:7-alpine' }),
+      expect.objectContaining({ name: 'mywhatsapp-redis', Image: 'redis:7-alpine' }),
     );
     expect(start).toHaveBeenCalledTimes(1);
   });

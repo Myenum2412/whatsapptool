@@ -152,7 +152,7 @@ export async function runFfmpeg(
   encodeArgs: string[],
   options: FfmpegRunOptions,
 ): Promise<Buffer> {
-  const dir = await mkdtemp(join(tmpdir(), 'openwa-convert-'));
+  const dir = await mkdtemp(join(tmpdir(), 'mywhatsapp-convert-'));
   const inputPath = join(dir, `in.${inputExtension}`);
   const outputPath = join(dir, `out.${outputExtension}`);
   try {

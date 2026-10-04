@@ -29,7 +29,7 @@ const HELM_IMAGE = 'alpine/helm:4.2.3';
 const CHARTS = fileURLToPath(new URL('../charts', import.meta.url));
 
 const render = (...setArgs) =>
-  execFileSync('docker', ['run', '--rm', '-v', `${CHARTS}:/charts:ro`, HELM_IMAGE, 'template', 'ci', '/charts/openwa', ...setArgs], {
+  execFileSync('docker', ['run', '--rm', '-v', `${CHARTS}:/charts:ro`, HELM_IMAGE, 'template', 'ci', '/charts/mywhatsapp', ...setArgs], {
     encoding: 'utf8',
     maxBuffer: 1 << 24,
   });

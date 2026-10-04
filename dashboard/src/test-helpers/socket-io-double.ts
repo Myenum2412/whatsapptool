@@ -7,7 +7,7 @@
  * which is how a chat cache read as the wrong shape reached review with green CI. This double never
  * dials; it records listeners and lets a test deliver an envelope with `lastSocket().receive(...)`.
  *
- * Tests that do not set `sessionStorage['openwa_api_key']` never reach `io()` at all (useWebSocket
+ * Tests that do not set `sessionStorage['mywhatsapp_api_key']` never reach `io()` at all (useWebSocket
  * bails first), so aliasing this in changes nothing for them.
  */
 

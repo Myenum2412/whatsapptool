@@ -1,4 +1,4 @@
-package openwa
+package mywhatsapp
 
 import "context"
 

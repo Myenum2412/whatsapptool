@@ -31,7 +31,7 @@ describe('docs/10 metric table matches MetricsService', () => {
    * Emitted series, read from the two forms the renderers use:
    *   - `gauge('name', …)` — the helper pushes HELP/TYPE/value, always a gauge.
    *   - `# TYPE name counter|gauge` — the hand-written blocks.
-   * Deliberately NOT restricted to the `openwa_` prefix: two series are conventionally unprefixed so
+   * Deliberately NOT restricted to the `mywhatsapp_` prefix: two series are conventionally unprefixed so
    * generic RED dashboards match them, and a prefix filter is exactly how they escaped this gate.
    */
   const emitted = (): Map<string, string> => {
@@ -65,7 +65,7 @@ describe('docs/10 metric table matches MetricsService', () => {
     }
   });
 
-  /** The table rows: `| \`openwa_x\` | type | labels | meaning |`. */
+  /** The table rows: `| \`mywhatsapp_x\` | type | labels | meaning |`. */
   const documented = (): Map<string, string> => {
     const doc = read('docs', '10-devops-infrastructure.md');
     const start = doc.indexOf('**Exported metric names**');
@@ -88,9 +88,9 @@ describe('docs/10 metric table matches MetricsService', () => {
   // every comparison below pass vacuously — two empty sets are equal. Fail loudly instead.
   it('both readers actually read something', () => {
     expect(emitted().size).toBeGreaterThanOrEqual(10);
-    expect(emitted().get('openwa_up')).toBe('gauge');
+    expect(emitted().get('mywhatsapp_up')).toBe('gauge');
     expect(documented().size).toBeGreaterThanOrEqual(10);
-    expect(documented().get('openwa_up')).toBe('gauge');
+    expect(documented().get('mywhatsapp_up')).toBe('gauge');
   });
 
   it('lists exactly the series the renderer emits', () => {

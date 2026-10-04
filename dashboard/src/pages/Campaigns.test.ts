@@ -217,7 +217,7 @@ afterEach(() => {
 });
 
 function renderCampaigns(role: 'operator' | 'viewer' = 'operator'): void {
-  window.localStorage.setItem('openwa_user_role', role);
+  window.localStorage.setItem('mywhatsapp_user_role', role);
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1_000 } } });
   rtl.render(
     createElement(

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 /**
  * `.env.example` calls itself "the Single Source of Truth for all configuration", and both
- * `charts/openwa/values.yaml` and `docs/10-devops-infrastructure.md` defer to it as the canonical
+ * `charts/mywhatsapp/values.yaml` and `docs/10-devops-infrastructure.md` defer to it as the canonical
  * list. Nothing kept it complete, and it drifted: seven live operator knobs were missing, including
  * `SERVE_DASHBOARD`, which `docker-compose.yml` forwards explicitly. An operator who wanted to run
  * API-only was told the canonical list was this file, found no toggle, and concluded the capability

@@ -62,8 +62,8 @@ describe('Webhook outbox recovery (e2e)', () => {
       req.on('data', () => {});
       req.on('end', () => {
         captured.push({
-          idempotencyKey: req.headers['x-openwa-idempotency-key'] as string | undefined,
-          deliveryId: req.headers['x-openwa-delivery-id'] as string | undefined,
+          idempotencyKey: req.headers['x-mywhatsapp-idempotency-key'] as string | undefined,
+          deliveryId: req.headers['x-mywhatsapp-delivery-id'] as string | undefined,
         });
         const answer = (): void => {
           res.writeHead(200).end();

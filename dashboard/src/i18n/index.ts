@@ -109,7 +109,7 @@ export const i18nReady = i18n
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'openwa_language',
+      lookupLocalStorage: 'mywhatsapp_language',
       caches: ['localStorage'],
       convertDetectedLanguage: (lang: string) => resolveSupportedLanguage(lang),
     },

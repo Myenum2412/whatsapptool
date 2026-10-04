@@ -1,5 +1,5 @@
 /**
- * Request and response type definitions for the OpenWA API.
+ * Request and response type definitions for the MyWhatsapp API.
  *
  * IMPORTANT (hybrid codegen strategy): this module is the single source of truth
  * for wire types. It is the part most prone to drift with the backend, and is
@@ -933,7 +933,7 @@ export interface CreateWebhookRequest {
   url: string;
   events?: WebhookEvent[];
   /**
-   * HMAC secret; signed as `X-OpenWA-Signature: sha256=…`. At least 16 characters, or the gateway
+   * HMAC secret; signed as `X-MyWhatsapp-Signature: sha256=…`. At least 16 characters, or the gateway
    * answers 400. Omit for unsigned deliveries. Never returned by a read.
    */
   secret?: string;

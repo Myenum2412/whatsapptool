@@ -40,7 +40,7 @@ const path = require('path');
 const DEFAULT_BAILEYS = path.join(__dirname, '..', 'node_modules', '@whiskeysockets', 'baileys');
 const NEWSLETTER_PATH = path.join('lib', 'Socket', 'newsletter.js');
 
-const MARKER = 'OpenWA: newsletterCreate cannot supply a picture';
+const MARKER = 'MyWhatsapp: newsletterCreate cannot supply a picture';
 
 const PARSE_FIND = `    return {
         id: id,

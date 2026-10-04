@@ -68,7 +68,7 @@ const SDKS = [
   // check-sdk-coverage.mjs already harvests every quote style; this brings the forward gate level.
   { name: 'javascript', dir: 'sdk/javascript/src', exts: ['.ts'], re: /[`"'](\/api\/[^`"']*)[`"']/g },
   { name: 'php', dir: 'sdk/php/src', exts: ['.php'], re: /["'](\/api\/[^"']*)["']/g },
-  { name: 'python', dir: 'sdk/python/openwa', exts: ['.py'], re: /["'](\/api\/[^"']*)["']/g },
+  { name: 'python', dir: 'sdk/python/mywhatsapp', exts: ['.py'], re: /["'](\/api\/[^"']*)["']/g },
 ];
 
 /**
@@ -89,7 +89,7 @@ const ALLOWED = new Map([
  */
 const SEND_MEDIA_VERBS = [
   { name: 'javascript', dir: 'sdk/javascript/src', exts: ['.ts'], re: /\.sendMedia\(\s*\w+\s*,\s*['"`]([\w-]+)['"`]/g },
-  { name: 'python', dir: 'sdk/python/openwa', exts: ['.py'], re: /\._send_media\(\s*\w+\s*,\s*["']([\w-]+)["']/g },
+  { name: 'python', dir: 'sdk/python/mywhatsapp', exts: ['.py'], re: /\._send_media\(\s*\w+\s*,\s*["']([\w-]+)["']/g },
 ];
 
 const contract = JSON.parse(readFileSync(join(root, 'openapi.json'), 'utf8'));

@@ -25,30 +25,30 @@
 > The plugin runtime - loader, hook bus, capability facade, permission enforcement, per-session
 > activation, and a `worker_thread` sandbox for disk-loaded plugins - is shipped and wired.
 
-| Component                | Status       | Location                                        |
-| ------------------------ | ------------ | ----------------------------------------------- |
-| **HookManager**          | Implemented  | `src/core/hooks/hook-manager.service.ts`        |
-| **PluginLoaderService**  | Implemented  | `src/core/plugins/plugin-loader.service.ts`     |
-| **PluginStorageService** | Implemented  | `src/core/plugins/plugin-storage.service.ts`    |
-| **Manifest loading**     | Implemented  | Loads from the plugins directory at boot         |
-| **Plugin lifecycle**     | Implemented  | onLoad, onEnable, onDisable, onUnload           |
-| **Dashboard UI**         | Removed      | No plugin management screen                      |
-| **REST API**             | Removed      | No `/api/plugins` routes                         |
+| Component                | Status      | Location                                     |
+| ------------------------ | ----------- | -------------------------------------------- |
+| **HookManager**          | Implemented | `src/core/hooks/hook-manager.service.ts`     |
+| **PluginLoaderService**  | Implemented | `src/core/plugins/plugin-loader.service.ts`  |
+| **PluginStorageService** | Implemented | `src/core/plugins/plugin-storage.service.ts` |
+| **Manifest loading**     | Implemented | Loads from the plugins directory at boot     |
+| **Plugin lifecycle**     | Implemented | onLoad, onEnable, onDisable, onUnload        |
+| **Dashboard UI**         | Removed     | No plugin management screen                  |
+| **REST API**             | Removed     | No `/api/plugins` routes                     |
 
-| Component                    | Status       | Notes                                                                                                                        |
-| ---------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Sandboxed execution**      | Implemented  | Disk-loaded plugins run in a `worker_thread`; see [30 - Plugin Sandboxing](./30-plugin-sandboxing.md). No `vm2`. |
-| **Permission enforcement**   | Implemented  | Capability permissions enforced at the call boundary via `assertPermission`                                                  |
-| **Per-session activation**   | Implemented  | Driven by the Integration Fabric instance binding, not by an operator API                                                    |
-| **Per-session config**       | Implemented  | Per-session config overrides shallow-merged over the base config at hook time                                                |
-| **Built-in plugins**         | Implemented  | The two engine adapters (`whatsapp-web.js`, `baileys`) register as in-process built-ins                                      |
-| **Plugin install / catalog** | Removed      | No catalog, upload, install-from-URL, update or uninstall path remains                                                       |
+| Component                    | Status      | Notes                                                                                                            |
+| ---------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Sandboxed execution**      | Implemented | Disk-loaded plugins run in a `worker_thread`; see [30 - Plugin Sandboxing](./30-plugin-sandboxing.md). No `vm2`. |
+| **Permission enforcement**   | Implemented | Capability permissions enforced at the call boundary via `assertPermission`                                      |
+| **Per-session activation**   | Implemented | Driven by the Integration Fabric instance binding, not by an operator API                                        |
+| **Per-session config**       | Implemented | Per-session config overrides shallow-merged over the base config at hook time                                    |
+| **Built-in plugins**         | Implemented | The two engine adapters (`whatsapp-web.js`, `baileys`) register as in-process built-ins                          |
+| **Plugin install / catalog** | Removed     | No catalog, upload, install-from-URL, update or uninstall path remains                                           |
 
 ---
 
 ## 19.1 Overview
 
-The plugin architecture enables OpenWA extensibility without modifying the core codebase. Plugins can add new features, integrate with external services, or customize behavior.
+The plugin architecture enables MyWhatsapp extensibility without modifying the core codebase. Plugins can add new features, integrate with external services, or customize behavior.
 
 ### Design Goals
 
@@ -136,7 +136,7 @@ a host version, except for the SDK-major check applied to a manifest that declar
   "name": "My Awesome Plugin",
   "version": "1.0.0",
   "type": "extension",
-  "description": "An awesome plugin for OpenWA",
+  "description": "An awesome plugin for MyWhatsapp",
   "author": "Your Name",
   "license": "MIT",
 
@@ -170,25 +170,25 @@ a host version, except for the SDK-major check applied to a manifest that declar
 }
 ```
 
-| Field                   | Required | Meaning                                                                                                                                                                                                                                                                                              |
-| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                    | ✅       | Unique identifier (also the plugin's on-disk directory name)                                                                                                                                                                                                                                         |
-| `name`                  | ✅       | Display name                                                                                                                                                                                                                                                                                         |
-| `version`               | ✅       | Semver                                                                                                                                                                                                                                                                                               |
-| `type`                  | ?       | The enum has five values (`engine`, `storage`, `queue`, `auth`, `extension`). Only `extension` is accepted from disk - a hand-placed package declaring any other type is rejected at boot load. The other tiers are reserved for programmatically registered built-ins (the engine adapters) |
-| `main`                  | ✅       | Entry file, resolved **inside** the plugin directory (a path that escapes it is rejected)                                                                                                                                                                                                            |
-| `permissions`           | —        | Capability permissions this plugin declares; absent/empty = no capability access                                                                                                                                                                                                                     |
-| `sessions`              | —        | Session ids this plugin may act on, or `['*']`. Absent = `['*']`. Static — editing config can't widen it                                                                                                                                                                                             |
-| `sessionScoped`         | —        | Default `true`. A scoped plugin only sees events for the sessions it's activated for; `false` = always runs                                                                                                                                                                                          |
-| `net.allow`             | —        | Outbound-HTTP host allowlist for `ctx.net.fetch` (`host`, `host:port`, or `'*'`). Absent = deny all, unless `net.allowConfigHosts` admits a host                                                                                                                                                     |
-| `net.allowConfigHosts`  | —        | Config keys holding an https URL; each URL's host is admitted at fetch time on top of `net.allow`, so an adapter can reach an operator-configured host without `net.allow: ['*']`. Credentialed or non-https values are ignored, and the SSRF guard still applies                                    |
-| `sdkVersion`            | —        | Integration SDK `major` (or `major.minor`) the plugin was authored against. Absent = `'1'`. Only enforced for a manifest declaring `ingress`: a major other than `1` is refused at load                                                                                                              |
-| `ingress`               | —        | Inbound webhook routes this plugin claims (requires the `webhook:ingress` permission). Validated at load — route uniqueness, signature scheme, ack contract; see [25 — Integration Fabric](./25-integration-fabric.md)                                                                               |
-| `configSchema`          | -        | Declarative description of the config fields, their types and which are `secret`. Read by the loader for redaction; **no longer rendered** now that the dashboard has no plugin screen                                                                          |
-| `configUi`              | -        | Self-contained HTML config editor. Unused: the dashboard that served it into a sandboxed iframe is gone                                                                                                                            |
-| `hooks`                 | -        | Hook events this plugin listens to (informational)                                                                                                                                                                                      |
-| `provides` / `requires` | -        | Features this plugin provides / depends on                                                                                                                                                                                              |
-| `i18n`                  | -        | Unused. Existed only to localize dashboard-rendered plugin text                                                                                                                                                                           |
+| Field                   | Required | Meaning                                                                                                                                                                                                                                                                                      |
+| ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                    | ✅       | Unique identifier (also the plugin's on-disk directory name)                                                                                                                                                                                                                                 |
+| `name`                  | ✅       | Display name                                                                                                                                                                                                                                                                                 |
+| `version`               | ✅       | Semver                                                                                                                                                                                                                                                                                       |
+| `type`                  | ?        | The enum has five values (`engine`, `storage`, `queue`, `auth`, `extension`). Only `extension` is accepted from disk - a hand-placed package declaring any other type is rejected at boot load. The other tiers are reserved for programmatically registered built-ins (the engine adapters) |
+| `main`                  | ✅       | Entry file, resolved **inside** the plugin directory (a path that escapes it is rejected)                                                                                                                                                                                                    |
+| `permissions`           | —        | Capability permissions this plugin declares; absent/empty = no capability access                                                                                                                                                                                                             |
+| `sessions`              | —        | Session ids this plugin may act on, or `['*']`. Absent = `['*']`. Static — editing config can't widen it                                                                                                                                                                                     |
+| `sessionScoped`         | —        | Default `true`. A scoped plugin only sees events for the sessions it's activated for; `false` = always runs                                                                                                                                                                                  |
+| `net.allow`             | —        | Outbound-HTTP host allowlist for `ctx.net.fetch` (`host`, `host:port`, or `'*'`). Absent = deny all, unless `net.allowConfigHosts` admits a host                                                                                                                                             |
+| `net.allowConfigHosts`  | —        | Config keys holding an https URL; each URL's host is admitted at fetch time on top of `net.allow`, so an adapter can reach an operator-configured host without `net.allow: ['*']`. Credentialed or non-https values are ignored, and the SSRF guard still applies                            |
+| `sdkVersion`            | —        | Integration SDK `major` (or `major.minor`) the plugin was authored against. Absent = `'1'`. Only enforced for a manifest declaring `ingress`: a major other than `1` is refused at load                                                                                                      |
+| `ingress`               | —        | Inbound webhook routes this plugin claims (requires the `webhook:ingress` permission). Validated at load — route uniqueness, signature scheme, ack contract; see [25 — Integration Fabric](./25-integration-fabric.md)                                                                       |
+| `configSchema`          | -        | Declarative description of the config fields, their types and which are `secret`. Read by the loader for redaction; **no longer rendered** now that the dashboard has no plugin screen                                                                                                       |
+| `configUi`              | -        | Self-contained HTML config editor. Unused: the dashboard that served it into a sandboxed iframe is gone                                                                                                                                                                                      |
+| `hooks`                 | -        | Hook events this plugin listens to (informational)                                                                                                                                                                                                                                           |
+| `provides` / `requires` | -        | Features this plugin provides / depends on                                                                                                                                                                                                                                                   |
+| `i18n`                  | -        | Unused. Existed only to localize dashboard-rendered plugin text                                                                                                                                                                                                                              |
 
 > **`configUi`, `configSchema` rendering and `i18n` are dead surface.** The fields are still accepted on
 > the manifest type and `configSchema` is still used to decide which values get redacted, but nothing
@@ -212,7 +212,7 @@ is read from `ctx.config`.
 ```typescript
 // plugins/my-plugin/index.ts
 
-import type { IPlugin, PluginContext } from '@openwa/plugin-sdk'; // shape only; implement IPlugin
+import type { IPlugin, PluginContext } from '@mywhatsapp/plugin-sdk'; // shape only; implement IPlugin
 
 interface MyPluginConfig {
   greeting: string;
@@ -256,7 +256,7 @@ export default class MyAwesomePlugin implements IPlugin {
 
 ## 19.4 Plugin SDK
 
-> Plugins implement the `IPlugin` interface directly. An `@openwa/plugin-sdk` npm package is planned
+> Plugins implement the `IPlugin` interface directly. An `@mywhatsapp/plugin-sdk` npm package is planned
 > but not yet published; the interfaces below are the live runtime contract from
 > `src/core/plugins/plugin.interfaces.ts`.
 
@@ -390,7 +390,7 @@ export interface PluginStorage {
 
 ```mermaid
 sequenceDiagram
-    participant Core as OpenWA Core
+    participant Core as MyWhatsapp Core
     participant HM as Hook Manager
     participant P1 as Plugin 1
     participant P2 as Plugin 2
@@ -597,7 +597,7 @@ the latter because it records a counter through `ctx.storage`:
 
 ```typescript
 // plugins/auto-reply/index.ts
-import type { IPlugin, PluginContext } from '@openwa/plugin-sdk'; // shape only; implement IPlugin
+import type { IPlugin, PluginContext } from '@mywhatsapp/plugin-sdk'; // shape only; implement IPlugin
 
 interface AutoReplyConfig {
   enabled?: boolean;
@@ -641,13 +641,13 @@ dashboard Plugins screen went with it.
 
 What an operator can still do, and where:
 
-| Capability                        | Where it lives now                                                                          |
-| --------------------------------- | -------------------------------------------------------------------------------------------- |
+| Capability                         | Where it lives now                                                                           |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
 | Add or remove a plugin package     | Filesystem: place or delete a directory under `PLUGINS_DIR`                                  |
-| See which engines a build supports | `GET /infra/engines` (`EngineFactory` + `getPluginsByType(PluginType.ENGINE)`)              |
-| Configure an integration plugin    | The Integration Fabric instance API in [25 - Integration Fabric](./25-integration-fabric.md)  |
-| Gate outbound sends               | Built-in moderation plugins firing `message:sending` / `message:failed`                     |
-| Point the gateway at an update     | `PUT /infra/config`; see [doc 37 - Updates](./37-updates.md)                                |
+| See which engines a build supports | `GET /infra/engines` (`EngineFactory` + `getPluginsByType(PluginType.ENGINE)`)               |
+| Configure an integration plugin    | The Integration Fabric instance API in [25 - Integration Fabric](./25-integration-fabric.md) |
+| Gate outbound sends                | Built-in moderation plugins firing `message:sending` / `message:failed`                      |
+| Point the gateway at an update     | `PUT /infra/config`; see [doc 37 - Updates](./37-updates.md)                                 |
 
 > **Disk-loaded plugins are trusted code.** The worker sandbox (doc 30) is crash and heap-OOM
 > _containment_, not a security boundary: plugin code runs inside the gateway's OS process and can

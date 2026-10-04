@@ -173,7 +173,7 @@ const MAPPINGS = {
 const MINIMUM_MAPPED = {
   'sdk/javascript/src/types.ts': 83,
   'dashboard/src/services/api.ts': 21,
-  'sdk/python/openwa/types.py': 79,
+  'sdk/python/mywhatsapp/types.py': 79,
   'sdk/go': 79,
   'sdk/java': 83,
 };
@@ -209,7 +209,7 @@ const EXCLUDED = {
 // rather than an interface, which the hand parser does not read; mapping it there would fail as a
 // missing hand type rather than gate anything.
 
-/** Python client pairs (TypedDict classes in openwa/types.py). */
+/** Python client pairs (TypedDict classes in mywhatsapp/types.py). */
 const PYTHON_MAPPING = {
   AccountRestriction: 'AccountRestrictionDto',
   ArchiveChatRequest: 'ArchiveChatDto',
@@ -701,7 +701,7 @@ export function comparePair(handName, handMembers, schemaName, schema, schemas, 
 // ── per-language hand parsers (same member-map contract as parseHandTypes) ──
 
 /**
- * Python (sdk/python/openwa/types.py): TypedDict classes with `total=False` optionality,
+ * Python (sdk/python/mywhatsapp/types.py): TypedDict classes with `total=False` optionality,
  * `Optional[X]`/`X | None` null unions, `List[X]`, inline and aliased `Literal[...]` enums, and
  * TypedDict inheritance (the parent's own total flag governs its members).
  */
@@ -1097,9 +1097,9 @@ if (isDirectRun) {
       .filter(f => f.endsWith('.go') && !f.endsWith('_test.go'))
       .map(f => readFileSync(`${REPO_ROOT}sdk/go/${f}`, 'utf8'));
   const javaSources = () =>
-    readdirSync(`${REPO_ROOT}sdk/java/src/main/java/com/rmyndharis/openwa/model`)
+    readdirSync(`${REPO_ROOT}sdk/java/src/main/java/com/mywhatsapp/sdk/model`)
       .filter(f => f.endsWith('.java'))
-      .map(f => readFileSync(`${REPO_ROOT}sdk/java/src/main/java/com/rmyndharis/openwa/model/${f}`, 'utf8'));
+      .map(f => readFileSync(`${REPO_ROOT}sdk/java/src/main/java/com/mywhatsapp/sdk/model/${f}`, 'utf8'));
 
   const CLIENTS = [
     ...Object.entries(MAPPINGS).map(([file, mapping]) => ({
@@ -1111,11 +1111,11 @@ if (isDirectRun) {
       compareOptionality: true,
     })),
     {
-      label: 'sdk/python/openwa/types.py',
-      load: () => parsePythonTypes(readFileSync(`${REPO_ROOT}sdk/python/openwa/types.py`, 'utf8')),
+      label: 'sdk/python/mywhatsapp/types.py',
+      load: () => parsePythonTypes(readFileSync(`${REPO_ROOT}sdk/python/mywhatsapp/types.py`, 'utf8')),
       mapping: PYTHON_MAPPING,
-      excluded: EXCLUDED['sdk/python/openwa/types.py'] ?? {},
-      floor: MINIMUM_MAPPED['sdk/python/openwa/types.py'],
+      excluded: EXCLUDED['sdk/python/mywhatsapp/types.py'] ?? {},
+      floor: MINIMUM_MAPPED['sdk/python/mywhatsapp/types.py'],
       compareOptionality: true,
     },
     {

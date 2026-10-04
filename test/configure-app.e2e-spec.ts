@@ -29,11 +29,11 @@ class HttpSurfaceModule {}
 
 // A stand-in for the bundled document: the real dashboard/index.html carries the placeholder in a
 // meta element and on its own script tags, which is what the CSP nonce substitution rewrites.
-const distDir = join(mkdtempSync(join(tmpdir(), 'openwa-surface-')), 'dashboard', 'dist');
+const distDir = join(mkdtempSync(join(tmpdir(), 'mywhatsapp-surface-')), 'dashboard', 'dist');
 mkdirSync(distDir, { recursive: true });
 writeFileSync(
   join(distDir, 'index.html'),
-  `<!doctype html><html><head><meta name="openwa-csp-nonce" content="${DASHBOARD_CSP_NONCE_PLACEHOLDER}" />` +
+  `<!doctype html><html><head><meta name="mywhatsapp-csp-nonce" content="${DASHBOARD_CSP_NONCE_PLACEHOLDER}" />` +
     `</head><body><script nonce="${DASHBOARD_CSP_NONCE_PLACEHOLDER}"></script></body></html>`,
 );
 

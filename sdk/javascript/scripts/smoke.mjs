@@ -9,10 +9,10 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const cjs = require('../dist/cjs/index.js');
-if (typeof cjs.OpenWAClient !== 'function') throw new Error('CJS: OpenWAClient missing');
+if (typeof cjs.MyWhatsappClient !== 'function') throw new Error('CJS: MyWhatsappClient missing');
 
 const esm = await import(new URL('../dist/esm/index.js', import.meta.url).href);
-if (typeof esm.OpenWAClient !== 'function') throw new Error('ESM: OpenWAClient missing');
+if (typeof esm.MyWhatsappClient !== 'function') throw new Error('ESM: MyWhatsappClient missing');
 
 // Typings smoke: each runtime condition must carry its OWN types entry pointing at the matching
 // build. A single top-level "types" condition ahead of "require" makes a node16-family CommonJS
@@ -39,4 +39,4 @@ if (dot?.types !== undefined) {
   throw new Error('exports["."] must not carry a top-level "types" condition (see TS1479 note above)');
 }
 
-console.log('smoke OK: require() + import() both resolve OpenWAClient, and each condition types itself');
+console.log('smoke OK: require() + import() both resolve MyWhatsappClient, and each condition types itself');

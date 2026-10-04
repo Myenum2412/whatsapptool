@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo/openwa_logo.webp" alt="OpenWA Logo" width="200"/>
+  <img src="logo/mywhatsapp_logo.webp" alt="MyWhatsapp Logo" width="200"/>
 </p>
 
-<h1 align="center">OpenWA Documentation</h1>
+<h1 align="center">MyWhatsapp Documentation</h1>
 <p align="center">
   <strong>Open Source WhatsApp API Gateway</strong>
 </p>
@@ -16,12 +16,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/package-json/v/rmyndharis/OpenWA?label=version&color=blue" alt="Version"/>
+  <img src="https://img.shields.io/github/package-json/v/?label=version&color=blue" alt="Version"/>
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"/>
   <img src="https://img.shields.io/badge/node-22_LTS-brightgreen.svg" alt="Node"/>
-  <img src="https://img.shields.io/github/package-json/dependency-version/rmyndharis/OpenWA/@nestjs/core?label=NestJS&color=red" alt="NestJS"/>
+  <img src="https://img.shields.io/github/package-json/dependency-version//@nestjs/core?label=NestJS&color=red" alt="NestJS"/>
   <img src="https://img.shields.io/badge/docker-ready-blue.svg" alt="Docker"/>
-  <img src="https://img.shields.io/github/package-json/dependency-version/rmyndharis/OpenWA/dev/typescript?label=TypeScript&color=3178C6" alt="TypeScript"/>
+  <img src="https://img.shields.io/github/package-json/dependency-version//dev/typescript?label=TypeScript&color=3178C6" alt="TypeScript"/>
 </p>
 
 ---
@@ -50,15 +50,15 @@
 | 16  | [Risk Management](./16-risk-management.md)                               | Risks and mitigations                                                              |
 | 17  | [Dashboard Design](./17-dashboard-design.md)                             | Dashboard UX overview                                                              |
 | 18  | [SDK Design](./18-sdk-design.md)                                         | SDK plans and conventions                                                          |
-| 19  | [Extension Contract](./19-plugin-architecture.md)                        | Internal extension contract (no management surface)                              |
+| 19  | [Extension Contract](./19-plugin-architecture.md)                        | Internal extension contract (no management surface)                                |
 | 20  | [Community Guidelines](./20-community-guidelines.md)                     | Contribution and governance                                                        |
 | 21  | [Glossary](./21-glossary.md)                                             | Terms and definitions                                                              |
-| 22  | [n8n Integration](./22-n8n-integration.md)                               | n8n community nodes for OpenWA                                                     |
-| 23  | [Community Integrations](./23-community-integrations.md)                 | Third-party adapters built on the OpenWA API                                       |
+| 22  | [n8n Integration](./22-n8n-integration.md)                               | n8n community nodes for MyWhatsapp                                                 |
+| 23  | [Community Integrations](./23-community-integrations.md)                 | Third-party adapters built on the MyWhatsapp API                                   |
 | 24  | [MCP Integration](./24-mcp-integration.md)                               | Model Context Protocol tools and auth model                                        |
 | 25  | [Integration Fabric](./25-integration-fabric.md)                         | Inbound webhook substrate for plugin integrations                                  |
 | 26  | [Global Search](./26-global-search.md)                                   | Cross-session message search and the provider model                                |
-| 27  | [Search-Provider Plugins](./27-plugin-search-providers.md)                | Writing a search-provider plugin for the extension contract                      |
+| 27  | [Search-Provider Plugins](./27-plugin-search-providers.md)               | Writing a search-provider plugin for the extension contract                        |
 | 28  | [Multitenancy](./28-multitenancy.md)                                     | Multi-tenant target design (draft proposal)                                        |
 | 29  | [Engine Capability Matrix](./29-engine-capability-matrix.md)             | Per-engine capability support, gaps, and roadmap                                   |
 | 30  | [Plugin Sandboxing](./30-plugin-sandboxing.md)                           | Worker isolation, capabilities, and plugin limits                                  |
@@ -72,8 +72,8 @@
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | [Session Phone-Number Pairing](./examples/session-phone-number-pairing.md)     | Link an existing WhatsApp account by phone number instead of scanning QR |
 | [Chat History Limits](./examples/chat-history-limits.md)                       | Understand local message history vs bounded live WhatsApp history        |
-| [Webhook Signature Verification](./examples/webhook-signature-verification.md) | Verify signed OpenWA webhook deliveries in Node.js and Python            |
-| [n8n Appointment Booking Workflow](./examples/n8n-appointment-booking.md)      | Build an appointment-booking flow with OpenWA and n8n                    |
+| [Webhook Signature Verification](./examples/webhook-signature-verification.md) | Verify signed MyWhatsapp webhook deliveries in Node.js and Python        |
+| [n8n Appointment Booking Workflow](./examples/n8n-appointment-booking.md)      | Build an appointment-booking flow with MyWhatsapp and n8n                |
 
 ## Quick Start
 
@@ -82,7 +82,7 @@
 ```bash
 # Clone repository
 git clone https://github.com/rmyndharis/OpenWA.git
-cd OpenWA
+cd MyWhatsapp
 
 # Install the locked dependencies & configure
 npm ci
@@ -106,7 +106,7 @@ Access:
 ```bash
 # Clone repository
 git clone https://github.com/rmyndharis/OpenWA.git
-cd OpenWA
+cd MyWhatsapp
 
 # Start services
 docker compose up -d
@@ -120,7 +120,7 @@ Access (the dashboard is bundled into the API and served on the same port):
 
 ### API Key
 
-OpenWA seeds a default API key on first run and writes it to:
+MyWhatsapp seeds a default API key on first run and writes it to:
 
 - `data/.api-key` (development)
 - `/app/data/.api-key` inside the API container when using Docker
@@ -153,7 +153,7 @@ curl http://localhost:2785/api/sessions/{sessionId}/qr \
 curl -X POST http://localhost:2785/api/sessions/{sessionId}/messages/send-text \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
-  -d '{"chatId": "628123456789@c.us", "text": "Hello from OpenWA!"}'
+  -d '{"chatId": "628123456789@c.us", "text": "Hello from MyWhatsapp!"}'
 ```
 
 ## WebSocket Example (Socket.IO)
@@ -201,7 +201,7 @@ socket.on('message', msg => {
 | Channels / Status API               | Experimental (engine-limited)            |
 | Catalog / Product API               | Endpoints defined; `501` on both engines |
 | Pluggable Engine (wwebjs / Baileys) | Ready (set `ENGINE_TYPE`)                |
-| Plugin Extension System (internal) | Ready, no management UI/API             |
+| Plugin Extension System (internal)  | Ready, no management UI/API              |
 | Queue-based Webhook Retries         | Optional (QUEUE_ENABLED=true)            |
 
 ## Tech Stack
@@ -221,7 +221,7 @@ socket.on('message', msg => {
 ## Project Structure
 
 ```
-OpenWA/
+MyWhatsapp/
 ├── src/                    # Backend source code
 ├── dashboard/              # Frontend dashboard
 ├── docker-compose.yml      # API (serves bundled dashboard) + optional datastores
@@ -244,6 +244,6 @@ MIT License.
 
 **Start Reading: [01 - Project Overview](./01-project-overview.md)**
 
-_OpenWA Documentation · Last updated: 2026-07-28_
+_MyWhatsapp Documentation · Last updated: 2026-07-28_
 
 </div>

@@ -25,7 +25,7 @@ describe('tightenSqliteFilePermissions', () => {
   });
 
   it('tightens an existing database file and its WAL/journal sidecars to owner-only', () => {
-    const db = join(dir, 'openwa.sqlite');
+    const db = join(dir, 'mywhatsapp.sqlite');
     writeFileSync(db, '', { mode: 0o644 });
     writeFileSync(`${db}-wal`, '', { mode: 0o644 });
     writeFileSync(`${db}-shm`, '', { mode: 0o644 });
@@ -72,7 +72,7 @@ describe('SqlitePermissionsBoot', () => {
 
   it('tightens both bundled files when the data connection is SQLite', () => {
     const main = join(dir, 'main.sqlite');
-    const data = join(dir, 'openwa.sqlite');
+    const data = join(dir, 'mywhatsapp.sqlite');
     writeFileSync(main, '', { mode: 0o644 });
     writeFileSync(data, '', { mode: 0o644 });
     const boot = new SqlitePermissionsBoot(

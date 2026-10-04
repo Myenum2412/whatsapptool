@@ -44,7 +44,7 @@ test('every patcher is also wired into postinstall', () => {
   // Ask postinstall what it would run, rather than searching its text for the name. A substring
   // search is satisfied by the patcher appearing in a comment, so a patcher could be described in
   // the docblock, wired nowhere, and still pass here.
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-patchers-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-patchers-'));
   fs.mkdirSync(path.join(root, 'scripts'));
   for (const p of patchers) fs.writeFileSync(path.join(root, 'scripts', p), '// stub\n');
 

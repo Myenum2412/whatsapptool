@@ -25,7 +25,7 @@ before(async () => {
 
 afterEach(() => {
   rtl.cleanup();
-  window.localStorage.removeItem('openwa_user_role');
+  window.localStorage.removeItem('mywhatsapp_user_role');
 });
 
 const CHAT: Chat = {
@@ -56,7 +56,7 @@ const PROMPT: ChatMessageView = {
 };
 
 function renderThread(role: string): { clicks: string[]; container: HTMLElement } {
-  window.localStorage.setItem('openwa_user_role', role);
+  window.localStorage.setItem('mywhatsapp_user_role', role);
   const clicks: string[] = [];
   const noop = () => {};
   const { container } = rtl.render(

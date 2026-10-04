@@ -14,7 +14,7 @@ const CONTEXT_CALL =
   "let preview = await window\n                    .require('WAWebLinkPreviewChatAction')\n                    .getLinkPreview(link, chat);";
 
 function makeDependency(source) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openwa-newsletter-preview-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mywhatsapp-newsletter-preview-'));
   const utils = path.join(root, 'src', 'util', 'Injected', 'Utils.js');
   fs.mkdirSync(path.dirname(utils), { recursive: true });
   fs.writeFileSync(utils, source);

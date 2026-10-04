@@ -27,7 +27,7 @@ export const INTENTIONALLY_UNEMITTED_ACTIONS: Partial<Record<AuditAction, string
   [AuditAction.WEBHOOK_DELETED]:
     'Not yet emitted: webhook create/delete is not currently audited. It is low-volume and security-relevant, so wiring it is a candidate for a separate enhancement; the gate will validate the emission once added, and this entry must then be removed.',
   [AuditAction.WEBHOOK_TRIGGERED]:
-    'Not emitted: per delivery attempt, redundant with the webhook_delivery_failures dead-letter table and the openwa_webhook_delivery_failures_total counter.',
+    'Not emitted: per delivery attempt, redundant with the webhook_delivery_failures dead-letter table and the mywhatsapp_webhook_delivery_failures_total counter.',
   [AuditAction.WEBHOOK_FAILED]:
-    'Not emitted: per failed delivery, redundant with the webhook_delivery_failures dead-letter table and the openwa_webhook_delivery_failures_total counter.',
+    'Not emitted: per failed delivery, redundant with the webhook_delivery_failures dead-letter table and the mywhatsapp_webhook_delivery_failures_total counter.',
 };

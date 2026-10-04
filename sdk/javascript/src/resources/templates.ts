@@ -6,11 +6,11 @@
  */
 
 import { encodeSegment } from '../http.js';
-import type { OpenWAClient } from '../client.js';
+import type { MyWhatsappClient } from '../client.js';
 import type { CreateTemplateRequest, TemplateRecord, UpdateTemplateRequest } from '../types.js';
 
 export class TemplatesResource {
-  constructor(private readonly client: OpenWAClient) {}
+  constructor(private readonly client: MyWhatsappClient) {}
 
   /** List all templates for a session. */
   list(sessionId: string): Promise<TemplateRecord[]> {

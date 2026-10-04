@@ -66,7 +66,7 @@ test('every guarded script compares a resolved path against the decoded module U
 test('the correct guard holds for a path that needs URL escaping', () => {
   // The concrete case the audit gate silently failed on. Proven here rather than asserted: a URL
   // built by hand from this path does not equal import.meta.url, while the resolved comparison does.
-  const spaced = '/tmp/openwa probe/check.mjs';
+  const spaced = '/tmp/mywhatsapp probe/check.mjs';
   const asUrl = new URL(`file://${encodeURI(spaced)}`).href;
 
   assert.notEqual(asUrl, `file://${spaced}`, 'the hand-built URL should differ once the path is escaped');

@@ -3,16 +3,16 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rmyndharis-openwa"
+name = "mywhatsapp-sdk"
 version = "0.5.0"
-description = "Official Python SDK for OpenWA WhatsApp API Gateway"
+description = "Official Python SDK for MyWhatsapp WhatsApp API Gateway"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9"
 authors = [
-    { name = "OpenWA Contributors" }
+    { name = "Yudhi Armyndharis & MyWhatsapp Contributors" }
 ]
-keywords = ["whatsapp", "api", "sdk", "openwa", "gateway"]
+keywords = ["whatsapp", "api", "sdk", "mywhatsapp", "gateway"]
 
 dependencies = [
     "httpx>=0.25.0,<1.0",
@@ -31,12 +31,12 @@ Homepage = "https://github.com/rmyndharis/OpenWA"
 Repository = "https://github.com/rmyndharis/OpenWA"
 
 [tool.setuptools.packages.find]
-include = ["openwa*"]
+include = ["mywhatsapp*"]
 
 # Ship type information (PEP 561) so consumers get the bundled type hints.
 [tool.setuptools.package-data]
-openwa = ["py.typed"]
-"openwa.resources" = ["py.typed"]
+mywhatsapp = ["py.typed"]
+"mywhatsapp.resources" = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -50,7 +50,7 @@ testpaths = ["tests"]
 # and confirming the gate goes red is the only way to know it watches anything — and the first two
 # configurations that looked correct were green with the key gone:
 #
-#   files = ["openwa"] only     → exit 0. The resources forward request bodies untouched, so a
+#   files = ["mywhatsapp"] only     → exit 0. The resources forward request bodies untouched, so a
 #                                 missing key is invisible from inside the package. The typed
 #                                 CALLERS live in tests/, so that is where the failure surfaces.
 #   check_untyped_defs unset    → exit 0. The test methods carry no annotations, and mypy skips
@@ -61,7 +61,7 @@ testpaths = ["tests"]
 # annotation, so it yielded Any and every `make_client(...).messages.send_*(...)` was unchecked.
 # Do not remove that annotation.
 [tool.mypy]
-files = ["openwa", "tests"]
+files = ["mywhatsapp", "tests"]
 check_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true

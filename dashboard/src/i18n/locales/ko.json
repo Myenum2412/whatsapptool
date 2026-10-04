@@ -6,7 +6,7 @@
     }
   },
   "common": {
-    "appName": "OpenWA",
+    "appName": "MyWhatsapp",
     "updateAvailable": "v{{version}} 사용 가능",
     "loading": "로딩 중...",
     "cancel": "취소",
@@ -347,7 +347,7 @@
     "connectionError": "서버에 연결할 수 없습니다. 다시 시도해 주세요.",
     "help": "도움이 필요하신가요?",
     "viewDocs": "문서 보기",
-    "footer": "Yudhi Armyndharis와 OpenWA 커뮤니티가 ❤️로 만들었습니다",
+    "footer": "Yudhi Armyndharis∞ÖÇ MyWhatsapp ∞╗ñδ«ñδïêφï░Ω░Ç Γ¥ñ∩╕Åδí£ δºîδôñ∞ùê∞è╡δïêδïñ",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
@@ -1128,7 +1128,7 @@
       "postgres": "PostgreSQL",
       "postgresDesc": "프로덕션에 적합한 데이터베이스",
       "useBuiltIn": "내장 PostgreSQL 컨테이너 사용",
-      "builtInDesc": "OpenWA가 PostgreSQL 컨테이너를 관리합니다",
+      "builtInDesc": "MyWhatsapp가 PostgreSQL 컨테이너를 관리합니다",
       "dbName": "데이터베이스 이름",
       "schema": "스키마",
       "schemaDesc": "PostgreSQL 스키마(SQLite에서는 무시됨). 기본값 'public'. 스키마가 이미 존재해야 합니다.",
@@ -1163,7 +1163,7 @@
       "enable": "Redis 사용",
       "enableDesc": "캐싱, 세션 저장, BullMQ 큐에 필요합니다",
       "useBuiltIn": "내장 Redis 컨테이너 사용",
-      "builtInDesc": "OpenWA가 Redis 컨테이너를 관리합니다",
+      "builtInDesc": "MyWhatsapp가 Redis 컨테이너를 관리합니다",
       "queueTitle": "BullMQ 큐 시스템 사용",
       "queueDesc": "안정적인 메시지 및 웹훅 전달을 위해 메시지 큐를 사용합니다",
       "statsTitle": "큐 통계",
@@ -1186,7 +1186,7 @@
       "s3": "Amazon S3",
       "s3Desc": "클라우드 스토리지 (S3 호환)",
       "useBuiltIn": "내장 MinIO 컨테이너 사용",
-      "builtInDesc": "OpenWA가 MinIO(S3 호환) 컨테이너를 관리합니다",
+      "builtInDesc": "MyWhatsapp가 MinIO(S3 호환) 컨테이너를 관리합니다",
       "storagePath": "스토리지 경로",
       "bucket": "버킷 이름",
       "region": "리전",
@@ -1217,7 +1217,7 @@
       "importFailed": "데이터를 가져오지 못했습니다",
       "importOk": "데이터를 가져왔습니다",
       "importConfirm": "가져오기를 실행하면 현재 데이터가 백업본({{rows}}행)으로 완전히 대체됩니다. 되돌릴 수 없습니다. 계속할까요?",
-      "invalidFile": "올바른 OpenWA 데이터 백업 파일이 아닙니다.",
+      "invalidFile": "올바른 MyWhatsapp 데이터 백업 파일이 아닙니다.",
       "importTooLarge": "백업 파일이 요청 크기 제한을 초과합니다. 서버의 BODY_SIZE_LIMIT을 늘린 후 다시 시도하세요."
     },
     "restart": {

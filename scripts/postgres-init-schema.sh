@@ -1,5 +1,5 @@
 #!/bin/bash
-# OpenWA — built-in PostgreSQL schema init.
+# MyWhatsapp — built-in PostgreSQL schema init.
 #
 # Mounted at /docker-entrypoint-initdb.d/01-create-schema.sh by docker-compose.yml, so the
 # official postgres image runs it ONCE on first initialization (before any app migration).
@@ -12,8 +12,8 @@
 #
 # Limitation: the postgres image only runs docker-entrypoint-initdb.d scripts on FIRST init.
 # An existing postgres-data volume will NOT re-run this script. To adopt a custom schema on an
-# already-initialized volume, create it manually once (e.g. `CREATE SCHEMA openwa;`) and set
-# POSTGRES_SCHEMA on the openwa-api service.
+# already-initialized volume, create it manually once (e.g. `CREATE SCHEMA mywhatsapp;`) and set
+# POSTGRES_SCHEMA on the mywhatsapp-api service.
 set -euo pipefail
 
 schema="${POSTGRES_SCHEMA:-public}"

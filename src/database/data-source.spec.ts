@@ -62,7 +62,7 @@ describe('data CLI DataSource', () => {
     const prevType = process.env.DATABASE_TYPE;
     const prevSchema = process.env.POSTGRES_SCHEMA;
     process.env.DATABASE_TYPE = 'postgres';
-    process.env.POSTGRES_SCHEMA = 'OpenWA';
+    process.env.POSTGRES_SCHEMA = 'MyWhatsapp';
     jest.resetModules();
     try {
       expect(() => {
@@ -112,13 +112,13 @@ describe('PostgreSQL schema selection (POSTGRES_SCHEMA)', () => {
   });
 
   it('passes schema through and sets extra.options search_path for a non-public schema', () => {
-    const opts = buildPostgresDataSourceOptions({ POSTGRES_SCHEMA: 'openwa' }) as PgOpts;
-    expect(opts.schema).toBe('openwa');
-    expect(opts.extra?.options).toBe('-c search_path=openwa,public');
+    const opts = buildPostgresDataSourceOptions({ POSTGRES_SCHEMA: 'mywhatsapp' }) as PgOpts;
+    expect(opts.schema).toBe('mywhatsapp');
+    expect(opts.extra?.options).toBe('-c search_path=mywhatsapp,public');
   });
 
   it('keeps the pool timeouts under a custom schema (only adds options; never drops them or adds statement_timeout)', () => {
-    const opts = buildPostgresDataSourceOptions({ POSTGRES_SCHEMA: 'openwa' }) as PgOpts;
+    const opts = buildPostgresDataSourceOptions({ POSTGRES_SCHEMA: 'mywhatsapp' }) as PgOpts;
     expect(opts.extra?.max).toBe(10);
     expect(opts.extra?.idleTimeoutMillis).toBe(30000);
     expect(opts.extra?.connectionTimeoutMillis).toBe(10000);

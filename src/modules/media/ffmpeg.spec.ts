@@ -71,7 +71,10 @@ describe('ffmpeg encoder arguments', () => {
  * every conversion would still succeed — which is exactly why it is pinned here.
  */
 describe('ffmpeg invocation shape', () => {
-  const args = buildFfmpegArgs('/tmp/openwa-convert-x/in.bin', '/tmp/openwa-convert-x/out.ogg', ['-c:a', 'libopus']);
+  const args = buildFfmpegArgs('/tmp/mywhatsapp-convert-x/in.bin', '/tmp/mywhatsapp-convert-x/out.ogg', [
+    '-c:a',
+    'libopus',
+  ]);
 
   it('confines ffmpeg to the file protocol', () => {
     expect(args[args.indexOf('-protocol_whitelist') + 1]).toBe('file');
@@ -99,8 +102,8 @@ describe('ffmpeg invocation shape', () => {
   });
 
   it('names the input immediately after -i, and the output last', () => {
-    expect(args[args.indexOf('-i') + 1]).toBe('/tmp/openwa-convert-x/in.bin');
-    expect(args[args.length - 1]).toBe('/tmp/openwa-convert-x/out.ogg');
+    expect(args[args.indexOf('-i') + 1]).toBe('/tmp/mywhatsapp-convert-x/in.bin');
+    expect(args[args.length - 1]).toBe('/tmp/mywhatsapp-convert-x/out.ogg');
   });
 
   // Encoder flags have to land between the input and the output; ffmpeg applies options positionally,

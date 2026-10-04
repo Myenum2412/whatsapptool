@@ -62,7 +62,7 @@ export class StorageService implements OnModuleDestroy {
   private readonly storageType: string;
   private readonly localPath: string;
   private s3Client: S3Client | null = null;
-  private s3Bucket = 'openwa';
+  private s3Bucket = 'mywhatsapp';
   private s3Available = false;
   private s3ReprobeTimer: NodeJS.Timeout | null = null;
   private readonly s3ReprobeIntervalMs = positiveIntFromEnv('S3_REPROBE_INTERVAL_MS', DEFAULT_S3_REPROBE_INTERVAL_MS);
@@ -96,7 +96,7 @@ export class StorageService implements OnModuleDestroy {
           },
           ...(endpoint ? { forcePathStyle: true } : {}), // Required for path-style stores (MinIO)
         });
-        this.s3Bucket = process.env.S3_BUCKET || s3Config.bucket || 'openwa';
+        this.s3Bucket = process.env.S3_BUCKET || s3Config.bucket || 'mywhatsapp';
         void this.initializeS3Bucket();
         this.startS3Reprobe();
       } else {

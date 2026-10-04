@@ -1,31 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import {
-  OpenWAClient,
-  OpenWAApiError,
-  OpenWAAuthError,
-  OpenWAForbiddenError,
-  OpenWANotFoundError,
-  OpenWAConflictError,
-  OpenWARateLimitError,
-  OpenWANotImplementedError,
-  OpenWAServiceUnavailableError,
-  OpenWATimeoutError,
+  MyWhatsappClient,
+  MyWhatsappApiError,
+  MyWhatsappAuthError,
+  MyWhatsappForbiddenError,
+  MyWhatsappNotFoundError,
+  MyWhatsappConflictError,
+  MyWhatsappRateLimitError,
+  MyWhatsappNotImplementedError,
+  MyWhatsappServiceUnavailableError,
+  MyWhatsappTimeoutError,
 } from '../src';
 import type { FetchLike } from '../src';
 import { MockTransport } from './helpers';
 
-function client(transport: MockTransport): OpenWAClient {
-  return new OpenWAClient({
+function client(transport: MockTransport): MyWhatsappClient {
+  return new MyWhatsappClient({
     baseUrl: 'http://localhost:2785',
     apiKey: 'owa_k1_test',
     fetch: transport.asFetch(),
   });
 }
 
-describe('OpenWAClient', () => {
+describe('MyWhatsappClient', () => {
   it('requires baseUrl and apiKey', () => {
-    expect(() => new OpenWAClient({ baseUrl: '', apiKey: 'x' })).toThrow();
-    expect(() => new OpenWAClient({ baseUrl: 'http://x', apiKey: '' })).toThrow();
+    expect(() => new MyWhatsappClient({ baseUrl: '', apiKey: 'x' })).toThrow();
+    expect(() => new MyWhatsappClient({ baseUrl: 'http://x', apiKey: '' })).toThrow();
   });
 
   it('sends the API key as X-API-Key and JSON content type', async () => {
@@ -37,7 +37,7 @@ describe('OpenWAClient', () => {
 
   it('strips a trailing slash from baseUrl', async () => {
     const t = new MockTransport().on('GET', '/api/sessions', { body: [] });
-    const c = new OpenWAClient({ baseUrl: 'http://localhost:2785/', apiKey: 'k', fetch: t.asFetch() });
+    const c = new MyWhatsappClient({ baseUrl: 'http://localhost:2785/', apiKey: 'k', fetch: t.asFetch() });
     await c.sessions.list();
     expect(t.lastCall!.url).toBe('http://localhost:2785/api/sessions');
   });
@@ -50,7 +50,7 @@ describe('OpenWAClient', () => {
       seenInit = init as RequestInit;
       return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
     };
-    const c = new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: recordingFetch });
+    const c = new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: recordingFetch });
     await c.health.check();
     expect(seenInit?.redirect).toBe('manual');
   });
@@ -60,19 +60,19 @@ describe('OpenWAClient', () => {
     // JS transport aligned with the Python and PHP SDKs (which now also error on >= 300).
     const redirectingFetch: FetchLike = async () =>
       new Response('{"redirected":true}', { status: 302, headers: { location: 'http://evil.example/x' } });
-    const c = new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: redirectingFetch });
+    const c = new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: redirectingFetch });
     await expect(c.sessions.list()).rejects.toThrow();
   });
 
-  it('surfaces a real opaque unfollowed redirect (status 0) as a clear OpenWAApiError', async () => {
+  it('surfaces a real opaque unfollowed redirect (status 0) as a clear MyWhatsappApiError', async () => {
     // With `redirect: 'manual'` the runtime returns an opaque response with status 0 (not a 3xx);
     // this is the actual shape the no-redirect guard produces, and it must throw a clear error.
     const opaqueRedirectFetch: FetchLike = async () => Response.error();
-    const c = new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: opaqueRedirectFetch });
+    const c = new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: opaqueRedirectFetch });
     const err = await c.sessions.list().catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(OpenWAApiError);
-    expect((err as OpenWAApiError).status).toBe(0);
-    expect((err as OpenWAApiError).message).toMatch(/redirect/i);
+    expect(err).toBeInstanceOf(MyWhatsappApiError);
+    expect((err as MyWhatsappApiError).status).toBe(0);
+    expect((err as MyWhatsappApiError).message).toMatch(/redirect/i);
   });
 
   it('percent-encodes path segments but keeps @ in JIDs readable', async () => {
@@ -92,16 +92,16 @@ describe('OpenWAClient', () => {
     expect(t.lastCall!.url).not.toContain('from=');
   });
 
-  it('maps a 404 to OpenWANotFoundError with parsed body', async () => {
+  it('maps a 404 to MyWhatsappNotFoundError with parsed body', async () => {
     const t = new MockTransport().on('GET', '/api/sessions/missing', {
       status: 404,
       body: { statusCode: 404, message: 'Session not found', error: 'Not Found' },
     });
-    await expect(client(t).sessions.get('missing')).rejects.toBeInstanceOf(OpenWANotFoundError);
+    await expect(client(t).sessions.get('missing')).rejects.toBeInstanceOf(MyWhatsappNotFoundError);
     await expect(client(t).sessions.get('missing')).rejects.toMatchObject({ status: 404 });
   });
 
-  it('maps a 503 to OpenWAServiceUnavailableError', async () => {
+  it('maps a 503 to MyWhatsappServiceUnavailableError', async () => {
     // The gateway answers 503 when the engine never confirmed an operation. It is the only typed error
     // here that is worth retrying, and it used to fall through to the base class while 501 — which is
     // permanent — had a subclass of its own.
@@ -110,7 +110,7 @@ describe('OpenWAClient', () => {
       body: { statusCode: 503, message: 'WhatsApp did not answer in time', error: 'Service Unavailable' },
     });
     await expect(client(t).messages.sendText('s1', { chatId: 'c@c.us', text: 'x' })).rejects.toBeInstanceOf(
-      OpenWAServiceUnavailableError,
+      MyWhatsappServiceUnavailableError,
     );
   });
 
@@ -142,13 +142,13 @@ describe('OpenWAClient', () => {
     await expect(client(t).sessions.delete('x')).resolves.toBeNull();
   });
 
-  it('OpenWAApiError.fromResponse parses the NestJS envelope', async () => {
+  it('MyWhatsappApiError.fromResponse parses the NestJS envelope', async () => {
     const t = new MockTransport().on('POST', /send-text/, {
       status: 409,
       body: { statusCode: 409, message: 'Engine not ready', error: 'Conflict' },
     });
     await expect(client(t).messages.sendText('s', { chatId: 'a@c.us', text: 'hi' })).rejects.toBeInstanceOf(
-      OpenWAApiError,
+      MyWhatsappApiError,
     );
   });
 
@@ -164,12 +164,12 @@ describe('OpenWAClient', () => {
       .sessions.create({ name: 'x' })
       .catch((e: unknown) => e);
 
-    expect(err).toBeInstanceOf(OpenWAApiError);
-    expect((err as OpenWAApiError).message).toContain('Bad Request');
-    expect((err as OpenWAApiError).message).not.toContain('[object Object]');
-    expect((err as OpenWAApiError).status).toBe(400);
+    expect(err).toBeInstanceOf(MyWhatsappApiError);
+    expect((err as MyWhatsappApiError).message).toContain('Bad Request');
+    expect((err as MyWhatsappApiError).message).not.toContain('[object Object]');
+    expect((err as MyWhatsappApiError).status).toBe(400);
     // No `error` key was sent, so there is no kind to report — undefined, not a stringified object.
-    expect((err as OpenWAApiError).errorKind).toBeUndefined();
+    expect((err as MyWhatsappApiError).errorKind).toBeUndefined();
   });
 
   it('still reads `error` as the kind when the gateway sends one', async () => {
@@ -181,18 +181,18 @@ describe('OpenWAClient', () => {
       .sessions.create({ name: 'x' })
       .catch((e: unknown) => e);
 
-    expect((err as OpenWAApiError).errorKind).toBe('Bad Request');
-    expect((err as OpenWAApiError).message).toContain('name must be a string');
+    expect((err as MyWhatsappApiError).errorKind).toBe('Bad Request');
+    expect((err as MyWhatsappApiError).message).toContain('name must be a string');
   });
 
   it('maps each status code to its typed error subclass', async () => {
-    const cases: Array<[number, new (...a: never[]) => OpenWAApiError]> = [
-      [401, OpenWAAuthError],
-      [403, OpenWAForbiddenError],
-      [404, OpenWANotFoundError],
-      [409, OpenWAConflictError],
-      [429, OpenWARateLimitError],
-      [501, OpenWANotImplementedError],
+    const cases: Array<[number, new (...a: never[]) => MyWhatsappApiError]> = [
+      [401, MyWhatsappAuthError],
+      [403, MyWhatsappForbiddenError],
+      [404, MyWhatsappNotFoundError],
+      [409, MyWhatsappConflictError],
+      [429, MyWhatsappRateLimitError],
+      [501, MyWhatsappNotImplementedError],
     ];
     for (const [status, cls] of cases) {
       const t = new MockTransport().on('GET', '/api/sessions', {
@@ -203,23 +203,23 @@ describe('OpenWAClient', () => {
     }
   });
 
-  it('falls back to the generic OpenWAApiError (with .status) for an unmapped status', async () => {
+  it('falls back to the generic MyWhatsappApiError (with .status) for an unmapped status', async () => {
     const t = new MockTransport().on('GET', '/api/sessions', {
       status: 418,
       body: { statusCode: 418, message: 'teapot', error: 'Teapot' },
     });
     await expect(client(t).sessions.list()).rejects.toMatchObject({ status: 418 });
-    await expect(client(t).sessions.list()).rejects.toBeInstanceOf(OpenWAApiError);
+    await expect(client(t).sessions.list()).rejects.toBeInstanceOf(MyWhatsappApiError);
   });
 
-  it('throws OpenWATimeoutError when the request aborts', async () => {
+  it('throws MyWhatsappTimeoutError when the request aborts', async () => {
     const abortingFetch: FetchLike = async () => {
       const e = new Error('aborted');
       e.name = 'AbortError';
       throw e;
     };
-    const c = new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', fetch: abortingFetch });
-    await expect(c.sessions.list()).rejects.toBeInstanceOf(OpenWATimeoutError);
+    const c = new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', fetch: abortingFetch });
+    await expect(c.sessions.list()).rejects.toBeInstanceOf(MyWhatsappTimeoutError);
   });
 
   it('keeps the timeout armed while reading a stalled response body', async () => {
@@ -236,14 +236,14 @@ describe('OpenWAClient', () => {
       });
       return new Response(body, { status: 200 });
     };
-    const c = new OpenWAClient({ baseUrl: 'http://x', apiKey: 'k', timeoutMs: 5, fetch: stalledBodyFetch });
+    const c = new MyWhatsappClient({ baseUrl: 'http://x', apiKey: 'k', timeoutMs: 5, fetch: stalledBodyFetch });
 
-    await expect(c.sessions.list()).rejects.toBeInstanceOf(OpenWATimeoutError);
+    await expect(c.sessions.list()).rejects.toBeInstanceOf(MyWhatsappTimeoutError);
   });
 
   it('keeps X-API-Key winning over defaultHeaders', async () => {
     const t = new MockTransport().on('GET', '/api/sessions', { body: [] });
-    const c = new OpenWAClient({
+    const c = new MyWhatsappClient({
       baseUrl: 'http://x',
       apiKey: 'REAL',
       defaultHeaders: { 'X-API-Key': 'EVIL', 'X-Trace': 'keep' },
@@ -256,7 +256,7 @@ describe('OpenWAClient', () => {
 
   it('keeps the JSON Content-Type winning over a defaultHeaders override', async () => {
     const t = new MockTransport().on('GET', '/api/sessions', { body: [] });
-    const c = new OpenWAClient({
+    const c = new MyWhatsappClient({
       baseUrl: 'http://x',
       apiKey: 'k',
       defaultHeaders: { 'Content-Type': 'text/plain', 'X-Trace': 'keep' },

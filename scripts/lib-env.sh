@@ -20,8 +20,8 @@
 # failure this exists to prevent. Nothing here exports anything — each key is looked up by name, so a
 # stray entry in an operator's .env can never reach the script's own environment.
 
-# openwa_env_file_value <file> <key> — print the value from one env-file layer, or nothing.
-openwa_env_file_value() {
+# mywhatsapp_env_file_value <file> <key> — print the value from one env-file layer, or nothing.
+mywhatsapp_env_file_value() {
   local file="$1" key="$2" line value
   [ -f "$file" ] || return 0
   line="$(grep -E "^[[:space:]]*(export[[:space:]]+)?${key}=" "$file" 2>/dev/null | tail -n 1)" || true
@@ -40,9 +40,9 @@ openwa_env_file_value() {
   printf '%s' "$value"
 }
 
-# openwa_resolve <key> <default> — the application's precedence: environment, then ./.env, then
+# mywhatsapp_resolve <key> <default> — the application's precedence: environment, then ./.env, then
 # <data dir>/.env.generated, then the built-in default. Requires DATA_DIR to be set by the caller.
-openwa_resolve() {
+mywhatsapp_resolve() {
   local key="$1" fallback="$2" current value layer
   current="$(printenv "$key" 2>/dev/null || true)"
   if [ -n "$current" ]; then
@@ -50,7 +50,7 @@ openwa_resolve() {
     return 0
   fi
   for layer in "./.env" "${DATA_DIR:-./data}/.env.generated"; do
-    value="$(openwa_env_file_value "$layer" "$key")"
+    value="$(mywhatsapp_env_file_value "$layer" "$key")"
     if [ -n "$value" ]; then
       printf '%s' "$value"
       return 0

@@ -17,7 +17,7 @@
  *
  * The transform adds the exit the guard assumes: an empty decode ends the walk. Nothing came back,
  * and re-asking in a tight loop is what produced the defect — a later connect re-runs the sync
- * anyway (OpenWA calls it on every `open`).
+ * anyway (MyWhatsapp calls it on every `open`).
  *
  * Exact and self-disabling, matching the whatsapp-web.js patchers: an unknown shape fails rather
  * than silently shipping without the fix. Remove this once upstream bounds the loop.
@@ -38,7 +38,7 @@ const LOOP_FIND = `                const decoded = await extractSyncdPatches(res
  * Interpolated below rather than restated, the way patch-baileys-newsletter-create.js does it, so
  * the marker and the text that carries it cannot drift apart.
  */
-const PATCHED_MARKER = 'OpenWA: query() resolves undefined on its own timeout';
+const PATCHED_MARKER = 'MyWhatsapp: query() resolves undefined on its own timeout';
 
 const LOOP_REPLACE = `                const decoded = await extractSyncdPatches(result, config?.options);
                 // ${PATCHED_MARKER}, which decodes to {}. Every

@@ -36,8 +36,8 @@ const SAVED_CONFIG: SavedConfig = {
     builtIn: false,
     host: 'shared-db-host',
     port: '6543',
-    username: 'openwa_admin',
-    database: 'openwa_prod',
+    username: 'mywhatsapp_admin',
+    database: 'mywhatsapp_prod',
     schema: 'appschema',
     poolSize: 7,
     sslEnabled: false,
@@ -256,8 +256,8 @@ test('Infrastructure renders and the config form hydrates from /status and /conf
 
     // These fields are written ONLY by the saved-config hydrate effect (never by the /status
     // effect), so they pin /config hydration specifically, without the host/port race.
-    assert.equal(fieldInput(container, 'Username').value, 'openwa_admin');
-    assert.equal(fieldInput(container, 'Database Name').value, 'openwa_prod');
+    assert.equal(fieldInput(container, 'Username').value, 'mywhatsapp_admin');
+    assert.equal(fieldInput(container, 'Database Name').value, 'mywhatsapp_prod');
     assert.equal(fieldInput(container, 'Schema').value, 'appschema');
     assert.equal(fieldInput(container, 'Pool Size').value, '7');
 
@@ -309,7 +309,7 @@ test('editing a database field and saving PUTs the edited value in the request b
 
   await screen.findByText('Database Configuration');
   // Wait for the postgres detail form (and its Host field) to actually be present before editing it.
-  await waitFor(() => assert.equal(fieldInput(container, 'Username').value, 'openwa_admin'));
+  await waitFor(() => assert.equal(fieldInput(container, 'Username').value, 'mywhatsapp_admin'));
 
   const hostInput = fieldInput(container, 'Host');
   fireEvent.change(hostInput, { target: { value: 'edited-host.example.com' } });
@@ -359,7 +359,7 @@ function engineRadios(container: HTMLElement): HTMLInputElement[] {
 // DATABASE field on purpose: the engine detail fields render only for whatsapp-web.js, so waiting on
 // one of those would vanish the moment a test seeds the radio to baileys.
 async function awaitConfigHydrated(container: HTMLElement): Promise<void> {
-  await rtl.waitFor(() => assert.equal(fieldInput(container, 'Username').value, 'openwa_admin'));
+  await rtl.waitFor(() => assert.equal(fieldInput(container, 'Username').value, 'mywhatsapp_admin'));
 }
 
 test('the engine radio seeds from the saved engine even when nothing pins ENGINE_TYPE', async () => {

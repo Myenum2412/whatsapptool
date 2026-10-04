@@ -643,7 +643,7 @@ describe('MessageSendService', () => {
 
     it('should flatten header and footer around the body with blank lines', async () => {
       (templateService.resolve as jest.Mock).mockResolvedValue(
-        mockTemplate({ header: 'OpenWA Store', body: 'Hello {{customer}}', footer: 'Reply STOP to opt out' }),
+        mockTemplate({ header: 'MyWhatsapp Store', body: 'Hello {{customer}}', footer: 'Reply STOP to opt out' }),
       );
 
       await service.sendTemplate('sess-1', {
@@ -654,7 +654,7 @@ describe('MessageSendService', () => {
 
       expect(mockEngine.sendTextMessage).toHaveBeenCalledWith(
         'test@c.us',
-        'OpenWA Store\n\nHello Bob\n\nReply STOP to opt out',
+        'MyWhatsapp Store\n\nHello Bob\n\nReply STOP to opt out',
       );
     });
 

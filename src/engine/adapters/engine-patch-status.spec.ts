@@ -21,7 +21,7 @@ describe('unappliedPatches', () => {
 
   /** A scripts/ directory holding stub patchers, each written as the module the guard requires. */
   function scriptsWith(modules: Record<string, string>): string {
-    const dir = tmp('openwa-patch-scripts-');
+    const dir = tmp('mywhatsapp-patch-scripts-');
     for (const [name, body] of Object.entries(modules)) fs.writeFileSync(path.join(dir, name), body);
     return dir;
   }
@@ -61,16 +61,16 @@ describe('unappliedPatches', () => {
   it('passes the resolved dependency directory to the predicate', () => {
     const dep = tmp('dep-');
     const scripts = scriptsWith({
-      'patch-wwebjs-alpha.js': 'module.exports = { isApplied: dir => dir !== process.env.OPENWA_EXPECTED_DEP };\n',
+      'patch-wwebjs-alpha.js': 'module.exports = { isApplied: dir => dir !== process.env.MYWHATSAPP_EXPECTED_DEP };\n',
     });
-    process.env.OPENWA_EXPECTED_DEP = dep;
+    process.env.MYWHATSAPP_EXPECTED_DEP = dep;
 
     try {
       // The predicate answers false only when it was handed exactly the directory we passed in, so
       // a guard that called isApplied() with no argument would report nothing here.
       expect(unappliedPatches('wwebjs', scripts, dep)).toEqual(['patch-wwebjs-alpha']);
     } finally {
-      delete process.env.OPENWA_EXPECTED_DEP;
+      delete process.env.MYWHATSAPP_EXPECTED_DEP;
     }
   });
 
@@ -105,7 +105,7 @@ describe('unappliedPatches', () => {
   });
 
   it('stays quiet when there is no scripts directory to read', () => {
-    expect(unappliedPatches('wwebjs', path.join(tmp('openwa-empty-'), 'absent'), tmp('dep-'))).toEqual([]);
+    expect(unappliedPatches('wwebjs', path.join(tmp('mywhatsapp-empty-'), 'absent'), tmp('dep-'))).toEqual([]);
   });
 
   it('stays quiet when the dependency cannot be resolved', () => {

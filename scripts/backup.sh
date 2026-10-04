@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 #
-# OpenWA backup.
+# MyWhatsapp backup.
 #
 # Captures the load-bearing state needed to restore a working install:
 #   - main.sqlite   — auth (API keys) + audit log, ALWAYS SQLite (see app.module.ts)
-#   - data store    — openwa.sqlite (SQLite) OR a pg_dump (when DATABASE_TYPE=postgres)
+#   - data store    — mywhatsapp.sqlite (SQLite) OR a pg_dump (when DATABASE_TYPE=postgres)
 #   - sessions/     — whatsapp-web.js LocalAuth session data
 #   - baileys/      — Baileys engine authentication state
 #   - media/        — locally-stored media (skipped automatically when using S3)
 #   - plugin-packages/ — installed plugin packages from PLUGINS_DIR
-#   - plugin-state/    — registry and persisted ctx.storage state under OPENWA_DATA_DIR
+#   - plugin-state/    — registry and persisted ctx.storage state under MYWHATSAPP_DATA_DIR
 #   - .env.generated and .api-key — dashboard config and plaintext bootstrap admin key
 #
-# The previous runbook backed up the wrong file (openwa.db) and omitted main.sqlite,
+# The previous runbook backed up the wrong file (mywhatsapp.db) and omitted main.sqlite,
 # so a "successful" backup silently lost every API key and all audit history.
 #
 # Usage:
 #   ./scripts/backup.sh
 # Environment:
 #   MAIN_DATABASE_NAME  auth/audit SQLite file (default: ./data/main.sqlite)
-#   DATABASE_NAME       data-store SQLite file (default: ./data/openwa.sqlite; sqlite only)
+#   DATABASE_NAME       data-store SQLite file (default: ./data/mywhatsapp.sqlite; sqlite only)
 #                       Both resolve EXACTLY like the app: the environment first, then ./.env, then
 #                       <data dir>/.env.generated, otherwise the fixed ./data default (see
-#                       lib-env.sh). They are NOT derived from OPENWA_DATA_DIR — the app never does
+#                       lib-env.sh). They are NOT derived from MYWHATSAPP_DATA_DIR — the app never does
 #                       that either.
-#   OPENWA_DATA_DIR   data directory for the non-DB state below (default: ./data)
+#   MYWHATSAPP_DATA_DIR   data directory for the non-DB state below (default: ./data)
 #   BACKUP_DIR        where archives are written (default: ./backups)
 #   DATABASE_TYPE     sqlite (default) | postgres
 #   SESSION_DATA_PATH, BAILEYS_AUTH_DIR, STORAGE_LOCAL_PATH, PLUGINS_DIR
@@ -41,36 +41,36 @@ set -euo pipefail
 # permissive operator umask for newly-created backup artifacts.
 umask 077
 
-# OPENWA_DATA_DIR and BACKUP_DIR steer the script itself and are never written to an env file, so
+# MYWHATSAPP_DATA_DIR and BACKUP_DIR steer the script itself and are never written to an env file, so
 # they stay environment-only. Everything below them is application configuration and must be read
 # through the same layers the app reads (see lib-env.sh).
-DATA_DIR="${OPENWA_DATA_DIR:-./data}"
+DATA_DIR="${MYWHATSAPP_DATA_DIR:-./data}"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
 # shellcheck source=scripts/lib-env.sh
 . "$(dirname "$0")/lib-env.sh"
-DATABASE_TYPE="$(openwa_resolve DATABASE_TYPE sqlite)"
+DATABASE_TYPE="$(mywhatsapp_resolve DATABASE_TYPE sqlite)"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
 # Database paths resolve exactly like the app: an explicit environment value wins, then ./.env, then
-# the dashboard's <data dir>/.env.generated, otherwise the fixed ./data default. OPENWA_DATA_DIR
+# the dashboard's <data dir>/.env.generated, otherwise the fixed ./data default. MYWHATSAPP_DATA_DIR
 # below only bases the non-DB state directories — deriving DB paths from it would back up files the
 # app never reads.
-MAIN_DB="$(openwa_resolve MAIN_DATABASE_NAME ./data/main.sqlite)"
-DATA_DB="$(openwa_resolve DATABASE_NAME ./data/openwa.sqlite)"
-SESSIONS_DIR="$(openwa_resolve SESSION_DATA_PATH "$DATA_DIR/sessions")"
-BAILEYS_DIR="$(openwa_resolve BAILEYS_AUTH_DIR "$DATA_DIR/baileys")"
-MEDIA_DIR="$(openwa_resolve STORAGE_LOCAL_PATH "$DATA_DIR/media")"
+MAIN_DB="$(mywhatsapp_resolve MAIN_DATABASE_NAME ./data/main.sqlite)"
+DATA_DB="$(mywhatsapp_resolve DATABASE_NAME ./data/mywhatsapp.sqlite)"
+SESSIONS_DIR="$(mywhatsapp_resolve SESSION_DATA_PATH "$DATA_DIR/sessions")"
+BAILEYS_DIR="$(mywhatsapp_resolve BAILEYS_AUTH_DIR "$DATA_DIR/baileys")"
+MEDIA_DIR="$(mywhatsapp_resolve STORAGE_LOCAL_PATH "$DATA_DIR/media")"
 # Installed plugin code. The app defaults this to <dataDir>/plugins — the same tree as the
 # registry and each plugin's ctx.storage below — so an unset PLUGINS_DIR must resolve there
 # too, or the archive silently omits the plugin packages.
-PLUGIN_PACKAGES_DIR="$(openwa_resolve PLUGINS_DIR "$DATA_DIR/plugins")"
+PLUGIN_PACKAGES_DIR="$(mywhatsapp_resolve PLUGINS_DIR "$DATA_DIR/plugins")"
 # Plugin registry + every plugin's persisted ctx.storage. The app puts them at <dataDir>/plugins,
 # where dataDir is PLUGIN_STATE_DIR when that is set and ./data otherwise, so the knob has to be
 # resolved here exactly like PLUGINS_DIR above. Hardcoding $DATA_DIR/plugins meant an operator who
 # moved plugin state got an archive with neither the registry nor any plugin's storage in it, and
 # a restore that put nothing back. Resolved under its own name because the knob names the ROOT,
 # not the plugins directory inside it.
-PLUGIN_STATE_ROOT="$(openwa_resolve PLUGIN_STATE_DIR "$DATA_DIR")"
+PLUGIN_STATE_ROOT="$(mywhatsapp_resolve PLUGIN_STATE_DIR "$DATA_DIR")"
 PLUGIN_STATE_DIR="$PLUGIN_STATE_ROOT/plugins"
 GENERATED_ENV="$DATA_DIR/.env.generated"
 ADMIN_KEY_FILE="$DATA_DIR/.api-key"
@@ -141,23 +141,23 @@ if [ "$DATABASE_TYPE" = "postgres" ]; then
     log "ERROR: DATABASE_TYPE=postgres but pg_dump is not installed"
     exit 1
   fi
-  DATABASE_URL_RESOLVED="$(openwa_resolve DATABASE_URL '')"
+  DATABASE_URL_RESOLVED="$(mywhatsapp_resolve DATABASE_URL '')"
   if [ -n "$DATABASE_URL_RESOLVED" ]; then
     pg_dump "$DATABASE_URL_RESOLVED" >"$STAGE/database.sql"
   else
     # Same layered resolution as the paths above: a dashboard-provisioned Postgres keeps its
     # connection details in <data dir>/.env.generated, never in the operator's shell.
-    PGPASSWORD="$(openwa_resolve DATABASE_PASSWORD '')" pg_dump \
-      -h "$(openwa_resolve DATABASE_HOST localhost)" \
-      -p "$(openwa_resolve DATABASE_PORT 5432)" \
-      -U "$(openwa_resolve DATABASE_USERNAME openwa)" \
-      "$(openwa_resolve DATABASE_NAME openwa)" >"$STAGE/database.sql"
+    PGPASSWORD="$(mywhatsapp_resolve DATABASE_PASSWORD '')" pg_dump \
+      -h "$(mywhatsapp_resolve DATABASE_HOST localhost)" \
+      -p "$(mywhatsapp_resolve DATABASE_PORT 5432)" \
+      -U "$(mywhatsapp_resolve DATABASE_USERNAME mywhatsapp)" \
+      "$(mywhatsapp_resolve DATABASE_NAME mywhatsapp)" >"$STAGE/database.sql"
   fi
   REQUIRED_MEMBERS+=("./database.sql")
 else
   log "Backing up data store ($DATA_DB)"
-  backup_sqlite "$DATA_DB" "$STAGE/openwa.sqlite"
-  REQUIRED_MEMBERS+=("./openwa.sqlite")
+  backup_sqlite "$DATA_DB" "$STAGE/mywhatsapp.sqlite"
+  REQUIRED_MEMBERS+=("./mywhatsapp.sqlite")
 fi
 
 if [ -d "$SESSIONS_DIR" ]; then
@@ -199,7 +199,7 @@ if [ -f "$ADMIN_KEY_FILE" ]; then
   cp -p "$ADMIN_KEY_FILE" "$STAGE/.api-key"
 fi
 
-ARCHIVE="$BACKUP_DIR/openwa-backup-$TIMESTAMP.tar.gz"
+ARCHIVE="$BACKUP_DIR/mywhatsapp-backup-$TIMESTAMP.tar.gz"
 tar -czf "$ARCHIVE" -C "$STAGE" .
 
 ARCHIVE_LIST="$(tar -tzf "$ARCHIVE")"
