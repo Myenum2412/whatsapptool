@@ -1,0 +1,1818 @@
+/* =============================================
+   Flow page - Plans list, form modal, tables
+   Every rule stays scoped under .flow-page so these
+   class names can never collide with another route's
+   stylesheet (see src/styles.scope.test.ts).
+   ============================================= */
+
+.flow-page {
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hidden but still announced by screen readers: used for table action
+   column headers that would otherwise read as an unlabelled column. */
+.flow-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Session picker ---- */
+
+.flow-page .flow-session-select {
+  min-width: 220px;
+}
+
+.flow-page .flow-page-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  color: var(--text-secondary);
+}
+
+/* ---- Empty state ---- */
+
+.flow-page .plans-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .plans-empty h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.flow-page .plans-empty p {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ---- Plans table ---- */
+
+.flow-page .plans-table-container {
+  width: 100%;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+.flow-page .plans-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.flow-page .plans-table thead th {
+  padding: 1.125rem 1.5rem;
+  text-align: start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.flow-page .plans-table tbody td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.flow-page .plans-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.flow-page .plans-table tbody tr:nth-child(even) {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.flow-page .plans-table tbody tr:hover {
+  background: var(--primary-soft);
+}
+
+/* Placed after the zebra-stripe and hover rules so a selected row wins the cascade at equal
+   specificity — otherwise a checked row on an even stripe keeps its banding colour. */
+.flow-page .plans-table tbody tr.plans-row-selected,
+.flow-page .plans-table tbody tr.plans-row-selected:hover {
+  background: var(--primary-soft);
+}
+
+.flow-page .plans-select-cell {
+  width: 1%;
+  padding-inline: 1.5rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.flow-page .plans-select-cell input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.flow-page .plans-title-cell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.flow-page .plans-description-cell {
+  max-width: 28rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.flow-page .plans-updated-cell {
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.flow-page .plans-muted {
+  color: var(--text-muted);
+}
+
+.flow-page .plans-actions-cell {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.flow-page .plans-actions {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+
+/* ---- Icon-only buttons (row actions) ---- */
+
+.flow-page .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.flow-page .icon-btn:hover {
+  background: var(--bg-light);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.flow-page .icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--error-text);
+}
+
+/* ---- Bulk-selection bar ---- */
+
+.flow-page .plans-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+}
+
+.flow-page .plans-bulk-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.flow-page .plans-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flow-page .plans-bulk-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* ---- Plan detail page ---- */
+
+.flow-page .plan-detail {
+  padding: 1.5rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .plan-detail-description {
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* Deleting the plan is destructive and sits next to harmless buttons, so it carries the danger tint
+   rather than reading as one more secondary action. */
+.flow-page .plan-detail-delete {
+  color: var(--error-text);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.flow-page .plan-detail-delete:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.flow-page .plan-detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-page .plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.flow-page .plan-chip svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.flow-page .plan-chip-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.flow-page .plan-chip-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.flow-page .plans-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 1.25rem;
+  text-decoration: none;
+}
+
+/* ---- Plan flow editor ---- */
+
+.flow-page .plan-flow {
+  margin-top: 1.5rem;
+}
+
+.flow-page .plan-flow-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.flow-page .plan-flow-head h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.flow-page .plan-flow-head .input-hint {
+  margin: 0;
+}
+
+/* Autosave state. Text-only rather than a coloured dot: it must stay legible without colour, and it
+   carries the one detail the dot cannot - which of "quiet", "busy", or "broken" is true. */
+.flow-page .flow-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.flow-page .flow-save-saved {
+  color: var(--text-muted);
+}
+
+.flow-page .flow-save-unsaved {
+  color: var(--warning-text, #986207);
+}
+
+.flow-page .flow-save-saving {
+  color: var(--text-secondary);
+}
+
+.flow-page .flow-save-error {
+  color: var(--error-text);
+}
+
+.flow-page .plan-flow-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1.25rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-white);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.flow-page .plan-flow-empty svg {
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+.flow-page .plan-flow-empty p {
+  margin: 0;
+}
+
+.flow-page .flow-example-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.875rem;
+}
+
+.flow-page .plan-flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow-block;
+}
+
+.flow-page .flow-block {
+  padding: 1rem 1.25rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .flow-block-incomplete {
+  border-left-color: var(--warning, #f59e0b);
+}
+
+.flow-page .flow-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.flow-page .flow-block-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.flow-page .flow-block-actions {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+
+.flow-page .flow-block-actions .icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.flow-page .flow-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.flow-page .flow-field label,
+.flow-page .flow-poll-options legend {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.flow-page .flow-field input,
+.flow-page .flow-field textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.flow-page .flow-field input:focus,
+.flow-page .flow-field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-white);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+}
+
+.flow-page .flow-field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+
+.flow-page .flow-poll-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.flow-page .flow-poll-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.flow-page .flow-poll-option input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.flow-page .flow-poll-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Upload controls sit above the URL field; both write the same mediaUrl, so either can be used. */
+.flow-page .flow-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.flow-page .flow-upload-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flow-page .flow-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+
+.flow-page .flow-upload-busy {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.flow-page .flow-upload-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--error-text);
+}
+
+.flow-page .flow-block-warning {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.flow-page .plan-flow-add {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.flow-page .plan-flow-add-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.flow-page .plan-flow-add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.flow-page .plan-flow-add-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Palette blocks are drag sources for the mind map, so advertise the grab. */
+.flow-page .plan-flow-add-buttons button[draggable='true'] {
+  cursor: grab;
+}
+
+/* ---- Blocks / Mind map toggle ---- */
+
+.flow-page .flow-view-toggle {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-top: 0.75rem;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.flow-page .flow-view-btn {
+  padding: 0.375rem 0.875rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.flow-page .flow-view-btn:hover {
+  color: var(--text-primary);
+}
+
+/* The pressed view is the one on screen, so it reads as the active tab. */
+.flow-page .flow-view-btn[aria-pressed='true'] {
+  color: var(--text-primary);
+  background: var(--bg-white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Mind map ---- */
+
+.flow-page .plan-flow-map {
+  margin-top: 0;
+}
+
+/* ---- Flow chart layout: left palette + canvas + inspector ---- */
+
+.flow-page .flow-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.flow-page .flow-chart-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* In the chart the palette is the narrow sticky rail on the left of the canvas. */
+.flow-page .flow-chart > .flow-palette {
+  position: sticky;
+  top: 1rem;
+  flex: 0 0 172px;
+  align-self: flex-start;
+}
+
+.flow-page .flow-map-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.flow-page .flow-map-scroll {
+  flex: 1;
+  min-width: 0;
+  height: 640px;
+  overflow: auto;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.flow-page .flow-map-empty-note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.flow-page .flow-map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.flow-page .flow-map-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.flow-page .flow-map-connect-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  background: var(--primary-soft);
+  border-radius: 6px;
+}
+
+.flow-page .flow-map-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-light);
+  background-image: radial-gradient(rgba(148, 163, 184, 0.35) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.flow-page .flow-map-canvas-connecting {
+  cursor: crosshair;
+}
+
+.flow-page .flow-map-edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flow-page .flow-map-edges line {
+  stroke: var(--text-muted);
+  stroke-width: 2;
+}
+
+/* A drawn edge, once selected: thicker and in the accent colour, with the invisible hit line on top
+   of it so the selection can be aimed at. */
+.flow-page .flow-map-edges line.flow-map-edge-selected {
+  stroke: var(--primary);
+  stroke-width: 3.5;
+}
+
+/* The pointer target for a drawn edge. A 2px line is close to unhittable, so the edge is drawn twice:
+   once to look at, once wide and transparent to click. */
+.flow-page .flow-map-edges line.flow-map-edge-hit {
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+/* Sequence connectors the chart derives from block order: a lighter dashed line so they read as
+   automatic, distinct from the solid edges the user draws by hand. */
+.flow-page .flow-map-edges line.flow-map-edge-auto {
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  opacity: 0.55;
+}
+
+.flow-page .flow-map-arrowhead-auto {
+  fill: var(--primary);
+  opacity: 0.55;
+}
+
+/* The live line that follows the cursor while linking two blocks. */
+.flow-page .flow-map-connecting-line {
+  stroke: var(--primary);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+}
+
+.flow-page .flow-map-arrowhead {
+  fill: var(--text-muted);
+}
+
+.flow-page .flow-map-arrowhead-connect {
+  fill: var(--primary);
+}
+
+.flow-page .flow-map-node {
+  position: absolute;
+  padding: 0;
+  /* Visible, not hidden: the connect handle hangs below the bottom edge, and the card layers that
+     need clipping (the media hero) clip themselves. */
+  overflow: visible;
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.flow-page .flow-map-node-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+}
+
+.flow-page .flow-map-node-connecting {
+  border-style: dashed;
+  border-color: var(--primary);
+}
+
+/* The block currently under the dragged connection line. */
+.flow-page .flow-map-node-target {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.2);
+}
+
+/* The drag handle on the bottom edge: press it and a line follows the cursor. */
+.flow-page .flow-map-node-port {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  z-index: 5;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  transform: translateX(-50%);
+  background: var(--bg-white);
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  cursor: crosshair;
+  touch-action: none;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+
+.flow-page .flow-map-node-port:hover,
+.flow-page .flow-map-node-port:focus-visible {
+  background: var(--primary);
+  transform: translateX(-50%) scale(1.25);
+}
+
+/* The card fills the node box in layers, so the media can be full-bleed while the controls on top of
+   it stay clickable: the drag surface sits at the bottom and paints nothing, the hero above it takes
+   pointer events away (`pointer-events: none`), and the panel and actions sit on top of both. */
+.flow-page .flow-map-node-card {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  box-sizing: border-box;
+  cursor: grab;
+}
+
+.flow-page .flow-map-node-card:active {
+  cursor: grabbing;
+}
+
+.flow-page .flow-map-node:focus-within {
+  border-color: var(--primary);
+}
+
+/* Media-forward: a picture or document owns the top of the card. The node no longer clips, so the
+   hero rounds its own top corners to keep the card's silhouette. Text and poll blocks have nothing
+   to show here, so they carry no hero at all (see `.flow-map-node-media`). */
+.flow-page .flow-map-node-hero {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 84px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  background: var(--wa-media-bg, rgba(0, 0, 0, 0.06));
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px 8px 0 0;
+  pointer-events: none;
+}
+
+/* An empty media card invites the file: the hero becomes a dashed plate wired to a file input. */
+.flow-page .flow-map-node-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.45rem;
+  pointer-events: auto;
+}
+
+.flow-page .flow-map-node-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.5rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  text-align: center;
+  background: var(--bg-white);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.flow-page .flow-map-node-upload-btn:hover,
+.flow-page .flow-map-node-upload-btn:focus-within {
+  color: var(--primary);
+  background: var(--bg-light);
+  border-color: var(--primary);
+}
+
+.flow-page .flow-map-node-upload-error {
+  font-size: 0.65rem;
+  color: var(--error-text);
+  text-align: center;
+}
+
+/* Everything below the hero: the type badge, the one field the card edits, and a summary line. */
+.flow-page .flow-map-node-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.45rem 0.5rem;
+  /* Gaps in the panel belong to the drag surface, not to the fields. */
+  pointer-events: none;
+}
+
+.flow-page .flow-map-node-media .flow-map-node-panel {
+  inset: 84px 0 0 0;
+}
+
+.flow-page .flow-map-node-panel > * {
+  pointer-events: auto;
+}
+
+.flow-page .flow-map-node-top {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 18px;
+}
+
+.flow-page .flow-map-node-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--bg-light);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.flow-page .flow-map-node-badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The one field the card edits in place. It takes whatever height the card has left over, so a
+   shorter card still reads as a card rather than a stack of empty space. */
+.flow-page .flow-map-node-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0.25rem 0.35rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.flow-page .flow-map-node-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.flow-page .flow-map-node-input::placeholder {
+  color: var(--text-muted);
+}
+
+.flow-page .flow-map-node-summary {
+  overflow: hidden;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flow-page .flow-map-node-summary-incomplete {
+  font-style: italic;
+  color: var(--warning-text);
+}
+
+/* Hover actions: present for the pointer, and for the keyboard, which reaches them by tabbing into
+   the card — hence :focus-within rather than :hover alone. */
+.flow-page .flow-map-node-actions {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 4;
+  display: flex;
+  gap: 0.15rem;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.flow-page .flow-map-node:hover .flow-map-node-actions,
+.flow-page .flow-map-node:focus-within .flow-map-node-actions {
+  opacity: 1;
+}
+
+/* A touch screen never hovers, so the actions stay put there: hiding them would leave the card with
+   no way to be copied or deleted. */
+@media (hover: none) {
+  .flow-page .flow-map-node-actions {
+    opacity: 1;
+  }
+}
+
+.flow-page .flow-map-node-actions .icon-btn {
+  width: 26px;
+  height: 26px;
+  background: var(--bg-white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Flow media (uploaded thumbnails in cards) ---- */
+
+.flow-page .flow-media-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flow-page .flow-media-play {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+}
+
+.flow-page .flow-media-file {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0 0.5rem;
+  color: var(--text-secondary);
+}
+
+.flow-page .flow-media-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.flow-page .flow-media-placeholder {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.flow-page .flow-media-loading {
+  position: absolute;
+  inset: -8px;
+  border: 2px solid transparent;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: flow-media-spin 0.7s linear infinite;
+}
+
+@keyframes flow-media-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.flow-page .flow-map-edge-remove {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  color: var(--text-secondary);
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.flow-page .flow-map-edge-remove:hover {
+  color: var(--error-text);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* The inline inspector sits beside the canvas rather than under it, so the chart keeps its height. */
+.flow-page .flow-map-editor {
+  position: sticky;
+  top: 1rem;
+  flex: 0 0 320px;
+  align-self: flex-start;
+  max-height: 640px;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .flow-map-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.flow-page .flow-map-editor-head h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* The structural actions the list inspector already offers, so the chart can reorder, copy and
+   delete a block without the operator switching views to do it. */
+.flow-page .flow-map-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.flow-page .flow-map-editor .flow-field + .flow-field {
+  margin-top: 0.875rem;
+}
+
+/* The map editor spaces fields by margin, unlike the list inspector's flex gap, so an upload block
+   between fields needs its own spacing on whichever side a field sits. */
+.flow-page .flow-map-editor .flow-field + .flow-upload,
+.flow-page .flow-map-editor .flow-upload + .flow-field {
+  margin-top: 0.875rem;
+}
+
+/* ---- Form modal ---- */
+
+/* Two fields fit the standard modal width, so no per-page override is needed. */
+
+.flow-page .confirm-modal {
+  max-width: 420px;
+}
+
+.flow-page .modal-body > label + input,
+.flow-page .modal-body > label + textarea {
+  margin-bottom: 1.25rem;
+}
+
+/* The global modal styles cover inputs but not textareas, so match them here. */
+.flow-page .modal-body textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  background: var(--bg-light);
+  transition: all 0.2s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.flow-page .modal-body textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-white);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+}
+
+.flow-page .input-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.flow-page .input-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--error-text);
+}
+
+.flow-page .modal-body > input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+/* ---- WhatsApp preview ----
+   The WA UI component look (outgoing bubble, tail, read receipt, interactive rows) ported to the
+   existing scoped-CSS architecture instead of shadcn/Tailwind. Tokens are the WhatsApp WDS values. */
+
+.flow-page {
+  --wa-bubble-outgoing: #d9fdd3;
+  --wa-bubble-text: #111b21;
+  --wa-bubble-meta: rgba(17, 27, 33, 0.45);
+  --wa-bubble-read: #53bdeb;
+  --wa-conversation-bg: #efeae2;
+  --wa-divider: rgba(17, 27, 33, 0.12);
+  --wa-tail-shadow: rgba(11, 20, 26, 0.13);
+  --wa-media-bg: #ccd0d5;
+}
+
+[data-theme='dark'] .flow-page {
+  --wa-bubble-outgoing: #005c4b;
+  --wa-bubble-text: #e9edef;
+  --wa-bubble-meta: rgba(233, 237, 239, 0.6);
+  --wa-conversation-bg: #0b141a;
+  --wa-divider: rgba(233, 237, 239, 0.12);
+  --wa-tail-shadow: rgba(0, 0, 0, 0.3);
+  --wa-media-bg: #2a3942;
+}
+
+/* System-dark twin: the default 'system' theme removes data-theme, so the rule above never matches
+   on a dark OS. Same pattern as Chats.css. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .flow-page {
+    --wa-bubble-outgoing: #005c4b;
+    --wa-bubble-text: #e9edef;
+    --wa-bubble-meta: rgba(233, 237, 239, 0.6);
+    --wa-conversation-bg: #0b141a;
+    --wa-divider: rgba(233, 237, 239, 0.12);
+    --wa-tail-shadow: rgba(0, 0, 0, 0.3);
+    --wa-media-bg: #2a3942;
+  }
+}
+
+.flow-page .wa-chat {
+  display: flex;
+  justify-content: flex-end;
+  font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.flow-page .wa-bubble {
+  position: relative;
+  max-width: 100%;
+  padding: 0.4rem 0.5rem 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--wa-bubble-text);
+  background: var(--wa-bubble-outgoing);
+  border-radius: 8px;
+  box-shadow: 0 1px 0.5px var(--wa-tail-shadow);
+}
+
+.flow-page .wa-bubble-outgoing {
+  margin-right: 8px;
+  border-bottom-right-radius: 0;
+}
+
+.flow-page .wa-tail {
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+}
+
+.flow-page .wa-tail-shadow {
+  fill: var(--wa-tail-shadow);
+}
+
+.flow-page .wa-tail-fill {
+  fill: var(--wa-bubble-outgoing);
+}
+
+.flow-page .wa-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.flow-page .wa-placeholder {
+  font-style: italic;
+  color: var(--wa-bubble-meta);
+}
+
+.flow-page .wa-caption {
+  margin: 0.3rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.flow-page .wa-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.15rem;
+  color: var(--wa-bubble-read);
+}
+
+.flow-page .wa-media {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 0.25rem;
+  background: var(--wa-media-bg);
+  border-radius: 6px;
+}
+
+.flow-page .wa-media-el {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.flow-page .wa-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 10;
+  color: var(--wa-bubble-meta);
+}
+
+.flow-page .wa-media-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.flow-page .wa-document {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.4rem;
+  color: var(--wa-bubble-text);
+}
+
+.flow-page .wa-document-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.flow-page .wa-options {
+  display: flex;
+  flex-direction: column;
+  margin: 0.35rem -0.5rem -0.35rem;
+}
+
+.flow-page .wa-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--wa-bubble-text);
+  border-top: 1px solid var(--wa-divider);
+  overflow-wrap: anywhere;
+}
+
+.flow-page .wa-option:first-child {
+  border-top: none;
+}
+
+.flow-page .wa-option svg {
+  flex: 0 0 auto;
+  color: var(--wa-bubble-meta);
+}
+
+.flow-page .wa-option-btn {
+  justify-content: center;
+  font-weight: 600;
+}
+
+.flow-page .wa-option-label {
+  min-width: 0;
+}
+
+/* The WhatsApp-surface backdrop behind a block's bubble preview in the list view. */
+.flow-page .flow-block-preview {
+  margin-bottom: 0.875rem;
+  padding: 0.75rem;
+  background-color: var(--wa-conversation-bg);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* ---- Plans list (card layout) ---- */
+
+.flow-page .plans-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.flow-page .plans-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.flow-page .plans-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-page .plan-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1rem 0.75rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.flow-page .plan-card:hover {
+  box-shadow: var(--shadow-md, var(--shadow-sm));
+  transform: translateY(-1px);
+}
+
+.flow-page .plan-card-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+}
+
+.flow-page .plan-card-check {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.1rem;
+}
+
+.flow-page .plan-card-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0;
+  font-family: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.flow-page .plan-card .plans-description-cell {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.flow-page .plan-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.flow-page .plan-card-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.flow-page .plan-card .plans-actions {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+/* ---- Plan detail (hero) ---- */
+
+.flow-page .plan-detail {
+  position: relative;
+  overflow: hidden;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--bg-white) 60%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .plan-detail::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  content: '';
+  background: var(--primary);
+}
+
+/* ---- Flow studio (conversation + inspector) ---- */
+
+.flow-page .flow-studio {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.flow-page .flow-conversation {
+  flex: 1;
+  min-width: 0;
+  min-height: 640px;
+  max-height: 720px;
+  overflow: auto;
+  padding: 1.25rem 1rem;
+  background-color: var(--wa-conversation-bg);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+  background-size: 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.flow-page .flow-conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-page .flow-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.flow-page .flow-message-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.flow-page .flow-message-bubble {
+  width: 100%;
+  max-width: 78%;
+  padding: 0;
+  font: inherit;
+  text-align: start;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.flow-page .flow-message-bubble:hover {
+  border-color: var(--primary);
+}
+
+.flow-page .flow-message-selected .flow-message-bubble {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+}
+
+.flow-page .flow-message-incomplete .flow-message-type {
+  color: var(--warning-text, #986207);
+}
+
+.flow-page .flow-message-warning {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--warning-text, #986207);
+}
+
+/* ---- Inspector rail ---- */
+
+.flow-page .flow-inspector {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex: 0 0 340px;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flow-page .flow-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .flow-palette-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.flow-page .flow-palette-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.flow-page .flow-palette-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: start;
+  cursor: grab;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.flow-page .flow-palette-item:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.flow-page .flow-palette-item:active {
+  cursor: grabbing;
+}
+
+.flow-page .flow-inspector-panel {
+  padding: 1rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-page .flow-inspector-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.flow-page .flow-inspector-head h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.flow-page .flow-inspector-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.flow-page .flow-inspector-actions .icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.flow-page .flow-inspector-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  .flow-page {
+    padding: 1.25rem;
+  }
+
+  .flow-page .plans-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-page .plans-description-cell {
+    max-width: none;
+  }
+
+  .flow-page .flow-field-pair {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stack the chart: palette on top, canvas below, inspector last. */
+  .flow-page .flow-chart {
+    flex-direction: column;
+  }
+
+  .flow-page .flow-chart .flow-palette {
+    position: static;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .flow-page .flow-chart .flow-palette-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .flow-page .flow-chart .flow-palette-item {
+    width: auto;
+  }
+
+  .flow-page .flow-map-body {
+    flex-direction: column;
+  }
+
+  .flow-page .flow-map-scroll {
+    width: 100%;
+    height: 480px;
+  }
+
+  .flow-page .flow-map-editor {
+    position: static;
+    flex: 1 1 auto;
+    width: 100%;
+    max-height: none;
+  }
+
+  /* Conversation above, inspector below. */
+  .flow-page .flow-studio {
+    flex-direction: column;
+  }
+
+  .flow-page .flow-conversation {
+    width: 100%;
+    min-height: 480px;
+  }
+
+  .flow-page .flow-message-bubble {
+    max-width: 90%;
+  }
+
+  .flow-page .flow-inspector {
+    position: static;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}

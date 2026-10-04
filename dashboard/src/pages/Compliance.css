@@ -1,0 +1,104 @@
+.compliance {
+  width: 100%;
+  padding: 2rem;
+  overflow-x: hidden;
+}
+
+.compliance__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 0.5rem;
+}
+
+.compliance__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  color: var(--danger);
+  background: var(--danger-light, transparent);
+}
+
+/*
+ * The badge marks a window that EXISTS, not one that is active. A paused window is still a configured
+ * policy — it keeps the times an operator will switch back to — so it gets the badge and loses the
+ * enabled checkmark instead.
+ */
+.compliance__badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.compliance__hint {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.compliance__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+
+.compliance__grid {
+  display: grid;
+  /* The two times sit side by side and share a row; the timezone needs the full width for a real zone
+     name like `America/Argentina/Buenos_Aires`, which truncates badly in a third of a grid column. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.compliance__field--wide {
+  grid-column: 1 / -1;
+}
+
+.compliance__weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.compliance__weekdays label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.compliance__org {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.compliance textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+@media (max-width: 768px) {
+  .compliance {
+    padding: 1rem;
+  }
+
+  .compliance__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
