@@ -354,7 +354,6 @@
     "connectionError": "לא ניתן להתחבר לשרת. יש לנסות שוב.",
     "help": "צריך עזרה?",
     "viewDocs": "לצפייה בתיעוד",
-    "footer": "╫á╫æ╫á╫ö ╫æ╫É╫ö╫æ╫ö ╫ó╫£ ╫Ö╫ô╫Ö Yudhi Armyndharis ╫ò╫º╫ö╫Ö╫£╫¬ MyWhatsapp",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {

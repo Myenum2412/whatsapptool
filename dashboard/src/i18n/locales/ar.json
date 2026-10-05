@@ -358,7 +358,6 @@
     "connectionError": "تعذّر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
     "help": "هل تحتاج مساعدة؟",
     "viewDocs": "عرض التوثيق",
-    "footer": "╪╡┘Å┘å╪╣ ╪¿┘Ç Γ¥ñ∩╕Å ╪¿┘ê╪º╪│╪╖╪⌐ Yudhi Armyndharis ┘ê┘à╪¼╪¬┘à╪╣ MyWhatsapp",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {

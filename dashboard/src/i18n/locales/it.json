@@ -347,7 +347,6 @@
     "connectionError": "Impossibile connettersi al server. Riprova.",
     "help": "Serve aiuto?",
     "viewDocs": "Visualizza la documentazione",
-    "footer": "Fatto con il Γ¥ñ∩╕Å da Yudhi Armyndharis e dalla Community di MyWhatsapp",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {

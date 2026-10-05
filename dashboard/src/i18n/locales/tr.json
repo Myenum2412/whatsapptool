@@ -347,7 +347,6 @@
     "connectionError": "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.",
     "help": "Yardıma mı ihtiyacınız var?",
     "viewDocs": "Dokümantasyonu Görüntüle",
-    "footer": "Yudhi Armyndharis ve MyWhatsapp Toplulu─ƒu taraf─▒ndan Γ¥ñ∩╕Å ile yap─▒lm─▒┼ƒt─▒r",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {

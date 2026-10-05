@@ -347,7 +347,6 @@
     "connectionError": "Unable to connect to server. Please try again.",
     "help": "Need help?",
     "viewDocs": "View Documentation",
-    "footer": "Made with Γ¥ñ∩╕Å by Yudhi Armyndharis and the MyWhatsapp Community",
     "version": "v{{version}} · {{date}}"
   },
   "dashboard": {
