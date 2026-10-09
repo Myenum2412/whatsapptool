@@ -10,11 +10,29 @@ import react from '@vitejs/plugin-react';
 // gateway moved on. The sidebar hid the drift by replacing the build-time value with the live
 // version from the API (see Layout.tsx); the Login screen has no session yet, so it shows this
 // constant verbatim. APP_VERSION env still overrides if explicitly provided.
-const { version: pkgVersion } = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
-) as {
-  version: string;
-};
+function resolveAppVersion(): string {
+  // Primary source: ROOT package.json (what a release bumps). Resolved relative to this config
+  // file (not process.cwd()), because the dashboard is normally built from inside `dashboard/`.
+  // Falls back to dashboard/package.json so standalone deploys (e.g. Vercel with root
+  // directory = dashboard, where the parent package.json is not uploaded) still build.
+  const candidates = [
+    new URL('../package.json', import.meta.url),
+    new URL('./package.json', import.meta.url),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const { version } = JSON.parse(readFileSync(candidate, 'utf-8')) as {
+        version: string;
+      };
+      if (version) return version;
+    } catch {
+      // try next candidate
+    }
+  }
+  return '0.0.0';
+}
+
+const pkgVersion = resolveAppVersion();
 
 // https://vite.dev/config/
 export default defineConfig({
