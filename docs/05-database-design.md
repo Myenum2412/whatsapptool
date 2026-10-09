@@ -251,6 +251,7 @@ erDiagram
         varchar keyHash UK
         varchar keyPrefix
         varchar role
+        varchar ownerUserId
         simple_array allowedIps
         simple_array allowedSessions
         simple_array allowedChats
@@ -321,13 +322,17 @@ CREATE TABLE sessions (
     -- (existing rows point at the default organization); enforcement arrives later behind
     -- MULTITENANCY_ENABLED. No FK — organizations live on the main connection, this on data.
     "organizationId" VARCHAR(36),
+    -- Account-private sessions: the dashboard account that created the session. NULLable — sessions
+    -- created before the rule (and any not created through a signed-in account) are ownerless and
+    -- visible only to orgmenu/allowlisted keys. No FK — users live on the main connection.
+    "ownerUserId" VARCHAR(36),
     "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
     "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
 );
 ```
 
 > [!NOTE]
-> The **types** above are illustrative — the schema is defined by the TypeORM entity (`src/modules/session/entities/session.entity.ts`) and column types are dialect-portable (`jsonColumnType()` → `simple-json`, dates via `DateTransformer`). The **column names are literal**: see the naming note in §5.3 below before writing SQL against any of these tables. The `sessions` entity declares only the index implied by the `UNIQUE` constraint on `name`, plus `IDX_sessions_organizationId`; there are no separate `status`/`phone`/`createdAt` indexes.
+> The **types** above are illustrative — the schema is defined by the TypeORM entity (`src/modules/session/entities/session.entity.ts`) and column types are dialect-portable (`jsonColumnType()` → `simple-json`, dates via `DateTransformer`). The **column names are literal**: see the naming note in §5.3 below before writing SQL against any of these tables. The `sessions` entity declares only the index implied by the `UNIQUE` constraint on `name`, plus `IDX_sessions_organizationId` and `IDX_sessions_ownerUserId`; there are no separate `status`/`phone`/`createdAt` indexes.
 
 > [!NOTE]
 > Auth state is **not** stored in this table. Both engines persist credentials on the **filesystem** (`whatsapp-web.js` LocalAuth; Baileys `useMultiFileAuthState`). The `baileys_stored_messages` table holds only Baileys' serialized message store (the library ships none), not credentials.
@@ -544,7 +549,8 @@ CREATE TABLE api_keys (
     name VARCHAR(100) NOT NULL,
     "keyHash" VARCHAR(64) NOT NULL,                -- UNIQUE index
     "keyPrefix" VARCHAR(12) NOT NULL,              -- shown in the UI; the full key is never stored
-    role VARCHAR(20) NOT NULL DEFAULT 'operator',  -- admin | operator | viewer
+    role VARCHAR(20) NOT NULL DEFAULT 'users',    -- orgmenu | users
+    "ownerUserId" VARCHAR(36),                    -- dashboard account that mints this key; NULL = operator/API key
     "allowedIps" TEXT,                             -- simple-array (comma-joined), null = any IP
     "allowedSessions" TEXT,                        -- simple-array, null = all sessions
     "allowedChats" TEXT,                           -- simple-array, null = all chats
@@ -560,7 +566,7 @@ CREATE UNIQUE INDEX "IDX_df3b25181df0b4b59bd93f16e1" ON api_keys("keyHash");
 ```
 
 > [!NOTE]
-> Access control is **role-based** (`admin` / `operator` / `viewer`), optionally scoped by `allowedIps`, `allowedSessions` and `allowedChats`. There is no granular `permissions` string array — see [04 - Security Design](./04-security-design.md) for what each role can do.
+> Access control is **role-based** (`orgmenu` / `users`), optionally scoped by `allowedIps`, `allowedSessions` and `allowedChats`. There is no granular `permissions` string array — see [04 - Security Design](./04-security-design.md) for what each role can do.
 
 ---
 
@@ -606,9 +612,10 @@ most one row per session per minute; `send_breaker_tripped`, never sampled), web
 most one row per subject+kind per minute), the queue dashboard (`queue_board_mutated`), integration
 plugin instances (`integration_instance_created`, `integration_instance_updated`,
 `integration_instance_secret_regenerated`, `integration_instance_deleted`,
-`integration_instance_redriven`), and ADMIN-only infrastructure operations (`infra_config_saved`,
+`integration_instance_redriven`), and orgmenu-only infrastructure operations (`infra_config_saved`,
 `infra_restart_requested`, `infra_data_exported`, `infra_data_imported`, `infra_storage_exported`,
-`infra_storage_imported`).
+`infra_storage_imported`), account sign-in and management (`auth_login_succeeded`,
+`auth_login_failed`, `user_created`, `user_updated`, `user_deleted`).
 
 > [!NOTE]
 > Audit-log retention is automatic: see [§5.7 Data Retention](#57-data-retention). Other event types (session logs, API access logs) are surfaced via structured application logging, not dedicated database tables. The one exception is a webhook delivery that exhausts every retry — that lands in the `webhook_delivery_failures` table (§5.3.8), not just the log stream.
@@ -633,9 +640,10 @@ CREATE TABLE organizations (
 
 CREATE TABLE users (
     id VARCHAR PRIMARY KEY,
-    email VARCHAR(320) NOT NULL,                   -- UNIQUE index IDX_users_email
+    email VARCHAR(320) NOT NULL,                   -- UNIQUE index IDX_users_email; matched by login after trim+lowercase
     name VARCHAR(200) NOT NULL,
-    "passwordHash" VARCHAR(255),                   -- no login route yet; auth is still API keys
+    "passwordHash" VARCHAR(255),                   -- scrypt hash for POST /api/auth/login; NULL for API-key-only installs
+    role VARCHAR(20) NOT NULL DEFAULT 'users',    -- orgmenu | users; mirrored onto the account's key at login
     "isActive" BOOLEAN NOT NULL DEFAULT 1,
     "lastLoginAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT (datetime('now')),
@@ -752,7 +760,7 @@ The data connection also owns:
 - **`templates`** — reusable message templates (`src/modules/template/entities/template.entity.ts`), with a unique constraint on `(sessionId, name)` — one template name per session.
 - **`plans`** — session-scoped drafts of a WhatsApp message sequence (`src/modules/plan/entities/plan.entity.ts`): an ordered `flow` block list plus a parallel `mindmap` layout (node positions keyed by block id, and drawn edges), both stored as `simple-json`. Unique on `(sessionId, title)`; the FK to `sessions` is `ON DELETE CASCADE`. Authoring surface only — see `docs/06` §6.4.19.
 - **`status_updates`** — inbound status/story broadcasts with a 24-hour TTL (`src/modules/status-store/entities/status-update.entity.ts`); unique on `(sessionId, waStatusId)`. Attached media is stored via `StorageService`, not in the row.
-- **`webhook_delivery_failures`** — durable record of a webhook delivery that exhausted all retries (`src/modules/webhook/entities/webhook-delivery-failure.entity.ts`), surfaced via the ADMIN `GET /webhooks/delivery-failures`.
+- **`webhook_delivery_failures`** — durable record of a webhook delivery that exhausted all retries (`src/modules/webhook/entities/webhook-delivery-failure.entity.ts`), surfaced via the orgmenu `GET /webhooks/delivery-failures`.
 - **`plugin_instances`** — one configured instance of an adapter plugin, keyed `${pluginId}:${instanceId}` (`src/modules/integration/entities/plugin-instance.entity.ts`); holds the host-minted ingress HMAC secret, masked on API reads.
 - **`ingress_events`** — persist-before-ack durable row and inbound dedup oracle, unique on `(pluginId, instanceId, providerDeliveryId)` (`src/modules/integration/entities/ingress-event.entity.ts`). The full payload is retired to `NULL` once dispatch is settled, leaving a slim dedup marker.
 - **`conversation_mappings`** — bidirectional WA-chat ↔ provider-conversation mapping plus handover state (`src/modules/integration/entities/conversation-mapping.entity.ts`).

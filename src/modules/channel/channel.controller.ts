@@ -91,7 +91,7 @@ export class ChannelController {
   }
 
   @Post()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a channel',
@@ -110,7 +110,7 @@ export class ChannelController {
   }
 
   @Post(':channelId/delete')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete a channel this account owns',
@@ -138,7 +138,7 @@ export class ChannelController {
   }
 
   @Post(':channelId/mute')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Mute or unmute a channel',
@@ -166,7 +166,7 @@ export class ChannelController {
   }
 
   @Post(':channelId/admins/demote')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Demote a channel admin back to a subscriber',
@@ -201,7 +201,7 @@ export class ChannelController {
   }
 
   @Post(':channelId/owner/transfer')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Transfer channel ownership to another account',
@@ -245,7 +245,7 @@ export class ChannelController {
   }
 
   @Post('subscribe')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Subscribe to a channel using invite code' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({
@@ -278,7 +278,7 @@ export class ChannelController {
   }
 
   @Delete(':channelId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Unsubscribe from a channel' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'channelId', description: 'Channel ID to unsubscribe from' })

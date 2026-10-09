@@ -1,12 +1,12 @@
 // Role gating of the Logs page under the bare `node --test` runner, rendered through the real App so
 // both halves are covered: the sidebar entry (Layout) and the route itself (App). GET /audit is
-// ADMIN-only, so an operator or viewer reaching /logs only ever saw a load error over an empty table.
+// orgmenu-only, so a users account reaching /logs only ever saw a load error over an empty table.
 import './test-helpers/register-hooks.ts';
 import { test, before, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
 
-let role = 'operator';
+let role = 'users';
 
 function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
@@ -69,17 +69,17 @@ function renderAt(path: string, as: string): void {
 
 const logsLink = (): Element | null => document.querySelector('a[href="/logs"]');
 
-test('an operator gets no Logs entry and /logs sends them home', async () => {
-  renderAt('/logs', 'operator');
+test('a users account gets no Logs entry and /logs sends them home', async () => {
+  renderAt('/logs', 'users');
   // The sidebar renders once the lazy route resolves; wait for a nav entry every role has.
   await rtl.waitFor(() => assert.ok(document.querySelector('a[href="/sessions"]')));
-  assert.equal(logsLink() === null, true, 'the Logs nav entry is shown to an operator');
-  await rtl.waitFor(() => assert.equal(window.location.pathname, '/'));
+  assert.equal(logsLink() === null, true, 'the Logs nav entry is shown to a users account');
+  await rtl.waitFor(() => assert.equal(window.location.pathname, '/sessions'));
 });
 
-test('an admin keeps the Logs entry and the route', async () => {
-  renderAt('/logs', 'admin');
-  await rtl.waitFor(() => assert.ok(logsLink(), 'the Logs nav entry is missing for an admin'));
+test('an orgmenu account keeps the Logs entry and the route', async () => {
+  renderAt('/logs', 'orgmenu');
+  await rtl.waitFor(() => assert.ok(logsLink(), 'the Logs nav entry is missing for an orgmenu account'));
   // Give the router a chance to redirect before asserting that it did not.
   await new Promise(resolve => setTimeout(resolve, 50));
   assert.equal(window.location.pathname, '/logs');

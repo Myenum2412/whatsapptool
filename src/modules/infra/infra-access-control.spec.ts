@@ -65,6 +65,6 @@ describe('Infra controllers access control', () => {
       ...args: unknown[]
     ) => unknown;
     const role = reflector.get<ApiKeyRole | undefined>(REQUIRED_ROLE_KEY, handler);
-    expect(role).toBe(ApiKeyRole.ADMIN);
+    expect(role).toBe(ApiKeyRole.ORG_MENU);
   });
 });

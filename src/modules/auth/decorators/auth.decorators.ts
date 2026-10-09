@@ -12,7 +12,7 @@ export const CHAT_QUOTED_ALLOWED_KEY = 'chatQuotedAllowed';
 
 /**
  * Mark a route as requiring a specific role
- * @example @RequireRole(ApiKeyRole.ADMIN)
+ * @example @RequireRole(ApiKeyRole.ORG_MENU)
  */
 export const RequireRole = (role: ApiKeyRole) => SetMetadata(REQUIRED_ROLE_KEY, role);
 

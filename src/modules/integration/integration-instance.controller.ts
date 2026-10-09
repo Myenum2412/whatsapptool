@@ -30,7 +30,7 @@ import { ApiTags, ApiResponse } from '@nestjs/swagger';
 // else is rejected before touching persistence.
 @ApiTags('integration')
 @Controller('integration/plugins/:pluginId/instances')
-@RequireRole(ApiKeyRole.ADMIN)
+@RequireRole(ApiKeyRole.ORG_MENU)
 export class IntegrationInstanceController {
   constructor(
     private readonly instances: PluginInstanceService,

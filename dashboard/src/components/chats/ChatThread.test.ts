@@ -1,5 +1,6 @@
 // Render test for the chat thread's write actions. The gateway answers reply, react, delete and a
-// prompt-button tap only for an operator key, so a read-only key must not be offered them.
+// prompt-button tap for every authenticated role, so an unrecognized cached role must not be offered
+// them.
 import '../../test-helpers/register-hooks.ts';
 import { test, before, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -88,8 +89,8 @@ function renderThread(role: string): { clicks: string[]; container: HTMLElement 
   return { clicks, container };
 }
 
-test('a read-only key sees prompt choices disabled and no reply, react or delete actions', () => {
-  const { clicks, container } = renderThread('viewer');
+test('an unrecognized cached role sees prompt choices disabled and no reply, react or delete actions', () => {
+  const { clicks, container } = renderThread('superuser');
   const yes = rtl.screen.getByRole('button', { name: 'Yes' });
   assert.equal(yes.matches(':disabled'), true);
   rtl.fireEvent.click(yes);
@@ -97,8 +98,8 @@ test('a read-only key sees prompt choices disabled and no reply, react or delete
   assert.ok(!container.querySelector('.message-actions-menu'));
 });
 
-test('an operator key can tap a prompt choice and gets the message actions', async () => {
-  const { clicks, container } = renderThread('operator');
+test('a users account can tap a prompt choice and gets the message actions', async () => {
+  const { clicks, container } = renderThread('users');
   const yes = rtl.screen.getByRole('button', { name: 'Yes' });
   assert.equal(yes.matches(':disabled'), false);
   rtl.fireEvent.click(yes);

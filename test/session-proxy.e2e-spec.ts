@@ -53,7 +53,7 @@ describe('Session request forwarding (e2e)', () => {
 
     sessions = app.get(getRepositoryToken(Session, 'data'));
     const authService = app.get(AuthService);
-    apiKey = (await authService.createApiKey({ name: 'e2e-proxy-admin', role: ApiKeyRole.ADMIN })).rawKey;
+    apiKey = (await authService.createApiKey({ name: 'e2e-proxy-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
   });
 
   afterAll(async () => {

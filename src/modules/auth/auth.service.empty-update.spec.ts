@@ -38,7 +38,7 @@ describe('AuthService update with an empty DTO', () => {
         name: 'probe',
         keyPrefix: 'kp',
         keyHash: 'h',
-        role: ApiKeyRole.ADMIN,
+        role: ApiKeyRole.ORG_MENU,
         isActive: true,
         allowedIps: null,
         allowedSessions: null,
@@ -48,7 +48,8 @@ describe('AuthService update with an empty DTO', () => {
     );
 
     const tracker = { record: jest.fn(), forget: jest.fn() } as unknown as ApiKeyUsageTracker;
-    const service = new AuthService(repo, tracker, {} as never);
+    // The data-connection Session repo powers the account-ownership fence; this spec never touches it.
+    const service = new AuthService(repo, tracker, {} as never, {} as never);
     const before = await repo.findOneByOrFail({ id: saved.id });
 
     const emptyDto = {} as UpdateApiKeyDto;

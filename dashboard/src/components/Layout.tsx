@@ -14,7 +14,6 @@ import {
   LogOut,
   Send,
   Server,
-  ShieldCheck,
   Sun,
   Moon,
   Monitor,
@@ -23,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Languages,
+  Users,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { type UserRole } from '../hooks/useRole';
@@ -36,23 +36,21 @@ interface LayoutProps {
 }
 
 const allNavItems = [
-  { to: '/', icon: LayoutDashboard, key: 'dashboard' as const, adminOnly: false },
-  { to: '/sessions', icon: Smartphone, key: 'sessions' as const, adminOnly: false },
-  { to: '/chats', icon: MessageSquare, key: 'chats' as const, adminOnly: false },
-  { to: '/webhooks', icon: Webhook, key: 'webhooks' as const, adminOnly: false },
-  { to: '/templates', icon: ClipboardList, key: 'templates' as const, adminOnly: false },
-  { to: '/campaigns', icon: FileSpreadsheet, key: 'campaigns' as const, adminOnly: false },
-  { to: '/flow', icon: GitBranch, key: 'flow' as const, adminOnly: false },
-  { to: '/api-keys', icon: Key, key: 'apiKeys' as const, adminOnly: true },
-  { to: '/message-tester', icon: Send, key: 'messageTester' as const, adminOnly: false },
-  // Backend /infra/* is ADMIN-only; hide the nav item from non-admins (UX + defense-in-depth).
-  { to: '/infrastructure', icon: Server, key: 'infrastructure' as const, adminOnly: true },
-  // Backend /audit is ADMIN-only too.
-  { to: '/logs', icon: FileText, key: 'logs' as const, adminOnly: true },
-  // Backend /organizations/settings is ADMIN-only: quiet hours decide what the gateway may send, and
-  // an OPERATOR key that could silence every tenant's traffic would be a much larger lever than
-  // sending messages.
-  { to: '/compliance', icon: ShieldCheck, key: 'compliance' as const, adminOnly: true },
+  { to: '/', icon: LayoutDashboard, key: 'dashboard' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/sessions', icon: Smartphone, key: 'sessions' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/chats', icon: MessageSquare, key: 'chats' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/webhooks', icon: Webhook, key: 'webhooks' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/templates', icon: ClipboardList, key: 'templates' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/campaigns', icon: FileSpreadsheet, key: 'campaigns' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/flow', icon: GitBranch, key: 'flow' as const, roles: ['orgmenu', 'users'] as const },
+  { to: '/api-keys', icon: Key, key: 'apiKeys' as const, roles: ['orgmenu'] as const },
+  { to: '/message-tester', icon: Send, key: 'messageTester' as const, roles: ['orgmenu', 'users'] as const },
+  // Backend /infra/* is orgmenu-only; hide the nav item from the others (UX + defense-in-depth).
+  { to: '/infrastructure', icon: Server, key: 'infrastructure' as const, roles: ['orgmenu'] as const },
+  // Backend /audit is orgmenu-only too.
+  { to: '/logs', icon: FileText, key: 'logs' as const, roles: ['orgmenu'] as const },
+  // Backend /auth/users (login-account management) is orgmenu-only.
+  { to: '/users', icon: Users, key: 'users' as const, roles: ['orgmenu'] as const },
 ];
 
 const themeIcons = { light: Sun, dark: Moon, system: Monitor };
@@ -63,7 +61,9 @@ export function Layout({ onLogout, userRole }: LayoutProps) {
   const ThemeIcon = themeIcons[theme];
   const themeLabel = t(`theme.${theme}`);
 
-  const navItems = allNavItems.filter(item => !item.adminOnly || userRole === 'admin');
+  const navItems = allNavItems.filter(
+    item => userRole !== null && (item.roles as readonly UserRole[]).includes(userRole),
+  );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -71,7 +71,7 @@ export function Layout({ onLogout, userRole }: LayoutProps) {
   // Show the build-time version immediately, then replace it with the live running version from the
   // backend so a stale-built bundle can't display the wrong number. Falls back silently on error.
   const [version, setVersion] = useState(__APP_VERSION__);
-  // A newer published release, shown to admins as a link to its notes. The route is ADMIN-only and
+  // A newer published release, shown to admins as a link to its notes. The route is orgmenu-only and
   // the backend answers quietly when GitHub is unreachable or the check is turned off.
   const [update, setUpdate] = useState<{ latest: string; url: string } | null>(null);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
@@ -103,7 +103,7 @@ export function Layout({ onLogout, userRole }: LayoutProps) {
   }, []);
 
   useEffect(() => {
-    if (userRole !== 'admin') return;
+    if (userRole !== 'orgmenu') return;
     let active = true;
     infraApi
       .getUpdateCheck()

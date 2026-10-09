@@ -14,7 +14,7 @@ export class CallController {
   constructor(private readonly callService: CallService) {}
 
   @Post('link')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate a shareable WhatsApp call link' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -31,7 +31,7 @@ export class CallController {
   }
 
   @Post(':callId/reject')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reject a ringing incoming call' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

@@ -112,7 +112,7 @@ export class InfraStatusController {
   }
 
   @Get('status')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Get infrastructure status' })
   @ApiResponse({ status: 200, description: 'Infrastructure status', type: InfraStatusResponseDto })
   async getStatus(): Promise<InfraStatus> {
@@ -243,7 +243,7 @@ export class InfraStatusController {
   }
 
   @Get('engines')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Get available WhatsApp engines' })
   @ApiResponse({ status: 200, description: 'List of available engines', type: [AvailableEngineDto] })
   getEngines(): Array<{ id: string; name: string; enabled: boolean; features: string[] }> {
@@ -251,7 +251,7 @@ export class InfraStatusController {
   }
 
   @Get('engines/current')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Get current active engine' })
   @ApiResponse({ status: 200, description: 'Current engine info', type: InfraCurrentEngineResponseDto })
   getCurrentEngine(): { engineType: string } {
@@ -259,7 +259,7 @@ export class InfraStatusController {
   }
 
   @Get('update-check')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({
     summary: 'Compare the running version with the latest MyWhatsapp release',
     description:

@@ -752,7 +752,7 @@ tier automatically. Key properties:
   resolves `{ continue: true }` (fail-open) so a slow/wedged handler never stalls the hook chain. The
   same fail-open value drains in-flight hooks if the worker crashes.
 - Lifecycle methods (`load`/`onLoad`/`onEnable`/`onDisable`) and `healthCheck` are bounded by a **30 s**
-  / **5 s** timeout respectively, so a wedged plugin can't hang an ADMIN enable/disable or the health endpoint.
+  / **5 s** timeout respectively, so a wedged plugin can't hang an orgmenu enable/disable or the health endpoint.
 - The worker gets a **minimal allowlisted env** (`NODE_ENV`, `NODE_EXTRA_CA_CERTS`, `TZ`) — host secrets
   (master key, DB/Redis vars, …) are withheld.
 

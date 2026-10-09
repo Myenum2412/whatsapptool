@@ -35,15 +35,14 @@ Content-Type: application/json       # required on requests with a JSON body
 
 ### Roles & Authorization
 
-API keys carry one of three roles, ordered by privilege:
+API keys carry one of two roles, ordered by privilege:
 
-| Role       | Rank | Can do                                                                                                                               |
-| ---------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `viewer`   | 1    | Read-only routes (no `@RequireRole`, or routes that only need a valid key)                                                           |
-| `operator` | 2    | Everything a viewer can, plus write/action routes guarded by `@RequireRole(OPERATOR)` (send messages, group/contact mutations, etc.) |
-| `admin`    | 3    | Everything, plus admin-only routes guarded by `@RequireRole(ADMIN)` (API-key management, settings)                                   |
+| Role      | Rank | Can do                                                                                                                                                                                        |
+| --------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`   | 1    | Write/action routes guarded by `@RequireRole(USER)` (send messages, group/contact mutations, templates, webhooks, automation, campaigns), plus every route that needs nothing but a valid key |
+| `orgmenu` | 2    | Everything `users` can, plus admin routes guarded by `@RequireRole(ORG_MENU)` (API-key management, dashboard-account management, settings, infra)                                             |
 
-`@RequireRole(role)` enforces a **minimum** role using the hierarchy `VIEWER < OPERATOR < ADMIN`: a key satisfies the guard if its own rank is â‰¥ the required rank (so an `admin` key passes an `OPERATOR`-guarded route). A route with no `@RequireRole` accepts any valid key, including `viewer`. A key whose role is below the requirement gets `403 Forbidden`; a missing or invalid key gets `401 Unauthorized`.
+`@RequireRole(role)` enforces a **minimum** role using the hierarchy `users < orgmenu`: a key satisfies the guard if its own rank is â‰¥ the required rank (so an `orgmenu` key passes a `users`-guarded route). A route with no `@RequireRole` accepts any valid key. A key whose role is below the requirement gets `403 Forbidden`; a missing or invalid key gets `401 Unauthorized`.
 
 A key may additionally be scoped to specific sessions (`allowedSessions`) and/or source IPs (`allowedIps`). The scope/IP check runs in the guard **before** any role check, so a request outside that scope is rejected with `401` (not `403`) even if the role would otherwise allow it.
 
@@ -51,7 +50,7 @@ A key may also be restricted to selected chats (`allowedChats`: group `<id>@g.us
 
 ### API-Key Lifecycle
 
-MyWhatsapp seeds an initial admin key on first run (printed to the startup log and written to `data/.api-key`, or `/app/data/.api-key` in Docker). Use it to mint scoped, lower-privilege keys for integrations. Full key creation, listing, rotation, and revocation are documented under the auth resource in **Â§6.4.9 (API Keys)**.
+MyWhatsapp seeds an initial `orgmenu` key on first run (printed to the startup log and written to `data/.api-key`, or `/app/data/.api-key` in Docker). Use it to mint scoped keys for integrations and, by signing in, to provision email/password accounts. Full key creation, listing, rotation, and revocation are documented under the auth resource in **Â§6.4.9 (Auth: API Keys, Login, Accounts)**.
 
 ## 6.2 Response Format
 
@@ -190,7 +189,7 @@ A message resting at `sent` is **not** diagnostic on its own. It means no ack ha
 
 ## 6.4 REST API Reference
 
-Every path below is prefixed with `/api`. Unless marked **public**, send `X-API-Key: <key>`; `OPERATOR`/`ADMIN` annotations require a key of at least that role. Responses are the raw payload (no envelope); list endpoints return a bare array.
+Every path below is prefixed with `/api`. Unless marked **public**, send `X-API-Key: <key>`; `users`/`orgmenu` annotations require a key of at least that role. Responses are the raw payload (no envelope); list endpoints return a bare array.
 
 ### 6.4.1 Sessions
 
@@ -200,7 +199,7 @@ Base path `/api/sessions`. All routes that return a session return data shaped b
 
 List all sessions, scoped to the API key's `allowedSessions`, ordered `createdAt` DESC.
 
-**Auth:** API key Â· **Scope:** session-scoped (a scoped key sees only its `allowedSessions`; an ADMIN / null-allowlist key lists all)
+**Auth:** API key Â· **Scope:** session-scoped (a scoped key sees only its `allowedSessions`; an orgmenu / null-allowlist key lists all) Â· **Account-private:** a key minted by a signed-in account (its `api_keys.ownerUserId` is set) sees only sessions it created (`sessions.ownerUserId` = the account) — ownerless sessions created before this rule are invisible to it, whatever the key's role would otherwise allow
 
 **Query parameters**
 
@@ -315,7 +314,7 @@ only way back to unlimited reconnect attempts once a cap is set). `autoRejectCal
 every incoming call, so it applies immediately; the two reconnect settings are read once per start
 and therefore apply on the next start, leaving a reconnect sequence already in flight alone.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -337,7 +336,7 @@ and therefore apply on the next start, leaving a reconnect sequence already in f
 
 **Response** `200` â€” the resulting `SessionConfigResponseDto` (same shape as the GET above).
 
-**Errors:** `400` a supplied value is outside its accepted range Â· `401` missing/invalid key, or key not scoped to this session Â· `403` key lacks OPERATOR role Â· `404` session not found
+**Errors:** `400` a supplied value is outside its accepted range Â· `401` missing/invalid key, or key not scoped to this session Â· `403` key lacks users role Â· `404` session not found
 
 #### GET /api/sessions/:sessionId/proxy
 
@@ -370,7 +369,7 @@ When no proxy is configured, `enabled` is `false` and the other fields are `null
 
 Update per-session proxy settings. No restart is required or performed â€” changes apply on the **next** `POST /start`. Send `proxyUrl: null` to clear the proxy.
 
-**Auth:** API key (OPERATOR) that is not restricted to specific sessions. Redirecting a session's whole egress through a chosen host is a deployment-level act, and before this route existed `proxyUrl` could only be set through `POST /api/sessions`, which is unscoped for the same reason. A session-scoped key is rejected with `403` (`@RequireUnscopedKey`).
+**Auth:** API key (users) that is not restricted to specific sessions. Redirecting a session's whole egress through a chosen host is a deployment-level act, and before this route existed `proxyUrl` could only be set through `POST /api/sessions`, which is unscoped for the same reason. A session-scoped key is rejected with `403` (`@RequireUnscopedKey`).
 
 **Path parameters**
 
@@ -390,13 +389,13 @@ Update per-session proxy settings. No restart is required or performed â€” 
 
 **Response** `200` â€” the resulting `SessionProxyResponseDto` (same shape as the GET above).
 
-**Errors:** `400` validation (bad `proxyUrl`) Â· `401` missing/invalid key, or key not scoped to this session Â· `403` key lacks OPERATOR role, or the key is restricted to specific sessions Â· `404` session not found
+**Errors:** `400` validation (bad `proxyUrl`) Â· `401` missing/invalid key, or key not scoped to this session Â· `403` key lacks users role, or the key is restricted to specific sessions Â· `404` session not found
 
 #### GET /api/sessions/:sessionId/qr
 
 Get the QR code (PNG data URL) for session authentication.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -512,7 +511,7 @@ Get session statistics for multi-session monitoring.
 }
 ```
 
-`byStatus` is keyed by lowercase status values. `memoryUsage` values are megabytes (`Math.round(bytes / 1024 / 1024)`). `active` = count of running engines. A scoped key sees only its `allowedSessions` stats.
+`byStatus` is keyed by lowercase status values. `memoryUsage` values are megabytes (`Math.round(bytes / 1024 / 1024)`). `active` = count of running engines. A scoped key sees only its `allowedSessions` stats, and an account key only its own sessions' stats.
 
 **Errors:** `401` missing/invalid `X-API-Key`
 
@@ -520,7 +519,7 @@ Get session statistics for multi-session monitoring.
 
 Create a new WhatsApp session.
 
-**Auth:** API key (OPERATOR) that is not restricted to specific sessions. Creating a session is a deployment-level act: the new session is outside the caller's `allowedSessions` by construction, so a session-scoped key is rejected with `403` (`@RequireUnscopedKey`). An unscoped OPERATOR/ADMIN key may create a session.
+**Auth:** API key (users) that is not restricted to specific sessions. Creating a session is a deployment-level act: the new session is outside the caller's `allowedSessions` by construction, so a session-scoped key is rejected with `403` (`@RequireUnscopedKey`). An unscoped users/orgmenu key may create a session. A session created through a signed-in account's key is stamped `sessions.ownerUserId` = that account and is then private to it; one created by a hand-minted or orgmenu key is ownerless.
 
 **Request body** â€” `CreateSessionDto`
 
@@ -596,13 +595,13 @@ that DNS-rebinding protection.
 
 Like every other session route, this returns the `SessionResponseDto` shape (via `fromEntity`), so `config`, `proxyUrl` and `proxyType` are stripped and `lastActiveAt` appears as `lastActive`. Newly created `status` is `created`. Masked proxy details come only from `GET /api/sessions/{sessionId}/proxy`.
 
-**Errors:** `400` validation (bad `name`/`proxyUrl`/`proxyType`, or an extra non-whitelisted field) Â· `401` Â· `403` key lacks OPERATOR role Â· `409` session name already exists
+**Errors:** `400` validation (bad `name`/`proxyUrl`/`proxyType`, or an extra non-whitelisted field) Â· `401` Â· `403` key lacks users role Â· `409` session name already exists
 
 #### POST /api/sessions/:sessionId/start
 
 Start a session and initialize the WhatsApp connection.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -638,7 +637,7 @@ Returned via `transformSession`. Status typically transitions to `initializing` 
 
 Stop a session and disconnect WhatsApp.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -706,7 +705,7 @@ it the same way, so none of those are auto-started on boot â€” an incomplet
 session must be started explicitly and the logout retried by hand. A session that must stay down can
 simply be left as-is.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -744,7 +743,7 @@ distinguishing an intentional unlink from a plain stop.
 
 Force-kill a stuck session (SIGKILL the wedged engine, then tear it down).
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -782,7 +781,7 @@ Request an 8-char pairing code to link via phone number (alternative to QR).
 
 > âš ï¸ **On the whatsapp-web.js engine, only request a code for a number you are prepared to re-link.** A request for a number that already has a linked session has been observed to end with WhatsApp revoking that device: the linked session logs a LOGOUT, its credentials are deleted, and it falls back to `qr_ready` with no phone. Nothing here refuses such a request: the guards check the session's state, never the number. The request runs inside the shared WhatsApp Web page and resets its linking mode before asking for a code, so the blast radius is the account rather than the session. Baileys was not affected in the same tests. Link by QR when a session of that number must stay up.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -814,7 +813,7 @@ Request an 8-char pairing code to link via phone number (alternative to QR).
 
 Ask WhatsApp to start reporting who is online or typing in a chat.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
+**Auth:** API key (users) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
 
 There is no synchronous answer: presence cannot be _fetched_ from either engine, only received.
 Updates arrive as the `presence.update` webhook and socket event; the latest is readable at
@@ -853,7 +852,7 @@ Two properties to design around:
 
 The last presence reported for a chat.
 
-**Auth:** API key (VIEWER) Â· **Scope:** session-scoped
+**Auth:** API key (any valid role) Â· **Scope:** session-scoped
 
 **Response** `200`
 
@@ -892,7 +891,7 @@ The setting belongs to the connection: it does not survive a restart or reconnec
 re-issued after `session.status` reports one. Not best-effort â€” a failure surfaces instead of
 leaving the account silently online.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Request body** â€” `SetOwnPresenceDto`
 
@@ -910,13 +909,13 @@ leaving the account silently online.
 { "success": true }
 ```
 
-**Errors:** `400` session not started / validation Â· `401` Â· `403` key lacks OPERATOR role Â· `404` session not found Â· `409` engine not ready
+**Errors:** `400` session not started / validation Â· `401` Â· `403` key lacks users role Â· `404` session not found Â· `409` engine not ready
 
 #### POST /api/sessions/:sessionId/chats/read
 
 Mark a chat as read/seen.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -956,7 +955,7 @@ Returns HTTP `200`, matching the OpenAPI contract.
 
 Mark a chat as unread.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -990,7 +989,7 @@ Returns HTTP `200`, matching the OpenAPI contract.
 
 Delete every message in a chat, keeping the chat itself in the list.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1015,7 +1014,7 @@ Delete every message in a chat, keeping the chat itself in the list.
 
 Archive or unarchive a chat.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1055,7 +1054,7 @@ Archive or unarchive a chat.
 
 Mute a chat's notifications until a given moment, or unmute it.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1107,7 +1106,7 @@ Mute a chat's notifications until a given moment, or unmute it.
 Pin a chat to the top of the chat list, or unpin it. Chat-level â€” distinct from
 `messages/pin`, which pins a message inside a chat.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1148,7 +1147,7 @@ Pin a chat to the top of the chat list, or unpin it. Chat-level â€” distinc
 
 Delete a chat from the chat list (e.g. a group you have left).
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1180,7 +1179,7 @@ Returns HTTP `200`, matching the OpenAPI contract.
 
 Send a typing/recording presence indicator to a chat (or clear it with `paused`).
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1213,7 +1212,7 @@ Always returns `{ "success": true }` (the service returns void; the controller h
 
 Delete a session.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Path parameters**
 
@@ -1223,11 +1222,11 @@ Delete a session.
 
 **Response** `204` â€” empty body (`@HttpCode(204)`, returns void). A `findOne` lookup runs first, so a missing id yields `404`.
 
-**Errors:** `401` missing/invalid key, or key not scoped to this session Â· `403` key role below OPERATOR Â· `404` session not found Â· `409` credential teardown for the same session name still in flight (retryable; body carries `code: 'SESSION_NAME_TEARDOWN_PENDING'`; on a `409` the row is **not** deleted and no hook/auth-purge runs â€” retry after cleanup settles)
+**Errors:** `401` missing/invalid key, or key not scoped to this session Â· `403` key role below users Â· `404` session not found Â· `409` credential teardown for the same session name still in flight (retryable; body carries `code: 'SESSION_NAME_TEARDOWN_PENDING'`; on a `409` the row is **not** deleted and no hook/auth-purge runs â€” retry after cleanup settles)
 
 ### 6.4.2 Messages
 
-All routes are mounted under `/api/sessions/:sessionId/messages`. Reads (`GET` history, batch status, reactions) accept any valid API key (including VIEWER). All write/send routes require **API key (OPERATOR)** or higher. Single-recipient send routes return `MessageResponseDto { messageId, timestamp }` (`timestamp` is an epoch **number** in seconds; there is no `status` field); `POST send-bulk` instead returns `202` with `BulkMessageResponseDto`. The global ValidationPipe runs `whitelist` + `forbidNonWhitelisted`, so any body field not listed below is rejected with `400`.
+All routes are mounted under `/api/sessions/:sessionId/messages`. Reads (`GET` history, batch status, reactions) accept any valid API key. All write/send routes require **API key (users)** or higher. Single-recipient send routes return `MessageResponseDto { messageId, timestamp }` (`timestamp` is an epoch **number** in seconds; there is no `status` field); `POST send-bulk` instead returns `202` with `BulkMessageResponseDto`. The global ValidationPipe runs `whitelist` + `forbidNonWhitelisted`, so any body field not listed below is rejected with `400`.
 
 #### GET /api/sessions/:sessionId/messages
 
@@ -1366,7 +1365,7 @@ Returns a bare array of `MessageReaction`:
 
 Cast a vote on a poll.
 
-**Auth:** API key (OPERATOR) Â· **Engines:** whatsapp-web.js only â€” Baileys returns `501`
+**Auth:** API key (users) Â· **Engines:** whatsapp-web.js only â€” Baileys returns `501`
 
 **Body**
 
@@ -1390,13 +1389,13 @@ Cast a vote on a poll.
 > for _receiving_ votes. Sending one requires hand-building a `PollUpdateMessage` with HMAC-SHA256
 > vote encryption keyed by the poll creation's `messageSecret`, which is not wired here.
 
-**Errors:** `400` session not active, or the target message is not a poll Â· `401` missing/invalid API key Â· `403` key lacks OPERATOR role Â· `404` poll not found in recent history Â· `501` Baileys engine Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
+**Errors:** `400` session not active, or the target message is not a poll Â· `401` missing/invalid API key Â· `403` key lacks users role Â· `404` poll not found in recent history Â· `501` Baileys engine Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
 
 #### POST /api/sessions/:sessionId/messages/pin
 
 Pin a message in its chat for a bounded window.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Body**
 
@@ -1418,7 +1417,7 @@ Pin a message in its chat for a bounded window.
 Star (bookmark) a message, or remove its star. Starring is private to the account â€” the other party
 never sees it â€” and unlike pinning it has no group-admin restriction and never expires.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Body**
 
@@ -1441,7 +1440,7 @@ never sees it â€” and unlike pinning it has no group-admin restriction and 
 
 Remove a message's pin. Takes no duration.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Body**
 
@@ -1589,7 +1588,7 @@ Prometheus counter, labelled by rule.
 
 Send a plain text message.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1661,7 +1660,7 @@ rejected with `400` rather than guessing which half was meant.
 
 `messageId` is the WhatsApp message id from the engine. An optional `SIMULATE_TYPING` humanising pause may run before send.
 
-**Errors:** `400` unknown body field, validation failure, or session not active / blocked by a plugin hook Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `404` session not found Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine
+**Errors:** `400` unknown body field, validation failure, or session not active / blocked by a plugin hook Â· `401` missing/invalid API key Â· `403` key role below users Â· `404` session not found Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine
 
 ##### Quoted sends
 
@@ -1707,7 +1706,7 @@ quoted id that does not belong to the target chat, with `404`.
 
 Render a stored text template (header/body/footer joined by blank lines, `{{vars}}` substituted) and send it as text.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1742,13 +1741,13 @@ Render a stored text template (header/body/footer joined by blank lines, `{{vars
 
 Delegates to the send-text path after rendering.
 
-**Errors:** `400` unknown body field, validation failure, neither `templateId` nor `templateName` given, or session not active Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `404` session or template not found Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` unknown body field, validation failure, neither `templateId` nor `templateName` given, or session not active Â· `401` missing/invalid API key Â· `403` key role below users Â· `404` session or template not found Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-image
 
 Send an image (by URL or base64) with an optional caption.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1778,13 +1777,13 @@ Send an image (by URL or base64) with an optional caption.
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` neither `url` nor `base64`, base64 without `mimetype`, SSRF-blocked URL, a `url` that answers non-2xx, times out or cannot be reached, session not active, or unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` neither `url` nor `base64`, base64 without `mimetype`, SSRF-blocked URL, a `url` that answers non-2xx, times out or cannot be reached, session not active, or unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-video
 
 Send a video (by URL or base64) with an optional caption. Uses the same `SendMediaMessageDto` (and the same validation rules and errors) as `send-image`.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1804,13 +1803,13 @@ Send a video (by URL or base64) with an optional caption. Uses the same `SendMed
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-audio
 
 Send an audio message (by URL or base64). Uses `SendAudioMessageDto`. A `caption` is accepted by the DTO but not persisted for audio. Set `ptt: true` to send a real WhatsApp **voice note** (microphone bubble + waveform) instead of a plain audio file. `ptt` is a JSON boolean, exclusive to this endpoint, and â€” because voice notes require `audio/ogg; codecs=opus` â€” the server defaults the mimetype to that when you set `ptt` without one; for reliable playback (especially on the Baileys engine, which does not transcode) supply OGG/Opus bytes. A `ptt` voice note is stored as message `type: "voice"`.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1830,13 +1829,13 @@ Send an audio message (by URL or base64). Uses `SendAudioMessageDto`. A `caption
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-document
 
 Send a document/file (by URL or base64). Uses `SendMediaMessageDto`; `filename` is used as the persisted body fallback.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1863,13 +1862,13 @@ Send a document/file (by URL or base64). Uses `SendMediaMessageDto`; `filename` 
 
 **Engine differences:** Baileys always sends a document as a document, while whatsapp-web.js deliberately keeps normal mimetype classification for `status@broadcast` and broadcast lists â€” the library returns `null` for document-mode sends to those recipients, so forcing the flag there would turn a working send into a failure. For URL-based sends without an explicit `filename`, whatsapp-web.js derives the URL basename; Baileys falls back to the literal `file`.
 
-**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-location
 
 Send a location pin.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1904,13 +1903,13 @@ Send a location pin.
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` invalid coords / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` invalid coords / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-contact
 
 Send a contact card (vCard).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1937,13 +1936,13 @@ Send a contact card (vCard).
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-sticker
 
 Send a sticker (by URL or base64; typically webp). Reuses `SendMediaMessageDto`.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -1963,13 +1962,13 @@ Send a sticker (by URL or base64; typically webp). Reuses `SendMediaMessageDto`.
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` media validation failure / a `url` that answers non-2xx, times out or cannot be reached / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-poll
 
 Send a native WhatsApp poll.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2002,13 +2001,13 @@ Send a native WhatsApp poll.
 { "messageId": "true_1203630000@g.us_3EB0ABCD", "timestamp": 1719312000 }
 ```
 
-**Errors:** `400` validation failure (option count/length) / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` validation failure (option count/length) / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/reply
 
 Reply to a message, quoting a prior message.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2037,13 +2036,13 @@ Reply to a message, quoting a prior message.
 
 The quoted body is best-effort resolved from the DB for the reply preview.
 
-**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/click-button
 
 Tap a choice on a WhatsApp Business button / list prompt by sending the structured reply proto WhatsApp expects.
 
-**Auth:** API key (OPERATOR) Â· **Engines:** Baileys only; whatsapp-web.js returns `501`
+**Auth:** API key (users) Â· **Engines:** Baileys only; whatsapp-web.js returns `501`
 
 **Path parameters**
 
@@ -2086,7 +2085,7 @@ Tap a choice on a WhatsApp Business button / list prompt by sending the structur
 
 Forward a message from one chat to another.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2114,13 +2113,13 @@ Forward a message from one chat to another.
 
 `messageId` may be an empty string when the engine could not recover the forwarded copy's id.
 
-**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` validation failure / session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/messages/react
 
 Add or remove a reaction to a message (an empty emoji removes the reaction).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2148,13 +2147,13 @@ The controller hardcodes the result after the engine call. Note the `200` status
 { "success": true }
 ```
 
-**Errors:** `400` session not active / message not found / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
+**Errors:** `400` session not active / message not found / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
 
 #### POST /api/sessions/:sessionId/messages/delete
 
 Delete a message (for everyone by default); also flags the stored record as `revoked`.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2182,13 +2181,13 @@ After the engine delete, the stored message body is cleared and its `type` set t
 { "success": true }
 ```
 
-**Errors:** `400` session not active / message not found / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session not active / message not found / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users Â· `500` engine error Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/messages/edit
 
 Edit the text of a message sent by this account; also updates the stored record's body.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2217,13 +2216,13 @@ Both fields describe the edited message rather than the edit itself, on both eng
 { "messageId": "true_628123456789@c.us_3EB0ABCD", "timestamp": 1760000000 }
 ```
 
-**Errors:** `400` session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below OPERATOR, or the engine refused the edit (both engines refuse a message the account did not send; whatsapp-web.js also refuses one that is not text, where the Baileys engine has no acceptance signal and answers `200`) Â· `404` message not found Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
+**Errors:** `400` session not active / unknown body field Â· `401` missing/invalid API key Â· `403` key role below users, or the engine refused the edit (both engines refuse a message the account did not send; whatsapp-web.js also refuses one that is not text, where the Baileys engine has no acceptance signal and answers `200`) Â· `404` message not found Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request; repeating it is safe (retryable)
 
 #### POST /api/sessions/:sessionId/messages/send-bulk
 
 Send messages to multiple recipients as an async batch â€” returns immediately and processes in the background.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2282,13 +2281,13 @@ The rendered text is bounded the same way, by `TEMPLATE_RENDER_MAX_CHARS` (defau
 }
 ```
 
-**Errors:** `400` session not active, duplicate `batchId`, or DTO/nested validation failure (unknown nested field rejected) Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `413` base64 media over the media cap (see Â§6.3) Â· `500` engine error
+**Errors:** `400` session not active, duplicate `batchId`, or DTO/nested validation failure (unknown nested field rejected) Â· `401` missing/invalid API key Â· `403` key role below users Â· `413` base64 media over the media cap (see Â§6.3) Â· `500` engine error
 
 #### POST /api/sessions/:sessionId/messages/batch/:batchId/cancel
 
 Cancel a running (pending/processing) bulk batch. No request body.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2309,11 +2308,11 @@ Cancel a running (pending/processing) bulk batch. No request body.
 }
 ```
 
-**Errors:** `400` batch already completed or cancelled Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `404` batch not found
+**Errors:** `400` batch already completed or cancelled Â· `401` missing/invalid API key Â· `403` key role below users Â· `404` batch not found
 
 ### 6.4.3 Contacts
 
-Contact endpoints are scoped under a session: `/api/sessions/:sessionId/contacts`. All read routes require a valid API key; the block/unblock writes require an `OPERATOR` key. Every route returns `400 "Session is not started"` when the target session is missing entirely or is not in a started/ready state (the engine guard does not distinguish the two). Responses are the raw handler payload (no envelope).
+Contact endpoints are scoped under a session: `/api/sessions/:sessionId/contacts`. All read routes require a valid API key; the block/unblock writes require a `users` key. Every route returns `400 "Session is not started"` when the target session is missing entirely or is not in a started/ready state (the engine guard does not distinguish the two). Responses are the raw handler payload (no envelope).
 
 The `Contact` object returned by the list and get-by-id routes has this shape:
 
@@ -2540,7 +2539,7 @@ For inbound messages the gateway can attach this automatically instead: `RESOLVE
 Save a contact to the account's addressbook, or edit an existing entry. This is the WhatsApp
 contact record â€” it does not block, delete, or otherwise touch the chat.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2566,23 +2565,23 @@ contact record â€” it does not block, delete, or otherwise touch the chat.
 > lid's digits are not one â€” whatsapp-web.js takes a bare number here, so an unguarded lid would be
 > stored as if it were a real phone. Pass a phone-based contact id instead.
 
-**Errors:** `400` session not active, invalid request, or a `@lid` contact id Â· `401` missing/invalid API key Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session not active, invalid request, or a `@lid` contact id Â· `401` missing/invalid API key Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### DELETE /api/sessions/:sessionId/contacts/:contactId
 
 Remove a contact from the account's addressbook. Does not block the contact or delete the chat.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Response** `200` â€” `{ "success": true, "message": "Contact deleted" }`
 
-**Errors:** `400` session not active, or a `@lid` contact id (same reason as the `PUT` above) Â· `401` missing/invalid API key Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session not active, or a `@lid` contact id (same reason as the `PUT` above) Â· `401` missing/invalid API key Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/contacts/:contactId/block
 
 Block a contact.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2601,13 +2600,13 @@ This route is annotated `@HttpCode(200)`, so it returns `200` rather than the PO
 { "success": true, "message": "Contact blocked" }
 ```
 
-**Errors:** `400` session is not started, or the id does not name an individual (group/newsletter/broadcast/free text are refused on both engines; a phone-based or privacy `@lid` id is accepted, because the blocklist read answers both shapes) Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started, or the id does not name an individual (group/newsletter/broadcast/free text are refused on both engines; a phone-based or privacy `@lid` id is accepted, because the blocklist read answers both shapes) Â· `401` missing/invalid API key Â· `403` key role below users Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### DELETE /api/sessions/:sessionId/contacts/:contactId/block
 
 Unblock a contact.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2626,11 +2625,11 @@ No `@HttpCode` override is present, so this DELETE returns the NestJS default `2
 { "success": true, "message": "Contact unblocked" }
 ```
 
-**Errors:** `400` session is not started, or the id does not name an individual (group/newsletter/broadcast/free text are refused on both engines; a phone-based or privacy `@lid` id is accepted, because the blocklist read answers both shapes) Â· `401` missing/invalid API key Â· `403` key role below OPERATOR Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started, or the id does not name an individual (group/newsletter/broadcast/free text are refused on both engines; a phone-based or privacy `@lid` id is accepted, because the blocklist read answers both shapes) Â· `401` missing/invalid API key Â· `403` key role below users Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 ### 6.4.4 Groups
 
-All group routes are nested under a session: base path `/api/sessions/:sessionId/groups`. Reads (`GET`) require a plain API key, except the invite-code read (`GET .../:groupId/invite-code`), which requires an `OPERATOR` role key because the code is a join capability rather than data; writes (create/modify/leave/revoke) require an `OPERATOR` role key. All routes resolve the engine for the session first, so a session that is not started yields `400 Session is not started`.
+All group routes are nested under a session: base path `/api/sessions/:sessionId/groups`. Reads (`GET`) require a plain API key, except the invite-code read (`GET .../:groupId/invite-code`), which requires a `users` role key because the code is a join capability rather than data; writes (create/modify/leave/revoke) require a `users` role key. All routes resolve the engine for the session first, so a session that is not started yields `400 Session is not started`.
 
 #### GET /api/sessions/:sessionId/groups
 
@@ -2723,7 +2722,7 @@ it is hidden by privacy settings.
 
 Set the group's picture. The account must be a group admin.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Request body** â€” `SetGroupPictureDto` (same shape as the profile-picture body)
 
@@ -2735,23 +2734,23 @@ Set the group's picture. The account must be a group admin.
 
 **Response** `200` â€” `{ "success": true, "message": "Group picture updated" }`
 
-**Errors:** `400` the id does not name a group, the session is not active, neither `url` nor `base64` was supplied, or the `url` answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks OPERATOR role, or the engine refused (admin rights required) Â· `404` no such group Â· `409` the session is not connected (engine exists but is not `ready`) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable), or WhatsApp did not answer within the request budget â€” the change may or may not have been applied
+**Errors:** `400` the id does not name a group, the session is not active, neither `url` nor `base64` was supplied, or the `url` answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks users role, or the engine refused (admin rights required) Â· `404` no such group Â· `409` the session is not connected (engine exists but is not `ready`) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable), or WhatsApp did not answer within the request budget â€” the change may or may not have been applied
 
 #### DELETE /api/sessions/:sessionId/groups/:groupId/picture
 
 Remove the group's picture. The account must be a group admin.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Response** `200` â€” `{ "success": true, "message": "Group picture removed" }`
 
-**Errors:** `400` the id does not name a group, or the session is not active Â· `401` missing/invalid API key Â· `403` key lacks OPERATOR role, or the engine refused (admin rights required) Â· `404` no such group Â· `409` the session is not connected (engine exists but is not `ready`) Â· `503` WhatsApp did not answer within the request budget â€” the change may or may not have been applied
+**Errors:** `400` the id does not name a group, or the session is not active Â· `401` missing/invalid API key Â· `403` key lacks users role, or the engine refused (admin rights required) Â· `404` no such group Â· `409` the session is not connected (engine exists but is not `ready`) Â· `503` WhatsApp did not answer within the request budget â€” the change may or may not have been applied
 
 #### GET /api/sessions/:sessionId/groups/:groupId/invite-code
 
-Get the group invite code and full invite link. The code is a transferable join capability rather than plain read data, so it sits at OPERATOR, like the QR endpoint.
+Get the group invite code and full invite link. The code is a transferable join capability rather than plain read data, so it sits at users, like the QR endpoint.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2771,13 +2770,13 @@ Get the group invite code and full invite link. The code is a transferable join 
 }
 ```
 
-**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role, or the engine refused (admin rights required) Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role, or the engine refused (admin rights required) Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/groups
 
 Create a new group with an initial set of participants.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2813,13 +2812,13 @@ Returns the created `Group` directly (raw).
 }
 ```
 
-**Errors:** `400` validation (missing/empty `name` or `participants`, or any non-DTO field) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine
+**Errors:** `400` validation (missing/empty `name` or `participants`, or any non-DTO field) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants
 
 Add participants to a group.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2855,13 +2854,13 @@ Status is forced to `200` via `@HttpCode(HttpStatus.OK)` (overriding the POST de
 
 Each entry is a `ParticipantOperationResult`: `id` (the participant the outcome belongs to), `success` (true only when the engine confirmed the change for that participant), and the optional engine-reported `status`/`message` (e.g. `200` ok, `403` invite-only/not-admin, `404` not registered, `409` already a member). Engines that only confirm the batch as a whole report one success entry per requested participant.
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### DELETE /api/sessions/:sessionId/groups/:groupId/participants
 
 Remove participants from a group. Note: this DELETE carries a JSON request body.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2892,13 +2891,13 @@ No `@HttpCode`, so NestJS uses the DELETE default of `200`. `results` carries th
 }
 ```
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants/promote
 
 Promote participants to group admin.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2927,13 +2926,13 @@ Promote participants to group admin.
 }
 ```
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants/demote
 
 Demote participants from group admin.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2962,13 +2961,13 @@ Demote participants from group admin.
 }
 ```
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### PUT /api/sessions/:sessionId/groups/:groupId/subject
 
 Change the group name/subject.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -2995,13 +2994,13 @@ No `@HttpCode`; PUT default is `200`.
 { "success": true, "message": "Group subject updated" }
 ```
 
-**Errors:** `400` validation (empty `subject`) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation (empty `subject`) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### PUT /api/sessions/:sessionId/groups/:groupId/description
 
 Change the group description. An empty string clears the description.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3028,13 +3027,13 @@ No `@HttpCode`; PUT default is `200`.
 { "success": true, "message": "Group description updated" }
 ```
 
-**Errors:** `400` validation (`description` missing / not a string) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation (`description` missing / not a string) / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/groups/:groupId/leave
 
 Leave a group.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3051,13 +3050,13 @@ Leave a group.
 { "success": true, "message": "Left the group" }
 ```
 
-**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### POST /api/sessions/:sessionId/groups/:groupId/invite-code/revoke
 
 Revoke the current invite code and generate a new one.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3080,7 +3079,7 @@ Revoke the current invite code and generate a new one.
 }
 ```
 
-**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### GET /api/sessions/:sessionId/groups/join-info
 
@@ -3121,7 +3120,7 @@ object with no guaranteed shape and a defaulted `createdAt: 0` would read as "cr
 
 Join a group via an invite code (the part after `https://chat.whatsapp.com/`).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3145,7 +3144,7 @@ Join a group via an invite code (the part after `https://chat.whatsapp.com/`).
 { "success": true, "groupId": "120363000000000000@g.us" }
 ```
 
-**Errors:** `400` session is not started / invalid invite code Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started / invalid invite code Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### GET /api/sessions/:sessionId/groups/:groupId/settings
 
@@ -3179,7 +3178,7 @@ a boolean with the opposite sense). The adapters normalise both to these two val
 
 Update group settings. Each present field maps to one engine call; absent fields stay untouched. The caller must be a group admin for the change to take effect.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3212,7 +3211,7 @@ Update group settings. Each present field maps to one engine call; absent fields
 { "success": true, "message": "Group settings updated" }
 ```
 
-**Errors:** `400` session is not started / empty patch / unknown body field Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role, or the account is not a group admin (`memberAddMode` on whatsapp-web.js) Â· `501` `ephemeralSeconds` on the whatsapp-web.js engine (library limitation) Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started / empty patch / unknown body field Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role, or the account is not a group admin (`memberAddMode` on whatsapp-web.js) Â· `501` `ephemeralSeconds` on the whatsapp-web.js engine (library limitation) Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 #### GET /api/sessions/:sessionId/groups/:groupId/membership-requests
 
@@ -3257,7 +3256,7 @@ not paced by the cold-reachout governor: unlike `POST .../participants`, the peo
 the contact themselves. On whatsapp-web.js the engine pauses 250â€“500ms between requesters
 (upstream anti-abuse pacing), so acting on a large queue is a proportionally long request.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3291,14 +3290,14 @@ for every **named** requester is a `403`.
 }
 ```
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role, or the engine refused (admin rights / every named requester failed) Â· `409` engine not ready Â· `503` WhatsApp did not answer within the request budget
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role, or the engine refused (admin rights / every named requester failed) Â· `409` engine not ready Â· `503` WhatsApp did not answer within the request budget
 
 #### POST /api/sessions/:sessionId/groups/:groupId/membership-requests/reject
 
 Reject pending join requests. Same body, response shape, batch-guard contract and error map as
 `.../membership-requests/approve`; rejecting an empty queue is likewise a no-op.
 
-**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role, or the engine refused (admin rights / every named requester failed) Â· `409` engine not ready Â· `503` WhatsApp did not answer within the request budget
+**Errors:** `400` validation / session not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role, or the engine refused (admin rights / every named requester failed) Â· `409` engine not ready Â· `503` WhatsApp did not answer within the request budget
 
 ```json
 {
@@ -3310,13 +3309,13 @@ Reject pending join requests. Same body, response shape, batch-guard contract an
 
 ### 6.4.5 Message Templates
 
-Reusable message templates scoped to a session, with `{{variable}}` placeholders rendered at send time. All routes are nested under `/api/sessions/:sessionId/templates` and require an **OPERATOR** key. The `sessionId` is stored on the template; only `POST` checks that the session exists, the other handlers do not validate it.
+Reusable message templates scoped to a session, with `{{variable}}` placeholders rendered at send time. All routes are nested under `/api/sessions/:sessionId/templates` and require an **users** key. The `sessionId` is stored on the template; only `POST` checks that the session exists, the other handlers do not validate it.
 
 #### GET /api/sessions/:sessionId/templates
 
 List all templates for a session, newest first.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3343,13 +3342,13 @@ Bare `Template[]` array (no pagination, no envelope). Ordered by `createdAt` DES
 ]
 ```
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role
 
 #### GET /api/sessions/:sessionId/templates/:id
 
 Get a single template by ID within the session.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3375,13 +3374,13 @@ Raw `Template` entity (no envelope).
 }
 ```
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` no row matches the `id`+`sessionId` pair (`{ "statusCode": 404, "message": "Template with id '<id>' not found", "error": "Not Found" }`)
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` no row matches the `id`+`sessionId` pair (`{ "statusCode": 404, "message": "Template with id '<id>' not found", "error": "Not Found" }`)
 
 #### POST /api/sessions/:sessionId/templates
 
 Create a message template for the session (with `{{variable}}` placeholders in the body).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3424,13 +3423,13 @@ Returns the saved `Template` entity raw (no envelope). The lazy `session` relati
 }
 ```
 
-**Errors:** `400` validation failure (missing/empty `name`/`body`, over-length, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` no session with that id (`{ "statusCode": 404, "message": "Session with id '<id>' not found", "error": "Not Found" }`) Â· `409` duplicate `name` for the session
+**Errors:** `400` validation failure (missing/empty `name`/`body`, over-length, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` no session with that id (`{ "statusCode": 404, "message": "Session with id '<id>' not found", "error": "Not Found" }`) Â· `409` duplicate `name` for the session
 
 #### PUT /api/sessions/:sessionId/templates/:id
 
 Update a template's name/body/header/footer (partial; only provided fields change).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3472,13 +3471,13 @@ Loads via lookup (`404` if missing), patches the provided fields, saves, and ret
 }
 ```
 
-**Errors:** `400` validation / `forbidNonWhitelisted` Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` `id`+`sessionId` not found (raised before any write) Â· `409` rename collides with another template name in the session
+**Errors:** `400` validation / `forbidNonWhitelisted` Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` `id`+`sessionId` not found (raised before any write) Â· `409` rename collides with another template name in the session
 
 #### DELETE /api/sessions/:sessionId/templates/:id
 
 Delete a template by ID.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3491,11 +3490,11 @@ Delete a template by ID.
 
 No content (empty body). The handler looks the template up first, so a missing template yields `404` rather than a silent `204`.
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` `id`+`sessionId` not found
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` `id`+`sessionId` not found
 
 ### 6.4.6 Catalog & Channels
 
-WhatsApp Business catalog browsing/sending and channel (newsletter) operations. Catalog read routes (`/catalogâ€¦`) require any valid API key; the two product/catalog **send** routes live under the `/messages` path and require an **OPERATOR** key. Channel read routes require any valid API key; subscribe/unsubscribe require **OPERATOR**.
+WhatsApp Business catalog browsing/sending and channel (newsletter) operations. Catalog read routes (`/catalogâ€¦`) require any valid API key; the two product/catalog **send** routes live under the `/messages` path and require an **users** key. Channel read routes require any valid API key; subscribe/unsubscribe require **users**.
 
 #### GET /api/sessions/:sessionId/catalog
 
@@ -3610,7 +3609,7 @@ Get a specific catalog product by id.
 
 Send a product message (catalog product card) to a chat. Note: this route lives under the `/messages` path but belongs to the catalog module.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3642,7 +3641,7 @@ On whatsapp-web.js the readiness guard runs before the refusal, so a session tha
 `READY` gets `409` instead of `501`. Baileys resolves the product from the session catalog and sends
 the single-product message; an id with no catalog row is a `404` before anything is sent.
 
-**Errors:** `400` missing `chatId`/`productId`, wrong types, or any field not on the DTO Â· `401` missing/invalid API key Â· `403` API-key role below OPERATOR Â· `404` `Session <sessionId> not found or not connected` Â· `409` session present but not READY Â· `500` engine error Â· `501` whatsapp-web.js only (no Catalog API) Â· `503` the catalog query went unanswered by WhatsApp, or the session/dependency is not ready (retryable only in the not-ready case; a silently unanswered catalog query does not clear on retry)
+**Errors:** `400` missing `chatId`/`productId`, wrong types, or any field not on the DTO Â· `401` missing/invalid API key Â· `403` API-key role below users Â· `404` `Session <sessionId> not found or not connected` Â· `409` session present but not READY Â· `500` engine error Â· `501` whatsapp-web.js only (no Catalog API) Â· `503` the catalog query went unanswered by WhatsApp, or the session/dependency is not ready (retryable only in the not-ready case; a silently unanswered catalog query does not clear on retry)
 
 #### GET /api/sessions/:sessionId/channels
 
@@ -3754,7 +3753,7 @@ Bare array. `timestamp` is an epoch number (seconds).
 
 Create a channel. Supported on **both** engines.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 The account becomes the channel's owner, which is what makes deleting it possible later â€” neither
 engine can delete a channel it does not own.
@@ -3775,7 +3774,7 @@ engine can delete a channel it does not own.
 
 Delete a channel this account owns. Supported on **both** engines.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 Irreversible, and every subscriber loses the channel.
 
@@ -3792,7 +3791,7 @@ Irreversible, and every subscriber loses the channel.
 
 Mute or unmute a channel. Supported on **both** engines.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 Silences the channel's notifications for this account. The subscription is untouched â€” this is not a
 soft unsubscribe.
@@ -3812,7 +3811,7 @@ soft unsubscribe.
 Demote a channel admin back to a plain subscriber. **Baileys only** â€” the whatsapp-web.js engine
 answers `501`.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 Requires this account to own the channel. There is **no promote counterpart**, and that is an
 upstream limit rather than a gap here: neither engine library exposes one, so an admin is promoted
@@ -3837,7 +3836,7 @@ fails. Rather than ship a route that always errors on that engine, it answers `5
 Hand a channel this account owns to a new owner. **Baileys only** â€” the whatsapp-web.js engine
 answers `501`.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 > **Irreversible.** Once the transfer lands, this session is no longer the owner and cannot take the
 > channel back through this API.
@@ -3865,7 +3864,7 @@ repopulate. Rather than ship a route that always fails on that engine, it answer
 
 Subscribe to a channel using its invite code.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3898,13 +3897,13 @@ Subscribe to a channel using its invite code.
 }
 ```
 
-**Errors:** `400` `Session is not started`, missing/empty `inviteCode`, or any unknown body field Â· `401` missing/invalid API key Â· `403` API-key role below OPERATOR Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` `Session is not started`, missing/empty `inviteCode`, or any unknown body field Â· `401` missing/invalid API key Â· `403` API-key role below users Â· `409` conflict or engine not ready (retryable) Â· `501` not supported on the active engine Â· `503` session not ready or dependency unavailable (retryable)
 
 #### DELETE /api/sessions/:sessionId/channels/:channelId
 
 Unsubscribe from a channel.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -3921,11 +3920,11 @@ Unsubscribe from a channel.
 
 Note: this is the one route in the module that returns a literal `{ success: true }` (hard-coded by the controller after the void engine call resolves) rather than the raw engine return. There is no `@HttpCode` override, so it returns `200`, not `204`.
 
-**Errors:** `400` `Session is not started` Â· `401` missing/invalid API key Â· `403` API-key role below OPERATOR Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` `Session is not started` Â· `401` missing/invalid API key Â· `403` API-key role below users Â· `409` conflict or engine not ready (retryable) Â· `503` session not ready or dependency unavailable (retryable)
 
 ### 6.4.7 Labels & Status
 
-Labels are a WhatsApp Business feature: every label route lives under a session and reads/writes the chat-label assignments exposed by the engine. Status routes manage the session's status feed (stories) â€” reading visible statuses and posting/deleting your own. Read routes require a base API key; all writes require `OPERATOR`.
+Labels are a WhatsApp Business feature: every label route lives under a session and reads/writes the chat-label assignments exposed by the engine. Status routes manage the session's status feed (stories) â€” reading visible statuses and posting/deleting your own. Read routes require a base API key; all writes require `users`.
 
 **The two engines split cleanly down the middle here, and neither covers both halves.**
 
@@ -4008,7 +4007,7 @@ Every chat carrying a label.
 
 Create or update a label.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
+**Auth:** API key (users) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
 
 The label id is **yours to choose** and travels in the path. Whether this creates or updates depends
 only on whether that id already exists â€” reusing one rewrites that label rather than failing.
@@ -4043,7 +4042,7 @@ silently sets the wrong colour.
 
 Delete a label. It disappears from every chat it was on.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
+**Auth:** API key (users) Â· **Scope:** session-scoped Â· **Engines:** Baileys only
 
 **Response** `200`
 
@@ -4080,7 +4079,7 @@ Bare array â€” raw return of `engine.getChatLabels(chatId)`.
 
 Add a label to a chat.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4107,13 +4106,13 @@ Add a label to a chat.
 
 The handler always returns the literal `{ "success": true }`.
 
-**Errors:** `400` validation failure (missing/empty/non-string `labelId`, or any unknown body field â€” strict whitelist), or session is not started Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` (whatsapp-web.js) the chat does not exist on this session, so nothing was written Â· `409` conflict or engine not ready (retryable) Â· `422` labels require a WhatsApp Business account, or the chat type has no labels Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` validation failure (missing/empty/non-string `labelId`, or any unknown body field â€” strict whitelist), or session is not started Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` (whatsapp-web.js) the chat does not exist on this session, so nothing was written Â· `409` conflict or engine not ready (retryable) Â· `422` labels require a WhatsApp Business account, or the chat type has no labels Â· `503` session not ready or dependency unavailable (retryable)
 
 #### DELETE /api/sessions/:sessionId/labels/chat/:chatId/:labelId
 
 Remove a label from a chat.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4131,7 +4130,7 @@ Remove a label from a chat.
 
 The handler always returns `{ "success": true }`. DELETE default status is `200` (no `@HttpCode` override).
 
-**Errors:** `400` session is not started Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` (whatsapp-web.js) the chat does not exist on this session, so nothing was written Â· `409` conflict or engine not ready (retryable) Â· `422` labels require a WhatsApp Business account, or the chat type has no labels Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` (whatsapp-web.js) the chat does not exist on this session, so nothing was written Â· `409` conflict or engine not ready (retryable) Â· `422` labels require a WhatsApp Business account, or the chat type has no labels Â· `503` session not ready or dependency unavailable (retryable)
 
 #### GET /api/sessions/:sessionId/status
 
@@ -4228,7 +4227,7 @@ Note: `:statusId/media` is a two-path-segment route, so it never collides with t
 
 Post a text status (story) to the session's status feed. The recipients allow-list is honored on Baileys only; whatsapp-web.js broadcasts to the account's status-privacy audience.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4265,13 +4264,13 @@ Returns the engine `StatusResult` directly (no wrapper). POST default status is 
 
 **Sender-side caveat:** the posting account's own phone may display a "waiting for this status update" notice in its status feed; this is cosmetic â€” recipients view the status normally.
 
-**Errors:** `400` validation failure (unknown body field, a JID not matching `@c.us`/`@lid`, more than 256 recipients, `text` over 4096 chars, bad `backgroundColor`/`font`) Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable)
+**Errors:** `400` validation failure (unknown body field, a JID not matching `@c.us`/`@lid`, more than 256 recipients, `text` over 4096 chars, bad `backgroundColor`/`font`) Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable)
 
 #### POST /api/sessions/:sessionId/status/send-image
 
 Post an image status (story) from a URL or base64 payload. The recipients allow-list is honored on Baileys only; whatsapp-web.js broadcasts to the account's status-privacy audience.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4314,13 +4313,13 @@ Returns the engine `StatusResult` directly. POST default status is `201`.
 
 **Recipient JIDs:** `@c.us` (regular phone) recipients are reliable. `@lid` (privacy-id) recipients are best-effort and unverified â€” prefer `@c.us` where the phone number is known. **Sender-side caveat:** the posting account's own phone may show a "waiting for this status update" notice; recipients view it normally.
 
-**Errors:** `400` validation failure (unknown body field, an empty media wrapper, a JID not matching `@c.us`/`@lid`, more than 256 recipients, or a caption over 1024 chars), or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` validation failure (unknown body field, an empty media wrapper, a JID not matching `@c.us`/`@lid`, more than 256 recipients, or a caption over 1024 chars), or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/status/send-video
 
 Post a video status (story) from a URL or base64 payload. The recipients allow-list is honored on Baileys only; whatsapp-web.js broadcasts to the account's status-privacy audience.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4363,7 +4362,7 @@ Returns the engine `StatusResult` directly. POST default status is `201`.
 
 **Recipient JIDs:** `@c.us` (regular phone) recipients are reliable. `@lid` (privacy-id) recipients are best-effort and unverified â€” prefer `@c.us` where the phone number is known. **Sender-side caveat:** the posting account's own phone may show a "waiting for this status update" notice; recipients view it normally.
 
-**Errors:** `400` validation failure (unknown body field, an empty media wrapper, a JID not matching `@c.us`/`@lid`, more than 256 recipients, or a caption over 1024 chars), or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` validation failure (unknown body field, an empty media wrapper, a JID not matching `@c.us`/`@lid`, more than 256 recipients, or a caption over 1024 chars), or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` session not found / not connected Â· `409` conflict or engine not ready (retryable) Â· `413` base64 or downloaded media over the media cap (see Â§6.3) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### POST /api/sessions/:sessionId/status/send-voice
 
@@ -4371,7 +4370,7 @@ Post an audio status (story) as a **voice note**, from a URL or base64 payload. 
 
 > **Format matters.** WhatsApp plays a status voice note only when it is Ogg/Opus, and neither engine transcodes â€” bytes are sent as supplied. Convert first via `POST /api/sessions/:sessionId/media/convert/voice` (Â§6.4.15) and post the `base64` it returns. Sending another format produces a bubble that will not play.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4400,13 +4399,13 @@ There is **no `caption`**: WhatsApp has nowhere to render one on a status voice 
 
 **Read-back:** a voice status is listed with `"type": "voice"`. That member was added with this endpoint; before it, anything that was not an image or a video was reported as `text`.
 
-**Errors:** `400` validation failure, neither `url` nor `base64` supplied, or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role Â· `404` session not found / not connected Â· `413` base64 or downloaded media exceeds `MEDIA_DOWNLOAD_MAX_BYTES` Â· `409` conflict or engine not ready (retryable) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
+**Errors:** `400` validation failure, neither `url` nor `base64` supplied, or a `url` that answers non-2xx, times out or cannot be reached Â· `401` missing/invalid API key Â· `403` key lacks `users` role Â· `404` session not found / not connected Â· `413` base64 or downloaded media exceeds `MEDIA_DOWNLOAD_MAX_BYTES` Â· `409` conflict or engine not ready (retryable) Â· `503` a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault (retryable)
 
 #### DELETE /api/sessions/:sessionId/status/:id
 
 Delete one of the session's own posted statuses.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4423,7 +4422,7 @@ Delete one of the session's own posted statuses.
 
 The service returns `void`; the controller returns a fixed success object. DELETE default status is `200`.
 
-**Errors:** `401` missing/invalid API key Â· `403` key lacks `OPERATOR` role, or (whatsapp-web.js) the id is not one of the account's own statuses Â· `404` `Session {id} not found or not connected` Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request, so the revoke did not complete
+**Errors:** `401` missing/invalid API key Â· `403` key lacks `users` role, or (whatsapp-web.js) the id is not one of the account's own statuses Â· `404` `Session {id} not found or not connected` Â· `409` conflict or engine not ready (retryable) Â· `503` the whatsapp-web.js page died mid-request, so the revoke did not complete
 
 Safe to retry: revoking an already-revoked status converges. The status POST routes deliberately do
 NOT answer `503` for the same failure, because whatsapp-web.js can throw after the request is on the
@@ -4432,7 +4431,7 @@ wire and a client replaying on `503` would publish the status a second time. The
 
 ### 6.4.8 Webhooks (management)
 
-Webhooks are configured per session and managed under `/api/sessions/:sessionId/webhooks` (handled by `WebhookController`). Two cross-session endpoints live on `WebhooksListController`: `GET /api/webhooks` (list, **OPERATOR**) and `GET /api/webhooks/delivery-failures` (dead-letter log, **ADMIN**). Every other route requires an API key with **OPERATOR** role or higher.
+Webhooks are configured per session and managed under `/api/sessions/:sessionId/webhooks` (handled by `WebhookController`). Two cross-session endpoints live on `WebhooksListController`: `GET /api/webhooks` (list, **users**) and `GET /api/webhooks/delivery-failures` (dead-letter log, **orgmenu**). Every other route requires an API key with **users** role or higher.
 
 Two fields â€” `secret` and `headers` â€” are **write-only**: they are accepted on create/update but are never returned by any webhook route (the response DTO has no `@Expose` for them, so `fromEntity` drops them). `GET /api/infra/export-data` also omits both from its `webhooks` rows, so a backup no longer carries webhook credentials â€” a restored webhook comes back unsigned (`secret` null, `headers` `{}`) until you set them again. The `secret` is used to compute the `X-MyWhatsapp-Signature: sha256=<hex>` HMAC-SHA256 header on deliveries.
 
@@ -4442,7 +4441,7 @@ The `events` array accepts these members plus the `*` wildcard: `message.receive
 
 List all webhooks for a session, ordered by `createdAt` descending.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4477,7 +4476,7 @@ Returns a bare array; empty array if the session has no webhooks. `secret` and `
 
 Get a single webhook by ID, scoped to the session.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4509,7 +4508,7 @@ Get a single webhook by ID, scoped to the session.
 
 List webhooks visible to the calling API key, scoped to its allowed sessions.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped â€” derived from the authenticated key, not from any param/query
+**Auth:** API key (users) Â· **Scope:** session-scoped â€” derived from the authenticated key, not from any param/query
 
 **Query parameters**
 
@@ -4537,7 +4536,7 @@ List webhooks visible to the calling API key, scoped to its allowed sessions.
 ]
 ```
 
-Bare array, ordered by `createdAt` descending, bounded by `limit`/`offset`. If the calling key has a non-empty `allowedSessions` list, results are filtered to `WHERE sessionId IN (allowedSessions)`; a key with null/empty `allowedSessions` (e.g. an unrestricted ADMIN key) sees **all** webhooks. This is the cross-session list; the per-session list lives at `GET /api/sessions/:sessionId/webhooks`.
+Bare array, ordered by `createdAt` descending, bounded by `limit`/`offset`. If the calling key has a non-empty `allowedSessions` list, results are filtered to `WHERE sessionId IN (allowedSessions)`; a key with null/empty `allowedSessions` (e.g. an unrestricted orgmenu key) sees **all** webhooks. An account key (non-null `ownerUserId`) additionally sees only webhooks whose session it owns. This is the cross-session list; the per-session list lives at `GET /api/sessions/:sessionId/webhooks`.
 
 **Errors:** `401` missing/invalid API key Â· `403` insufficient role
 
@@ -4545,7 +4544,7 @@ Bare array, ordered by `createdAt` descending, bounded by `limit`/`offset`. If t
 
 List webhook deliveries that exhausted every retry, most recent first. This is the dead-letter trail referenced by Â§6.6 â€” a receiver outage longer than the retry window, an over-budget payload, or a blocked (SSRF-guarded) URL lands here instead of vanishing.
 
-**Auth:** API key (ADMIN) Â· **Scope:** results are confined to the calling key's `allowedSessions`, so a session-restricted ADMIN key cannot read another session's rows via `sessionId`
+**Auth:** API key (orgmenu) Â· **Scope:** results are confined to the calling key's `allowedSessions`, so a session-restricted orgmenu key cannot read another session's rows via `sessionId`
 
 **Query parameters**
 
@@ -4577,13 +4576,13 @@ List webhook deliveries that exhausted every retry, most recent first. This is t
 
 Bare array of `WebhookDeliveryFailure` rows, ordered by `createdAt` descending. `lastStatusCode` is `null` when the failure was a network/timeout/SSRF error rather than a non-2xx response; `idempotencyKey`/`deliveryId` let you correlate the lost event with your own receiver logs.
 
-**Errors:** `401` missing/invalid API key Â· `403` key role below ADMIN
+**Errors:** `401` missing/invalid API key Â· `403` key role below orgmenu
 
 #### POST /api/sessions/:sessionId/webhooks
 
 Create a webhook for the session.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4648,7 +4647,7 @@ Create a webhook for the session.
 
 Update a webhook. Partial â€” only fields present in the body are changed.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4703,7 +4702,7 @@ Returns the saved entity; `secret` and `headers` excluded.
 
 Send a synthetic test payload to the webhook URL and report the result. No request body.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4726,7 +4725,7 @@ On a reachable endpoint the response is `{ success: <response.ok>, statusCode: <
 
 Delete a webhook, scoped to the session.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -4741,15 +4740,15 @@ No content (empty body; explicit `@HttpCode(204)`).
 
 **Errors:** `401` missing/invalid API key Â· `403` insufficient role Â· `404` webhook not found in this session
 
-### 6.4.9 API Keys
+### 6.4.9 Auth: API Keys, Login & Dashboard Accounts
 
-API keys are managed under `/api/auth/api-keys`. All management routes (create/list/get/update/delete/revoke) require an **ADMIN** key **with no session scope**: the controller is fenced with `@RequireUnscopedKey`, so a key whose `allowedSessions` is non-empty is rejected with `403` whatever its role â€” otherwise a confined admin key could mint an unrestricted one. The guard evaluates the role requirement _before_ that fence, so a scoped VIEWER/OPERATOR key is refused with `Insufficient permissions. Required: admin`; only a scoped ADMIN key reaches the fence and sees `Session-scoped API keys are not permitted on this route`. Both are `403`. A key restricted with `allowedChats` that passes the role check is refused next, before the session fence, with `403 "API key is restricted to selected chats"`: no management route is open to a chat-scoped key. The plaintext key string is returned **only once**, at creation. Validation of the caller's own key lives at `POST /api/auth/validate` (a separate controller, not fenced) and accepts any valid key except one restricted with `allowedChats`, which it refuses with `403` like every route not open to a chat-scoped key.
+API keys are managed under `/api/auth/api-keys`. All management routes (create/list/get/update/delete/revoke) require an **orgmenu** key **with no session scope**: the controller is fenced with `@RequireUnscopedKey`, so a key whose `allowedSessions` is non-empty is rejected with `403` whatever its role â€” otherwise a confined orgmenu key could mint an unrestricted one. The guard evaluates the role requirement _before_ that fence, so a scoped `users` key is refused with `Insufficient permissions. Required: orgmenu`; only a scoped orgmenu key reaches the fence and sees `Session-scoped API keys are not permitted on this route`. Both are `403`. A key restricted with `allowedChats` that passes the role check is refused next, before the session fence, with `403 \"API key is restricted to selected chats\"`: no management route is open to a chat-scoped key. The plaintext key string is returned **only once**, at creation. Validation of the caller's own key lives at `POST /api/auth/validate` (a separate controller, not fenced) and accepts any valid key except one restricted with `allowedChats`, which it refuses with `403` like every route not open to a chat-scoped key.
 
 #### GET /api/auth/api-keys
 
 List all API keys, newest first. The plaintext key is never returned.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -4761,7 +4760,7 @@ Bare JSON array (no envelope), ordered by `createdAt` DESC. Null array/date fiel
     "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
     "name": "Production Bot",
     "keyPrefix": "owa_k1_a1b2",
-    "role": "operator",
+    "role": "users",
     "allowedIps": ["192.168.1.1", "10.0.0.0/8"],
     "allowedSessions": ["session-uuid-1"],
     "isActive": true,
@@ -4773,13 +4772,13 @@ Bare JSON array (no envelope), ordered by `createdAt` DESC. Null array/date fiel
 ]
 ```
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats`
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats`
 
 #### GET /api/auth/api-keys/:id
 
 Get a single API key's details by id. No plaintext key.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -4794,7 +4793,7 @@ Get a single API key's details by id. No plaintext key.
   "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
   "name": "Production Bot",
   "keyPrefix": "owa_k1_a1b2",
-  "role": "operator",
+  "role": "users",
   "allowedIps": ["192.168.1.1", "10.0.0.0/8"],
   "allowedSessions": ["session-uuid-1"],
   "isActive": true,
@@ -4805,29 +4804,29 @@ Get a single API key's details by id. No plaintext key.
 }
 ```
 
-**Errors:** `401` missing/invalid key Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"API key with id '<id>' not found"`
+**Errors:** `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"API key with id '<id>' not found"`
 
 #### POST /api/auth/api-keys
 
 Create a new API key; returns the full plaintext key exactly once.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Request body** â€” `CreateApiKeyDto`
 
-| Field             | Type                                   | Required | Constraints                                                                                              | Description                                                                       |
-| ----------------- | -------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `name`            | string                                 | yes      | length 3â€“100                                                                                           | Friendly name for the key.                                                        |
-| `role`            | enum `admin` \| `operator` \| `viewer` | no       | `@IsEnum`                                                                                                | Defaults to `operator` when omitted.                                              |
-| `allowedIps`      | string[]                               | no       | each entry a valid **IPv4** address or IPv4 CIDR `/0-32`; IPv6 rejected                                  | IP whitelist (IPv4-only by design).                                               |
-| `allowedSessions` | string[]                               | no       | each `@IsString`                                                                                         | Session IDs this key may access.                                                  |
-| `allowedChats`    | string[]                               | no       | unique entries, each a group `<id>@g.us`, a contact `<phone>@c.us` / `<lid>@lid`, or a bare phone number | Chat IDs this key may reach (see [Roles & Authorization](#roles--authorization)). |
-| `expiresAt`       | string (ISO 8601 date)                 | no       | `@IsDateString`                                                                                          | Stored as a `Date`.                                                               |
+| Field             | Type                      | Required | Constraints                                                                                              | Description                                                                       |
+| ----------------- | ------------------------- | -------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `name`            | string                    | yes      | length 3â€“100                                                                                           | Friendly name for the key.                                                        |
+| `role`            | enum `orgmenu` \| `users` | no       | `@IsEnum`                                                                                                | Defaults to `users` when omitted.                                                 |
+| `allowedIps`      | string[]                  | no       | each entry a valid **IPv4** address or IPv4 CIDR `/0-32`; IPv6 rejected                                  | IP whitelist (IPv4-only by design).                                               |
+| `allowedSessions` | string[]                  | no       | each `@IsString`                                                                                         | Session IDs this key may access.                                                  |
+| `allowedChats`    | string[]                  | no       | unique entries, each a group `<id>@g.us`, a contact `<phone>@c.us` / `<lid>@lid`, or a bare phone number | Chat IDs this key may reach (see [Roles & Authorization](#roles--authorization)). |
+| `expiresAt`       | string (ISO 8601 date)    | no       | `@IsDateString`                                                                                          | Stored as a `Date`.                                                               |
 
 ```json
 {
   "name": "Production Bot",
-  "role": "operator",
+  "role": "users",
   "allowedIps": ["192.168.1.1", "10.0.0.0/8"],
   "allowedSessions": ["session-uuid-1"],
   "expiresAt": "2027-12-31T23:59:59Z"
@@ -4843,7 +4842,7 @@ Same shape as the read DTO **plus** an `apiKey` field carrying the full plaintex
   "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
   "name": "Production Bot",
   "keyPrefix": "owa_k1_a1b2",
-  "role": "operator",
+  "role": "users",
   "allowedIps": ["192.168.1.1", "10.0.0.0/8"],
   "allowedSessions": ["session-uuid-1"],
   "isActive": true,
@@ -4854,13 +4853,13 @@ Same shape as the read DTO **plus** an `apiKey` field carrying the full plaintex
 }
 ```
 
-**Errors:** `400` validation (bad `name` length, invalid `role` enum, non-IPv4 `allowedIps` entry, bad `expiresAt`, or any non-whitelisted body field) Â· `401` missing/invalid key Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats`
+**Errors:** `400` validation (bad `name` length, invalid `role` enum, non-IPv4 `allowedIps` entry, bad `expiresAt`, or any non-whitelisted body field) Â· `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats`
 
 #### PUT /api/auth/api-keys/:id
 
 Update mutable fields of an API key. `isActive` is **not** updatable here â€” use the revoke route to deactivate.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -4870,19 +4869,19 @@ Update mutable fields of an API key. `isActive` is **not** updatable here â€�
 
 **Request body** â€” `UpdateApiKeyDto`
 
-| Field             | Type                                   | Required | Constraints              | Description                                                               |
-| ----------------- | -------------------------------------- | -------- | ------------------------ | ------------------------------------------------------------------------- |
-| `name`            | string                                 | no       | length 3â€“100           | Applied only if truthy.                                                   |
-| `role`            | enum `admin` \| `operator` \| `viewer` | no       | `@IsEnum`                | Applied only if truthy.                                                   |
-| `allowedIps`      | string[]                               | no       | IPv4 address / CIDR only | Applied if not `undefined` (can be set to `[]` to clear).                 |
-| `allowedSessions` | string[]                               | no       | each `@IsString`         | Applied if not `undefined`.                                               |
-| `allowedChats`    | string[]                               | no       | same as create           | Applied if not `undefined` (`[]` clears it, making the key unrestricted). |
-| `expiresAt`       | string (ISO 8601 date)                 | no       | `@IsDateString`          | Applied if not `undefined`; empty/falsy clears to `null`.                 |
+| Field             | Type                      | Required | Constraints              | Description                                                               |
+| ----------------- | ------------------------- | -------- | ------------------------ | ------------------------------------------------------------------------- |
+| `name`            | string                    | no       | length 3â€“100           | Applied only if truthy.                                                   |
+| `role`            | enum `orgmenu` \| `users` | no       | `@IsEnum`                | Applied only if truthy.                                                   |
+| `allowedIps`      | string[]                  | no       | IPv4 address / CIDR only | Applied if not `undefined` (can be set to `[]` to clear).                 |
+| `allowedSessions` | string[]                  | no       | each `@IsString`         | Applied if not `undefined`.                                               |
+| `allowedChats`    | string[]                  | no       | same as create           | Applied if not `undefined` (`[]` clears it, making the key unrestricted). |
+| `expiresAt`       | string (ISO 8601 date)    | no       | `@IsDateString`          | Applied if not `undefined`; empty/falsy clears to `null`.                 |
 
 ```json
 {
   "name": "Renamed Bot",
-  "role": "viewer",
+  "role": "orgmenu",
   "allowedIps": ["203.0.113.5"],
   "expiresAt": "2028-01-01T00:00:00Z"
 }
@@ -4897,7 +4896,7 @@ Returns the updated key (no plaintext).
   "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
   "name": "Renamed Bot",
   "keyPrefix": "owa_k1_a1b2",
-  "role": "viewer",
+  "role": "orgmenu",
   "allowedIps": ["203.0.113.5"],
   "isActive": true,
   "expiresAt": "2028-01-01T00:00:00.000Z",
@@ -4906,13 +4905,13 @@ Returns the updated key (no plaintext).
 }
 ```
 
-**Errors:** `400` validation (incl. `forbidNonWhitelisted` for unknown fields such as `isActive`) Â· `401` missing/invalid key Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats` Â· `404` not found Â· `409` change would remove the last usable admin key
+**Errors:** `400` validation (incl. `forbidNonWhitelisted` for unknown fields such as `isActive`) Â· `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` not found Â· `409` change would remove the last usable orgmenu key
 
 #### POST /api/auth/api-keys/:id/revoke
 
 Revoke (deactivate) an API key without deleting it. No request body required.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -4929,20 +4928,20 @@ Sets `isActive` to `false` and returns the key with explicit HTTP `200`. After r
   "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
   "name": "Production Bot",
   "keyPrefix": "owa_k1_a1b2",
-  "role": "operator",
+  "role": "users",
   "isActive": false,
   "usageCount": 42,
   "createdAt": "2026-06-01T10:00:00.000Z"
 }
 ```
 
-**Errors:** `401` missing/invalid key Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats` Â· `404` not found Â· `409` target is the last usable admin key
+**Errors:** `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` not found Â· `409` target is the last usable orgmenu key
 
 #### DELETE /api/auth/api-keys/:id
 
 Permanently delete an API key (hard delete). Also drops any un-flushed usage accumulator.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -4954,29 +4953,249 @@ Permanently delete an API key (hard delete). Also drops any un-flushed usage acc
 
 `@HttpCode(204)` â€” no response body.
 
-**Errors:** `401` missing/invalid key Â· `403` key role below ADMIN, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"API key with id '<id>' not found"` Â· `409` target is the last usable admin key
+**Errors:** `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"API key with id '<id>' not found"` Â· `409` target is the last usable orgmenu key
+
+#### POST /api/auth/login
+
+Sign in with an email and password, receiving a freshly-issued API key that carries the account role.
+
+**Auth:** none — this route is `@Public()` by design: it is the single place the global X-API-Key model is bypassed, trading credentials for exactly one key. Rate-limited to **5 attempts per minute per client** (`@Throttle`), tighter than every global tier, because it is the one credential brute-force surface in the system.
+
+The account is matched by its **normalized** email (trimmed, lowercased) against `users.email`; the stored `passwordHash` (scrypt) is verified and compared in constant time. Every sign-in **rotates** the account's own key row — named `user:<email>` — so an earlier session's key stops working immediately; the raw key exists only in this response, exactly once. A disabled account, an unknown email and a wrong password all fail with the same `401` so the endpoint cannot be used to enumerate accounts; the real reason is recorded in the audit log (`auth_login_failed`).
+
+**Request body** — `LoginDto`
+
+| Field      | Type   | Required | Constraints                          | Description                        |
+| ---------- | ------ | -------- | ------------------------------------ | ---------------------------------- |
+| `email`    | string | yes      | valid email (no TLD required); <=320 | Matched after trim + lowercase.    |
+| `password` | string | yes      | length 1-1024                        | Verified against the stored scrypt |
+|            |        |          |                                      | hash.                              |
+
+```json
+{ "email": "admin@localhost", "password": "correct-horse-battery-staple" }
+```
+
+**Response** `200` — `LoginResponseDto`
+
+```json
+{
+  "apiKey": "owa_k1_4f3c2b1a9d8e7c6b5a4938271605f4e3c2b1a9d8e7c6b5a4938271605f4e3c2b",
+  "role": "orgmenu",
+  "user": { "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33", "email": "admin@localhost", "name": "Administrator" }
+}
+```
+
+The returned `apiKey` is a normal X-API-Key credential: send it in the `X-API-Key` header on every subsequent request. It appears in the API-keys admin surface named `user:<email>`; rotating it there (or revoking/deleting the row) forces the next sign-in to issue a fresh one.
+
+First boot seeds an administrator from `BOOTSTRAP_ADMIN_EMAIL` (default `admin@localhost`) using `BOOTSTRAP_ADMIN_PASSWORD`, or — when that variable is unset — a generated password written to `data/.admin-credentials` (mode 0600).
+
+**Errors:** `400` validation (malformed email, missing or oversized password, or any non-whitelisted body field) — `401` `"Invalid email or password"` (unknown email, wrong password, or disabled account) — `429` rate limit exceeded (5 tries/min)
+
+> Implemented by `AuthLoginController` (`@Controller('auth')`, `@Public()` handler), sharing the same `/api/auth` base.
+
+#### POST /api/auth/register
+
+Create a dashboard account by public self-signup. **Always creates a `users`-role account** — there is no public path to admin; the orgmenu account comes only from the `BOOTSTRAP_ADMIN_*` seeding at first boot (see `POST /api/auth/login`). The new account can sign in immediately through `POST /api/auth/login`, which mints its own `user:<email>` API key.
+
+**Auth:** none — this route is `@Public()` like login, and rate-limited to the same **5 requests per minute per client** (`@Throttle`) so fake-account creation cannot churn the `users` table.
+
+The email is normalized (trimmed + lowercased) exactly like login, so a signup and a later sign-in match even when the caller mixes case or whitespace. A duplicate normalized email gets `409`, so signup cannot enumerate accounts beyond the visible "account exists" reply. Every creation is audited as `user_created` with `metadata.source: 'self-signup'`, distinguishing it from accounts minted by an orgmenu key (which carry no such source tag).
+
+**Request body** — `RegisterDto`
+
+| Field      | Type   | Required | Constraints                          | Description                                |
+| ---------- | ------ | -------- | ------------------------------------ | ------------------------------------------ |
+| `email`    | string | yes      | valid email (no TLD required); <=320 | Stored and matched after trim + lowercase. |
+| `password` | string | yes      | length 8-1024                        | Stored as an scrypt hash.                  |
+| `name`     | string | no       | length 1-200                         | Display name; omitted when blank.          |
+
+There is deliberately **no `role` field**: the global validation pipe runs `forbidNonWhitelisted`, so a caller that smuggles `"role": "orgmenu"` (or any other unknown field) gets `400` — the signup path cannot escalate itself.
+
+The account signup mints is least-privilege and sees **no other account's data**: its `users` role is refused (`403`) on every account-management, API-key and audit surface — `GET`/`POST`/`PATCH`/`DELETE /api/auth/users`, `GET /api/auth/api-keys`, `GET /api/audit` are all orgmenu-only — so public signup cannot become a channel to read other accounts' emails, names or roles, to mint keys, or to browse the audit trail.
+
+```json
+{ "email": "operator@example.com", "password": "correct-horse-battery-staple", "name": "Ada Example" }
+```
+
+**Response** `201` — `UserResponseDto`
+
+```json
+{
+  "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
+  "email": "operator@example.com",
+  "name": "Ada Example",
+  "role": "users",
+  "isActive": true,
+  "lastLoginAt": null,
+  "createdAt": "2026-06-01T10:00:00.000Z"
+}
+```
+
+`201` is explicit (`@HttpCode(201)`). Signup does not sign the caller in: the response carries no API key, and `lastLoginAt` stays `null` until the account's first sign-in.
+
+**Errors:** `400` validation (malformed email, password under 8 or over 1024, overlong name, or any non-whitelisted body field such as `role`) — `409` `"An account already exists for <email>"` (duplicate normalized email) — `429` rate limit exceeded (5 tries/min)
+
+> Implemented by `AuthRegisterController` (`@Controller('auth')`, `@Public()` handler), sharing the same `/api/auth` base.
 
 #### POST /api/auth/validate
 
 Validate the supplied `X-API-Key` and report its validity and role.
 
-**Auth:** API key (any valid role â€” VIEWER+)
+**Auth:** API key (any valid key â€” `users` or `orgmenu`)
 
 The key is read from the `X-API-Key` header, not the body; send an empty body. This route sits behind the global guard (it is not `@Public`), so a missing/invalid/revoked/expired key is rejected with `401` at the guard before the handler runs. On success it returns the caller's role. A key restricted with `allowedChats` is refused with `403 "API key is restricted to selected chats"`: the route is not open to a chat-scoped key.
 
 **Response** `200`
 
 ```json
-{ "valid": true, "role": "operator" }
+{ "valid": true, "role": "users" }
 ```
 
 **Errors:** `401` missing/invalid/revoked/expired key (raised by the global guard before the handler); `403` a key restricted with `allowedChats`
 
 > Implemented by `AuthValidateController` (`@Controller('auth')`), sharing the same `/api/auth` base.
 
+#### GET /api/auth/users
+
+List the email/password dashboard accounts, newest first. Passwords are never returned — only the
+scrypt `passwordHash` exists at rest. `lastLoginAt` is `null` for an account that has never signed in.
+
+**Auth:** API key (orgmenu) — the whole surface is fenced with `@RequireUnscopedKey()` on top of
+`@RequireRole(ORG_MENU)`: a session-scoped orgmenu key could otherwise mint an account whose login
+key is unrestricted and escape its own confinement. A chat-restricted key is refused here like
+everywhere public to chat scope, with `403 "API key is restricted to selected chats"`.
+
+**Response** `200`
+
+Bare JSON array (no envelope), ordered by `createdAt` DESC. Null array/date fields are omitted.
+
+```json
+[
+  {
+    "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
+    "email": "amarn@corp.com",
+    "name": "Amar N",
+    "role": "users",
+    "isActive": true,
+    "lastLoginAt": "2026-10-01T09:12:00.000Z",
+    "createdAt": "2026-09-01T10:00:00.000Z"
+  }
+]
+```
+
+**Errors:** `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats`
+
+#### POST /api/auth/users
+
+Create a dashboard account. The account can sign in immediately with its email and password; the
+first sign-in mints its `user:<email>` key row carrying the account's role. The password is never
+echoed back. Only an `orgmenu` account (or the bootstrap seed) can mint orgmenu-capable accounts; the
+public `POST /api/auth/register` route also creates accounts, but always as `users` role.
+
+**Auth:** API key (orgmenu, unscoped)
+
+**Request body** — `CreateUserDto`
+
+| Field      | Type                      | Required | Constraints                          | Description                                                        |
+| ---------- | ------------------------- | -------- | ------------------------------------ | ------------------------------------------------------------------ |
+| `email`    | string                    | yes      | valid email (no TLD required); <=320 | Stored normalized (trim + lowercase); unique — `409` on collision. |
+| `password` | string                    | yes      | length 8-1024                        | Stored as a scrypt hash only.                                      |
+| `name`     | string                    | no       | length <=200                         | Display name.                                                      |
+| `role`     | enum `orgmenu` \| `users` | no       | `@IsEnum`                            | Defaults to `users` when omitted — never orgmenu by omission.      |
+
+```json
+{
+  "email": "amarn@corp.com",
+  "password": "correct-horse-battery-staple",
+  "name": "Amar N",
+  "role": "users"
+}
+```
+
+**Response** `201` — `UserResponseDto`
+
+```json
+{
+  "id": "3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33",
+  "email": "amarn@corp.com",
+  "name": "Amar N",
+  "role": "users",
+  "isActive": true,
+  "lastLoginAt": null,
+  "createdAt": "2026-10-08T10:00:00.000Z"
+}
+```
+
+**Errors:** `400` validation (malformed email, short password, or any non-whitelisted body field) Â· `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `409` `"An account already exists for <email>"`
+
+#### PATCH /api/auth/users/:id
+
+Update an account: rename, demote/promote role, disable/enable, or set a new password. `email` is
+immutable after creation. Setting `password` hashes it and rotates the account's `user:<email>` key
+row, revoking any session still using the old password — mirroring what a sign-in does. Disabling an
+account also revokes its session keys. The last active `orgmenu` account cannot be demoted or
+disabled: a deployment must not be able to lock itself out of the user-management surface.
+
+**Auth:** API key (orgmenu, unscoped)
+
+**Path parameters**
+
+| Name | Type          | Description |
+| ---- | ------------- | ----------- |
+| `id` | string (uuid) | Account id. |
+
+**Request body** — `UpdateUserDto`
+
+| Field      | Type                      | Required | Constraints   | Description                                        |
+| ---------- | ------------------------- | -------- | ------------- | -------------------------------------------------- |
+| `name`     | string                    | no       | length <=200  | Applied only if truthy.                            |
+| `role`     | enum `orgmenu` \| `users` | no       | `@IsEnum`     | Applied only if truthy; see `409` note.            |
+| `isActive` | boolean                   | no       | `@IsBoolean`  | `false` disables sign-in and revokes session keys. |
+| `password` | string                    | no       | length 8-1024 | Hashed and stored; rotates the account's key.      |
+
+```json
+{ "role": "orgmenu", "password": "new-password-1234" }
+```
+
+**Response** `200` — `UserResponseDto`
+
+Disabled accounts keep their row, but sign-in answers `401 "Invalid email or password"` — disabling
+is silent.
+
+**Errors:** `400` validation Â· `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"User with id '<id>' not found"` Â· `409` `"Cannot demote or disable the last active orgmenu account"`
+
+#### DELETE /api/auth/users/:id
+
+Permanently delete an account (hard delete) and its `user:<email>` key row, revoking every key it
+held. The account you are signed in with can never be deleted, and neither can the last active
+`orgmenu` account.
+
+**Auth:** API key (orgmenu, unscoped)
+
+**Path parameters**
+
+| Name | Type          | Description |
+| ---- | ------------- | ----------- |
+| `id` | string (uuid) | Account id. |
+
+**Response** `204`
+
+`@HttpCode(204)` — no response body.
+
+**Errors:** `401` missing/invalid key Â· `403` key role below orgmenu, or the key is session-scoped or restricted with `allowedChats` Â· `404` `"User with id '<id>' not found"` Â· `409` `"Cannot delete the last active orgmenu account"` or `"Cannot delete the account you are signed in with"`
+
+> **Dashboard Accounts at a glance.** An account is an email + scrypt password that signs in through
+> `POST /api/auth/login`; every login rotates its `user:<email>` key row, which always mirrors the
+> account's `users.role` string (`orgmenu` / `users`) and is never session/IP/chat-scoped. The only
+> account present at first boot is the seed (`BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`,
+> default `admin@localhost`, or a generated password in `data/.admin-credentials`); every other
+> account is provisioned by an `orgmenu` account through the dashboard's **Users** page (or this
+> API). Actions are audited as `user_created` / `user_updated` / `user_deleted`, with before/after
+> role and active state on updates.
+
 ### 6.4.10 System (Health, Metrics, Stats, Settings, Audit)
 
-System endpoints expose operational status, Prometheus metrics, aggregate statistics, runtime settings, and the audit log. Health and metrics use non-standard auth (public / Bearer token); stats, settings and audit use the API key, with several routes gated to `ADMIN`.
+System endpoints expose operational status, Prometheus metrics, aggregate statistics, runtime settings, and the audit log. Health and metrics use non-standard auth (public / Bearer token); stats, settings and audit use the API key, with several routes gated to `orgmenu`.
 
 #### GET /api/health
 
@@ -5088,7 +5307,7 @@ Values come from `StatsService.getOverview()` plus `process.memoryUsage()`/`proc
 
 Get overall cross-session aggregate statistics (sessions by status + message totals + today's counts).
 
-**Auth:** API key (ADMIN) that is not restricted to specific sessions â€” a global cross-tenant aggregate, so a session-scoped key has no claim on it and is rejected with `403` (`@RequireUnscopedKey`).
+**Auth:** API key (orgmenu) that is not restricted to specific sessions â€” a global cross-tenant aggregate, so a session-scoped key has no claim on it and is rejected with `403` (`@RequireUnscopedKey`).
 
 **Response** `200`
 
@@ -5110,13 +5329,13 @@ Get overall cross-session aggregate statistics (sessions by status + message tot
 
 Notes: raw handler return (no envelope). `sessions.byStatus` is keyed by the stored `SessionStatus` values â€” lowercase, per Â§6.4.1 â€” with per-status counts; `sessions.active` counts only `ready`. `messages.sent`/`received` are all-time outgoing/incoming COUNTs; `failed` is the `FAILED`-status COUNT; `today.*` are the same counts since local midnight. Side effect: caches the `sessions` block via `CacheService`.
 
-**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” key role below `ADMIN`, or the key is session-restricted.
+**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” key role below `orgmenu`, or the key is session-restricted.
 
 #### GET /api/stats/messages
 
 Get message statistics over a period: time series, counts by type, by session, and top chats.
 
-**Auth:** API key (ADMIN) that is not restricted to specific sessions â€” a cross-session aggregate, so a session-scoped key is rejected with `403` (`@RequireUnscopedKey`).
+**Auth:** API key (orgmenu) that is not restricted to specific sessions â€” a cross-session aggregate, so a session-scoped key is rejected with `403` (`@RequireUnscopedKey`).
 
 **Query parameters**
 
@@ -5140,13 +5359,13 @@ Get message statistics over a period: time series, counts by type, by session, a
 
 Notes: raw handler return. `timeSeries.timestamp` is a DB-formatted bucket string â€” hourly `YYYY-MM-DD HH:00:00` for `24h`, daily `YYYY-MM-DD` for `7d`/`30d` â€” sorted ascending. `byType` keys are message-type strings (a null type becomes `unknown`). `bySession.name` is `Unknown` when the session is not found. `topChats` is the top 10 by `messageCount` DESC. All counts are numbers.
 
-**Errors:** `400` â€” `period` not in the enum, or any non-whitelisted query field (strict `whitelist` + `forbidNonWhitelisted`) Â· `401` â€” missing/invalid API key Â· `403` â€” role below `ADMIN`, or the key is session-restricted.
+**Errors:** `400` â€” `period` not in the enum, or any non-whitelisted query field (strict `whitelist` + `forbidNonWhitelisted`) Â· `401` â€” missing/invalid API key Â· `403` â€” role below `orgmenu`, or the key is session-restricted.
 
 #### GET /api/stats/sessions/:sessionId
 
 Get statistics for a single session: identity, message counts, top chats, and 24 h hourly activity.
 
-**Auth:** API key â€” any valid key (VIEWER and up); there is no `@RequireRole`. Scope still applies: the global guard feeds the `:sessionId` route param to the key's `allowedSessions`, so a session-scoped key asking for a session outside its list gets `401 "API key not authorized for this session"`. Only an unscoped key can read any session's stats.
+**Auth:** API key â€” any valid key (`users` or higher); there is no `@RequireRole`. Scope still applies: the global guard feeds the `:sessionId` route param to the key's `allowedSessions`, so a session-scoped key asking for a session outside its list gets `401 \"API key not authorized for this session\"`. Only an unscoped key can read any session's stats.
 
 **Path parameters**
 
@@ -5176,7 +5395,7 @@ Notes: raw handler return. `session.status` is the `SessionStatus` enum value. `
 
 Get application settings (environment-derived; `general`/`api`/`notifications` groups).
 
-**Auth:** API key (ADMIN) that is not restricted to specific sessions. Settings describe the whole deployment, so the route requires an unrestricted key (`@RequireUnscopedKey`): the role check alone does not exclude a key confined to a subset of sessions, which has no claim on deployment-wide configuration, so a session-scoped ADMIN key is rejected with `403`. A key below `ADMIN` is also rejected with `403`.
+**Auth:** API key (orgmenu) that is not restricted to specific sessions. Settings describe the whole deployment, so the route requires an unrestricted key (`@RequireUnscopedKey`): the role check alone does not exclude a key confined to a subset of sessions, which has no claim on deployment-wide configuration, so a session-scoped orgmenu key is rejected with `403`. A key below `orgmenu` is also rejected with `403`.
 
 **Response** `200`
 
@@ -5202,13 +5421,13 @@ Get application settings (environment-derived; `general`/`api`/`notifications` g
 
 Notes: raw return of an in-memory `Settings` object built once in the controller constructor from `ConfigService` (snapshotted at construction, not re-read per request). `api.rateLimitWindow` is in ms. `enableDocs` reflects the `ENABLE_SWAGGER` gate (enabled by default outside production; disabled by default in production unless explicitly enabled). Only `notifications.*` is currently hardcoded (`emailEnabled: false`, `notificationEmail: ''`, `webhookAlerts: true`).
 
-**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the ADMIN role, or the key is session-restricted.
+**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the orgmenu role, or the key is session-restricted.
 
 #### GET /api/organizations/settings
 
 Read an organization's policy settings â€” currently only `quietHours`, which the send path enforces on both single and bulk sends (`docs/33`). Deployment-global like `/api/settings`: no session dimension, so the route requires an unrestricted key.
 
-**Auth:** API key (ADMIN) that is not restricted to specific sessions.
+**Auth:** API key (orgmenu) that is not restricted to specific sessions.
 
 **Query parameters**
 
@@ -5234,13 +5453,13 @@ Read an organization's policy settings â€” currently only `quietHours`, whi
 
 Notes: `organizationId` is the RESOLVED organization, which with enforcement off is the seeded default even when the query names another id. `quietHours` is omitted entirely when no window has ever been configured â€” absent is not `{"enabled": false}`, and a client must not render the first as "quiet hours off". Read fresh rather than through the send path's 30 s settings cache, so the form hydrates with the policy sends are actually enforcing. Only keys this gateway knows how to interpret are returned, so a future feature's settings are not published here.
 
-**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the ADMIN role, or the key is session-restricted Â· `404` â€” the id names no organization (multi-tenant enforcement on; a fallback to the default would silently attribute one tenant's reads to another).
+**Errors:** `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the orgmenu role, or the key is session-restricted Â· `404` â€” the id names no organization (multi-tenant enforcement on; a fallback to the default would silently attribute one tenant's reads to another).
 
 #### PATCH /api/organizations/settings
 
 Merge into an organization's policy settings. This is what makes a quiet-hours window configurable without hand-editing SQL, and it takes effect on the next send â€” the send path resolves settings per message rather than compiling a window at boot.
 
-**Auth:** API key (ADMIN) that is not restricted to specific sessions.
+**Auth:** API key (orgmenu) that is not restricted to specific sessions.
 
 **Request body**
 
@@ -5252,15 +5471,15 @@ Notes: **merge, not replace.** `Organization.settings` is a JSON blob shared wit
 
 Validation runs on the **merged** window, because a patch carrying only `start` is not a window on its own â€” a form that saves one field at a time would otherwise be unable to. `start`/`end` are `HH:MM` with `24:00` accepted as end-of-day, `timezone` must be an IANA zone (a fixed offset is refused: it cannot follow DST), `weekdays` are ISO integers 1â€“7 (Monday = 1) and must be non-empty when present, and equal bounds are refused as ambiguous. A window is validated even while `enabled` is `false`, so a typo surfaces when it is typed rather than when the window is switched back on.
 
-**Errors:** `400` â€” a merged window that could never work (the message names the offending field), or an unknown property Â· `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the ADMIN role, or the key is session-restricted Â· `404` â€” the id names no organization (multi-tenant enforcement on).
+**Errors:** `400` â€” a merged window that could never work (the message names the offending field), or an unknown property Â· `401` â€” missing/invalid `X-API-Key` Â· `403` â€” API key lacks the orgmenu role, or the key is session-restricted Â· `404` â€” the id names no organization (multi-tenant enforcement on).
 
 Emits `organization_settings_updated` to the audit log, carrying the resulting window rather than the patch: a request body cannot answer "what policy is now in force".
 
 #### GET /api/audit
 
-List audit-log entries, newest first. API-key lifecycle changes, session lifecycle events and ADMIN infra operations land here. **The six actions below are never emitted**: message sends and webhook deliveries are tracked in their own tables (`messages`, `webhook_delivery_failures`) â€” `webhook_created`/`webhook_deleted` are simply not wired yet â€” so filtering for `message_sent`, `message_failed`, `webhook_created`, `webhook_deleted`, `webhook_triggered` or `webhook_failed` returns zero rows by design.
+List audit-log entries, newest first. API-key lifecycle changes, session lifecycle events and orgmenu infra operations land here. **The six actions below are never emitted**: message sends and webhook deliveries are tracked in their own tables (`messages`, `webhook_delivery_failures`) â€” `webhook_created`/`webhook_deleted` are simply not wired yet â€” so filtering for `message_sent`, `message_failed`, `webhook_created`, `webhook_deleted`, `webhook_triggered` or `webhook_failed` returns zero rows by design.
 
-**Auth:** API key (ADMIN) Â· **Scope:** rows are confined to the calling key's `allowedSessions` â€” the `sessionId` query may only narrow within that list, never widen it
+**Auth:** API key (orgmenu) Â· **Scope:** rows are confined to the calling key's `allowedSessions` â€” the `sessionId` query may only narrow within that list, never widen it
 
 **Query parameters**
 
@@ -5302,11 +5521,11 @@ List audit-log entries, newest first. API-key lifecycle changes, session lifecyc
 
 Unlike the other list routes this one is **not** a bare array: `data` is the page and `total` the unpaginated match count. Nullable columns (`apiKeyId`, `sessionId`, `metadata`, `errorMessage`, â€¦) are `null` when the event has no such dimension. `userAgent` and `statusCode` are reserved columns nothing populates, so rows carry `null`. `method` and `path` are populated only where an emitter passes them explicitly (API-key auth failures, key lifecycle changes, queue-board mutations); session/message-flow rows like the sample leave them `null`.
 
-**Errors:** `401` missing/invalid API key Â· `403` key role below ADMIN
+**Errors:** `401` missing/invalid API key Â· `403` key role below orgmenu
 
 ### 6.4.11 Administration (Infrastructure, MCP)
 
-Admin-facing operations: infrastructure status & config, the data/storage migration tooling, and the optional MCP transport. Almost every route is **API key (ADMIN)**; the two exceptions are the public `GET /api/infra/health` and the `POST /mcp` JSON-RPC endpoint (see end of section).
+Admin-facing operations: infrastructure status & config, the data/storage migration tooling, and the optional MCP transport. Almost every route is **API key (orgmenu)**; the two exceptions are the public `GET /api/infra/health` and the `POST /mcp` JSON-RPC endpoint (see end of section).
 
 > Note on the MCP request body: the entire `POST /mcp` envelope (mounted as a raw Express handler, outside the Nest pipe chain) is a **plain TS interface, not a class-validator DTO** â€” the global `whitelist`/`forbidNonWhitelisted` ValidationPipe does **not** run on it. Unknown fields pass through silently and no type/constraint checks happen, except the few field-level guards noted per endpoint. The infra bodies â€” `ImportDataDto` (`POST /api/infra/import-data`), `SaveConfigDto` (`PUT /api/infra/config`), `RestartDto` (`POST /api/infra/restart`), `ImportStorageDto` (`POST /api/infra/storage/import`) â€” and the integration-fabric DTOs _are_ class-validated and reject unknown fields with `400`. `ImportDataDto` additionally accepts, and ignores, the five metadata fields the export wraps `tables` in, so the backup file posts back unmodified.
 
@@ -5330,7 +5549,7 @@ Public liveness probe.
 
 Aggregate infrastructure status (database, Redis, queue, storage, engine).
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -5358,7 +5577,7 @@ The `queue.webhooks` counters are live BullMQ job counts (`pending` = waiting + 
 
 `builtIn` (on `database`/`redis`/`storage`) reports whether MyWhatsapp's own bundled container is actually running _and_ backing this service, detected live from the labelled container; when Docker is unreachable it falls back to the saved `*_BUILTIN` intent from `data/.env.generated`. In S3 mode `storage` additionally carries `bucket` (when one is configured) and `s3Available` (a throttled re-probe); in local mode neither key is present. `engine.webVersion`/`engine.webVersionSource` (`pinned` / `auto` / `native`) appear only on `whatsapp-web.js`; `webVersion` is `null` until the auto-resolve first succeeds.
 
-**Errors:** `401` missing/invalid key Â· `403` key role < ADMIN
+**Errors:** `401` missing/invalid key Â· `403` key role < orgmenu
 
 ---
 
@@ -5366,7 +5585,7 @@ The `queue.webhooks` counters are live BullMQ job counts (`pending` = waiting + 
 
 List the WhatsApp engines this build can run (baileys, whatsapp-web.js) and which one is active.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200` â€” bare array
 
@@ -5392,7 +5611,7 @@ List the WhatsApp engines this build can run (baileys, whatsapp-web.js) and whic
 
 Get the currently active engine type.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -5420,7 +5639,7 @@ instance on `X.Y.Z-rc.1`.
 `current` is the running code's `package.json` version, so a build from `main` reports the last
 release number until the next release bumps it.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -5441,7 +5660,7 @@ release number until the next release bumps it.
 
 Read the effective infrastructure config used to hydrate the dashboard form. Each field resolves with the boot precedence: a value pinned by the host environment (e.g. Compose `environment:`) or the project `.env` wins over `data/.env.generated`, while a key that only ever lived in the saved file reports the freshly-saved value even before a restart applies it ("saved, pending restart"). **Secrets are never returned** â€” only `*Set`/`*CredentialsSet` booleans indicate that a secret is stored.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200` â€” `SavedConfigResponse`
 
@@ -5490,7 +5709,7 @@ When nothing supplies a key â€” no pinned environment value and the file ab
 
 Merge-save infrastructure config to `data/.env.generated` (a `0600` secret file). A partial payload preserves untouched keys; empty/omitted secret fields keep the existing stored secret.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Request body** â€” `SaveConfigDto` (recursively class-validated; unknown or mistyped fields are rejected)
 
@@ -5575,7 +5794,7 @@ Write/IO errors are caught and returned as HTTP `200` with `{ "saved": false, "e
 
 Request a graceful server restart, optionally orchestrating Docker profiles (add/remove services). Schedules process shutdown as a side-effect.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Request body** â€” optional `RestartDto` (class-validated; unknown fields and non-string array members reject)
 
@@ -5610,7 +5829,7 @@ Request a graceful server restart, optionally orchestrating Docker profiles (add
 
 Export every row of the 19 migration tables from the Data DB as JSON. Read-only, but runs raw `SELECT *` on the `data` DataSource.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 > **Inline media is carried up to a budget, then omitted.** `EXPORT_INLINE_MEDIA_BUDGET_BYTES` (8 MiB of encoded base64 by default) bounds how much inline media one export may hold, counted across both `messages` and `messageBatches`. Within each of those tables it is spent newest-first â€” messages by `timestamp`, batches by `created_at` â€” so an export that cannot carry everything keeps the most recent media rather than whatever the database happened to return first. Messages are served before batches, so a long history can exhaust the budget before any batch is reached. An over-budget payload on a `messages` row arrives as the omitted marker â€” `{ mimetype, filename?, omitted: true, sizeBytes }`, the same shape the engine emits when an inbound payload exceeds `MEDIA_DOWNLOAD_MAX_BYTES` â€” so those messages restore without their pictures. A `messageBatches` entry carries no marker: it simply loses its `base64` and keeps `url`, `mimetype` and `caption`, which is the shape a batch already has once it reaches a terminal state. Without the bound, one 50 MiB attachment becomes 66 MiB of base64 and exceeds the import's own request-body limit (`BODY_SIZE_LIMIT`, 25mb by default), producing a backup this gateway refuses to restore with `413`.
 >
@@ -5705,7 +5924,7 @@ Replace all Data DB rows with the supplied export. **Destructive and transaction
 
 > **The replace covers all 19 migration tables, not just the ones you send.** Inside the transaction every table in the migration set is emptied first and only then re-populated from the payload, so a table you omit ends up **empty**, not untouched. Always restore a payload produced by `GET /api/infra/export-data` of the same or a newer build â€” a hand-built body carrying only a subset silently wipes the rest.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Request body** â€” `ImportDataDto`. Post the whole export file: alongside `tables`, `force` and `stopOrphans`, the DTO accepts and ignores the export's `exportedAt`, `dataDbType`, `counts`, `skippedTables` and `omittedInlineMedia`. Any other property is rejected with `400`.
 
@@ -5818,7 +6037,7 @@ Inside the transaction every migration table is emptied. `webhooks` and `session
 
 File count and total size in the active storage backend.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -5834,7 +6053,7 @@ File count and total size in the active storage backend.
 
 Export all storage files into a `tar.gz` under `data/exports` and return its **server-side path** (not a download stream).
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200`
 
@@ -5852,7 +6071,7 @@ Export all storage files into a `tar.gz` under `data/exports` and return its **s
 
 Import storage files from a `tar.gz` located inside the `data/` directory.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Request body** â€” `ImportStorageDto` (class-validated; path-safety is additionally enforced manually)
 
@@ -5882,7 +6101,7 @@ then oldest-first, up to `batchSize` (100) â€” so a row that keeps failing 
 rows instead of livelocking the window, while staying redrivable. `remaining` reports the DLQ depth
 still outstanding after this batch.
 
-**Auth:** API key (ADMIN) Â· **Scope:** session-scoped (a key restricted to `allowedSessions` may only
+**Auth:** API key (orgmenu) Â· **Scope:** session-scoped (a key restricted to `allowedSessions` may only
 redrive an instance whose current `sessionScope` is inside that allowlist; out of scope and missing
 instances both answer `404`, so redrive can't be used to probe other sessions). An unrestricted key is
 not fenced this way: it may drain retained rows for an instance that no longer exists, which is
@@ -5902,7 +6121,7 @@ replay them.
 { "redriven": 3, "remaining": 0, "batchSize": 100 }
 ```
 
-**Errors:** `401` Â· `403` key role < ADMIN Â· `404` a **scoped** key's instance that is missing or outside its `allowedSessions` (an unrestricted key gets `201` with `redriven: 0` instead)
+**Errors:** `401` Â· `403` key role < orgmenu Â· `404` a **scoped** key's instance that is missing or outside its `allowedSessions` (an unrestricted key gets `201` with `redriven: 0` instead)
 
 ---
 
@@ -5963,11 +6182,11 @@ Base path `/api/search`. Cross-session full-text message search over an open `Se
 the built-in database full-text provider (PostgreSQL `tsvector`/`GIN`, SQLite `FTS5`) answers by
 default with zero external dependencies. Search is on by default; set `SEARCH_ENABLED=false` to remove
 the route and module entirely (the index is DB-maintained regardless â€” see
-[26 - Global Search](./26-global-search.md)). Requires at least `OPERATOR` role.
+[26 - Global Search](./26-global-search.md)). Requires at least `users` role.
 
-**Auth:** API key (â‰¥ `OPERATOR`) Â· **Scope:** session-scoped â€” a scoped key's `allowedSessions` is
+**Auth:** API key (â‰¥ `users`) Â· **Scope:** session-scoped â€” a scoped key's `allowedSessions` is
 injected server-side from the key (never from the query), so a scoped key cannot broaden its reach; an
-ADMIN / null-allowlist key searches all sessions.
+orgmenu / null-allowlist key searches all sessions.
 
 #### GET /api/search
 
@@ -6023,7 +6242,7 @@ Search messages across sessions (active search provider).
 
 **Errors:** `400` empty/whitespace `q`, a non-numeric `dateFrom`/`dateTo`/`limit`/`offset`, an `offset` above `100000`, or a malformed
 SQLite FTS5 query (unbalanced quote/paren, bare operator) â€” Postgres's `websearch_to_tsquery` is
-tolerant and has no equivalent Â· `401` missing/invalid `X-API-Key` Â· `403` key role below `OPERATOR` Â·
+tolerant and has no equivalent Â· `401` missing/invalid `X-API-Key` Â· `403` key role below `users` Â·
 `501` no search provider configured (including a non-FTS5 SQLite build, where the provider is absent) Â·
 `502` the active plugin provider returned an invalid result shape (not retryable until the plugin is fixed) Â·
 `503` the active plugin provider did not answer (worker not running, timed out, or reported a failure;
@@ -6035,13 +6254,13 @@ retryable). The built-in provider returns neither `502` nor `503`.
 
 ### 6.4.13 Profile (own account)
 
-Manage the linked account's own profile. All routes are nested under `/api/sessions/:sessionId/profile` and require an **OPERATOR** key.
+Manage the linked account's own profile. All routes are nested under `/api/sessions/:sessionId/profile` and require an **users** key.
 
 #### PUT /api/sessions/:sessionId/profile/name
 
 Set the account display name (max 25 chars).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 ```json
 { "name": "ACME Support" }
@@ -6055,7 +6274,7 @@ Set the account display name (max 25 chars).
 
 Set the account about/status text (max 139 chars; empty string clears it).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 ```json
 { "status": "We reply within one business day" }
@@ -6069,7 +6288,7 @@ Set the account about/status text (max 139 chars; empty string clears it).
 
 Set the account profile picture from a URL or base64 image (same media DTO conventions as message sends, Â§6.3).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 ```json
 { "url": "https://example.com/avatar.png" }
@@ -6089,7 +6308,7 @@ or
 
 Remove the account profile picture, leaving the account with WhatsApp's default avatar.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 No request body.
 
@@ -6110,7 +6329,7 @@ Incoming-call management. A `call.received` webhook/socket event (Â§6.6) annou
 
 Generate a shareable WhatsApp call link.
 
-**Auth:** API key (OPERATOR) Â· **Scope:** session-scoped
+**Auth:** API key (users) Â· **Scope:** session-scoped
 
 **Request body** â€” `CreateCallLinkDto`
 
@@ -6148,7 +6367,7 @@ Generate a shareable WhatsApp call link.
 
 Reject a currently ringing incoming call. **Baileys only**: the whatsapp-web.js engine answers `501`. Only a live call can be rejected: the id is valid while the call rings (a short server-side cache); afterwards it expires.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6161,7 +6380,7 @@ Reject a currently ringing incoming call. **Baileys only**: the whatsapp-web.js 
 
 **Response** `200` â€” `{ "success": true }`
 
-**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `404` call not found or no longer ringing Â· `409` conflict or engine not ready (retryable) Â· `501` the whatsapp-web.js engine cannot reject a call Â· `503` session not ready or dependency unavailable (retryable)
+**Errors:** `400` session is not started Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `404` call not found or no longer ringing Â· `409` conflict or engine not ready (retryable) Â· `501` the whatsapp-web.js engine cannot reject a call Â· `503` session not ready or dependency unavailable (retryable)
 
 > **Auto-reject per session.** Set `"config": { "autoRejectCalls": true }` when creating a session to have the server reject every incoming call automatically, and the `call.received` event is still dispatched first, so automations keep full visibility. Baileys only; see the note at the top of this section.
 
@@ -6197,7 +6416,7 @@ between converting server-side and converting before it sends.
 Convert audio (or the audio track of a video) into a WhatsApp voice note: Ogg/Opus, mono, 48 kHz,
 tuned for speech. Post the returned `base64` to `send-audio` with `ptt: true`.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Request body**
 
@@ -6218,7 +6437,7 @@ including playlists and manifests, is refused with `400`.
 { "base64": "T2dnUwACAAAA...", "mimetype": "audio/ogg; codecs=opus", "bytes": 14970 }
 ```
 
-**Errors:** `400` neither field given, a `url` that answers non-2xx, times out or cannot be reached, or ffmpeg refused the input (its reason is included) Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `413` media above the size cap Â· `503` conversion is disabled, the ffmpeg binary is not runnable, the conversion queue is saturated, or a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault
+**Errors:** `400` neither field given, a `url` that answers non-2xx, times out or cannot be reached, or ffmpeg refused the input (its reason is included) Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `413` media above the size cap Â· `503` conversion is disabled, the ffmpeg binary is not runnable, the conversion queue is saturated, or a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault
 
 #### POST /api/sessions/:sessionId/media/convert/video
 
@@ -6226,7 +6445,7 @@ Convert video into an MP4 every WhatsApp client accepts: baseline H.264 with AAC
 bounded at 1280 (never upscaled), index moved to the front so playback can start before the whole
 file arrives.
 
-**Errors:** `400` neither field given, a `url` that answers non-2xx, times out or cannot be reached, or ffmpeg refused the input (its reason is included) Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks OPERATOR role Â· `413` media above the size cap Â· `503` conversion is disabled, the ffmpeg binary is not runnable, the conversion queue is saturated, or a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault
+**Errors:** `400` neither field given, a `url` that answers non-2xx, times out or cannot be reached, or ffmpeg refused the input (its reason is included) Â· `401` missing/invalid `X-API-Key` Â· `403` key lacks users role Â· `413` media above the size cap Â· `503` conversion is disabled, the ffmpeg binary is not runnable, the conversion queue is saturated, or a `url` fetch through the session's egress proxy failed before any response, the proxy or the target at fault
 
 **Response** `200`
 
@@ -6241,7 +6460,7 @@ still bound by `BODY_SIZE_LIMIT` (default 25 MiB) on that next request.
 ### 6.4.16 Automation rules (autoreply)
 
 Single-message autoreply rules, managed under `/api/sessions/:sessionId/automation-rules`
-(`AutomationRuleController`). Every route requires an API key with **OPERATOR** role or higher.
+(`AutomationRuleController`). Every route requires an API key with **users** role or higher.
 
 When an inbound message arrives, the session's enabled rules are evaluated in order â€” creation
 time, `id` as the same-second tiebreak â€” and the **first** rule whose `conditions` match replies
@@ -6263,7 +6482,7 @@ cannot match another bot's replies. The cooldown state is in-process: it resets 
 
 #### POST /api/sessions/:sessionId/automation-rules
 
-Create a rule. **Auth:** API key (OPERATOR)
+Create a rule. **Auth:** API key (users)
 
 **Request body**
 
@@ -6295,24 +6514,24 @@ Create a rule. **Auth:** API key (OPERATOR)
 
 #### GET /api/sessions/:sessionId/automation-rules
 
-List the session's rules in evaluation order. **Auth:** API key (OPERATOR) Â· **Response** `200` â€” array of the shape above.
+List the session's rules in evaluation order. **Auth:** API key (users) Â· **Response** `200` â€” array of the shape above.
 
 #### GET /api/sessions/:sessionId/automation-rules/:ruleId
 
-Get one rule. **Auth:** API key (OPERATOR) Â· `200` or `404` when the rule does not belong to the session.
+Get one rule. **Auth:** API key (users) Â· `200` or `404` when the rule does not belong to the session.
 
 #### PUT /api/sessions/:sessionId/automation-rules/:ruleId
 
-Partial update (any subset of the create fields). **Auth:** API key (OPERATOR) Â· `200` or `404`.
+Partial update (any subset of the create fields). **Auth:** API key (users) Â· `200` or `404`.
 
 #### DELETE /api/sessions/:sessionId/automation-rules/:ruleId
 
-Delete a rule. **Auth:** API key (OPERATOR) Â· **Response** `204`.
+Delete a rule. **Auth:** API key (users) Â· **Response** `204`.
 
 ### 6.4.17 Integration fabric (ingress & instances)
 
 The operator surface of the Integration Fabric â€” **doc 25** holds the design (DLQ, ordering,
-per-instance fairness); this section is the route reference. An ADMIN key provisions per-plugin
+per-instance fairness); this section is the route reference. An orgmenu key provisions per-plugin
 instances â€” one bound provider account, e.g. one Chatwoot inbox â€” and each instance gets one
 ingress URL per route the plugin declares. Only a plugin that declares an ingress route AND the
 `webhook:ingress` permission can have instances; any other plugin is rejected before persistence.
@@ -6330,7 +6549,7 @@ redrive route is documented with the administration routes in Â§6.4.11.
 
 Create an instance of an ingress-capable plugin.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -6376,13 +6595,13 @@ Create an instance of an ingress-capable plugin.
 `ingressUrls[].url` is absolute when `BASE_URL` is set, otherwise a relative path to prepend with
 the deployment's own host.
 
-**Errors:** `400` validation, or the plugin is not ingress-capable Â· `401` Â· `403` key role < ADMIN, or `sessionScope` outside the key's `allowedSessions` Â· `404` unknown plugin Â· `409` instance id already exists
+**Errors:** `400` validation, or the plugin is not ingress-capable Â· `401` Â· `403` key role < orgmenu, or `sessionScope` outside the key's `allowedSessions` Â· `404` unknown plugin Â· `409` instance id already exists
 
 #### GET /api/integration/plugins/:pluginId/instances
 
 List the plugin's instances visible to the calling key (secrets masked).
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200` â€” bare array of `InstanceView`. An instance whose `sessionScope` is outside the
 key's `allowedSessions` is filtered out of the list.
@@ -6393,7 +6612,7 @@ key's `allowedSessions` is filtered out of the list.
 
 Get one instance (secret masked).
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Path parameters**
 
@@ -6416,17 +6635,17 @@ Update an instance (secret masked in the response). Any subset of:
 | `sessionScope` | string  | Re-bind to another session (must be inside the key's `allowedSessions`; the old scope's binding is torn down first) |
 | `config`       | object  | Replace the per-instance config slice                                                                               |
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200` â€” the updated `InstanceView`.
 
-**Errors:** `400` validation Â· `401` Â· `403` key role < ADMIN, or the new `sessionScope` outside the key's `allowedSessions` Â· `404` unknown instance, or one outside the key's scope
+**Errors:** `400` validation Â· `401` Â· `403` key role < orgmenu, or the new `sessionScope` outside the key's `allowedSessions` Â· `404` unknown instance, or one outside the key's scope
 
 #### DELETE /api/integration/plugins/:pluginId/instances/:instanceId
 
 Delete the instance and tear down its session-scope binding.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `204`
 
@@ -6436,7 +6655,7 @@ Delete the instance and tear down its session-scope binding.
 
 Rotate the instance's ingress HMAC secret.
 
-**Auth:** API key (ADMIN)
+**Auth:** API key (orgmenu)
 
 **Response** `200` â€” the `InstanceView` with the **new** plaintext `secret` revealed in this
 response only; the `verifyToken` is also shown (unchanged).
@@ -6487,7 +6706,7 @@ that run before dedup: while a `session-alive` route's bound session is down it 
 
 Send one personalised message per spreadsheet row, managed under
 `/api/sessions/:sessionId/campaigns` (`CampaignController`). Every route requires an API key with
-**OPERATOR** role or higher; a chat-scoped key is refused (the routes are not marked safe for one).
+**users** role or higher; a chat-scoped key is refused (the routes are not marked safe for one).
 
 **How it works.** Upload an `.xlsx` or UTF-8 `.csv` (first row = header) together with a stored
 template (`templateId`) or inline `body`. Each header becomes a placeholder key: runs of characters
@@ -6554,7 +6773,7 @@ between them (plus up to 50% random jitter when `randomizeDelay` is on).
 #### POST /api/sessions/:sessionId/campaigns/inspect
 
 Read a spreadsheet's columns, row count, first five rows and a suggested phone column without
-creating anything. **Auth:** API key (OPERATOR) Â· `multipart/form-data` with field `file`.
+creating anything. **Auth:** API key (users) Â· `multipart/form-data` with field `file`.
 
 **Response** `200`
 
@@ -6575,7 +6794,7 @@ creating anything. **Auth:** API key (OPERATOR) Â· `multipart/form-data` with 
 
 #### POST /api/sessions/:sessionId/campaigns
 
-Create a draft campaign. **Auth:** API key (OPERATOR) Â· `multipart/form-data`.
+Create a draft campaign. **Auth:** API key (users) Â· `multipart/form-data`.
 
 | Field                     | Type    | Required | Description                                                                 |
 | ------------------------- | ------- | -------- | --------------------------------------------------------------------------- |
@@ -6601,12 +6820,12 @@ Create a draft campaign. **Auth:** API key (OPERATOR) Â· `multipart/form-data`
 
 #### GET /api/sessions/:sessionId/campaigns
 
-List the session's campaigns, newest first. **Auth:** API key (OPERATOR) Â· **Response** `200`.
+List the session's campaigns, newest first. **Auth:** API key (users) Â· **Response** `200`.
 
 #### GET /api/sessions/:sessionId/campaigns/:id
 
 Get a campaign with its progress, skip reasons and the rendered text of the next five rows.
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 ```json
 {
@@ -6660,7 +6879,7 @@ Get a campaign with its progress, skip reasons and the rendered text of the next
 Page through the rows. Query: `status` (`pending`, `sending`, `sent`, `failed`, `skipped`),
 `response` (an option: rows whose answer includes it), `responded` (`yes`, or `no` for sent rows
 still unanswered), `page` (default 1), `limit` (default 50, max 500). Each row carries `response`
-(the chosen options), `responseVia` (`poll` or `reply`) and `respondedAt`. **Auth:** API key (OPERATOR) Â·
+(the chosen options), `responseVia` (`poll` or `reply`) and `respondedAt`. **Auth:** API key (users) Â·
 **Response** `200` `{ "items": [...], "total": 6, "page": 1, "limit": 50 }`.
 
 **Errors:** `404` the campaign does not belong to the session
@@ -6670,13 +6889,13 @@ still unanswered), `page` (default 1), `limit` (default 50, max 500). Each row c
 Download every row â€” its original cells plus chat id, status, error, message id, sent time and,
 when the campaign asks for a response, the answer, when and how it arrived â€”
 as `text/csv` (UTF-8 with BOM; cells that a spreadsheet would read as a formula are prefixed with
-`'`). **Auth:** API key (OPERATOR)
+`'`). **Auth:** API key (users)
 
 **Errors:** `404` the campaign does not belong to the session
 
 #### POST /api/sessions/:sessionId/campaigns/:id/attachments
 
-Upload one attachment to a draft. **Auth:** API key (OPERATOR) Â· `multipart/form-data` with
+Upload one attachment to a draft. **Auth:** API key (users) Â· `multipart/form-data` with
 `file` (any type) and `scope` (`all` or `row`).
 
 **Response** `201`
@@ -6700,37 +6919,37 @@ Upload one attachment to a draft. **Auth:** API key (OPERATOR) Â· `multipart/f
 #### DELETE /api/sessions/:sessionId/campaigns/:id/attachments/:attachmentId
 
 Remove an attachment from a draft; rows that needed it go back to `MISSING_ATTACHMENT`.
-**Auth:** API key (OPERATOR) Â· **Response** `204`.
+**Auth:** API key (users) Â· **Response** `204`.
 
 **Errors:** `400` the campaign is not a draft Â· `404` the campaign or attachment does not belong to the session
 
 #### POST /api/sessions/:sessionId/campaigns/:id/start
 
-Start a draft, or resume a paused campaign. **Auth:** API key (OPERATOR) Â· **Response** `200`.
+Start a draft, or resume a paused campaign. **Auth:** API key (users) Â· **Response** `200`.
 
 **Errors:** `400` the campaign is running, completed or cancelled Â· `409` the session is not connected
 
 #### POST /api/sessions/:sessionId/campaigns/:id/pause
 
-Pause after the row in flight. **Auth:** API key (OPERATOR) Â· **Response** `200`.
+Pause after the row in flight. **Auth:** API key (users) Â· **Response** `200`.
 
 **Errors:** `400` the campaign is not running
 
 #### POST /api/sessions/:sessionId/campaigns/:id/cancel
 
-Cancel; rows not yet sent stay `pending` and are never sent. **Auth:** API key (OPERATOR) Â· **Response** `200`.
+Cancel; rows not yet sent stay `pending` and are never sent. **Auth:** API key (users) Â· **Response** `200`.
 
 **Errors:** `400` the campaign is already completed or cancelled
 
 #### DELETE /api/sessions/:sessionId/campaigns/:id
 
-Delete the campaign and its rows. **Auth:** API key (OPERATOR) Â· **Response** `204`.
+Delete the campaign and its rows. **Auth:** API key (users) Â· **Response** `204`.
 
 **Errors:** `400` the campaign is running (pause or cancel it first) Â· `404` the campaign does not belong to the session
 
 ### 6.4.19 Flow plans
 
-A **plan** is a named, session-scoped draft of a WhatsApp message sequence, composed on the dashboard's `/flow` builder out of ordered **blocks**. It is an authoring surface: a plan records intent, and this release does not yet dispatch one. All routes are nested under `/api/sessions/:sessionId/plans` and require an **OPERATOR** key.
+A **plan** is a named, session-scoped draft of a WhatsApp message sequence, composed on the dashboard's `/flow` builder out of ordered **blocks**. It is an authoring surface: a plan records intent, and this release does not yet dispatch one. All routes are nested under `/api/sessions/:sessionId/plans` and require an **users** key.
 
 A plan's `flow` is an ordered array of blocks, each a discriminated union on `type`:
 
@@ -6754,7 +6973,7 @@ A plan also carries a **`mindmap`** layout over the same blocks: node `positions
 
 List all plans for a session, newest first.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6787,13 +7006,13 @@ Bare `Plan[]` array (no pagination, no envelope). Ordered by `createdAt` DESC. R
 ]
 ```
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role
 
 #### GET /api/sessions/:sessionId/plans/:id
 
 Get a single plan by ID within the session.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6806,13 +7025,13 @@ Get a single plan by ID within the session.
 
 Raw `Plan` entity (no envelope).
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` no row matches the `id`+`sessionId` pair (`{ "statusCode": 404, "message": "Plan with id '<id>' not found", "error": "Not Found" }`)
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` no row matches the `id`+`sessionId` pair (`{ "statusCode": 404, "message": "Plan with id '<id>' not found", "error": "Not Found" }`)
 
 #### POST /api/sessions/:sessionId/plans
 
 Create a plan. `title` is required; `flow` and `mindmap` are optional so a plan can be created from its metadata alone and its flow built afterwards.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6840,13 +7059,13 @@ Create a plan. `title` is required; `flow` and `mindmap` are optional so a plan 
 
 Returns the saved `Plan` entity raw (no envelope). The lazy `session` relation is not loaded on a freshly saved entity, so it is absent from the JSON.
 
-**Errors:** `400` validation failure (missing/empty `title`, over-length, malformed `flow`/`mindmap`, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` no session with that id (`{ "statusCode": 404, "message": "Session with id '<id>' not found", "error": "Not Found" }`) Â· `409` duplicate `title` for the session
+**Errors:** `400` validation failure (missing/empty `title`, over-length, malformed `flow`/`mindmap`, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` no session with that id (`{ "statusCode": 404, "message": "Session with id '<id>' not found", "error": "Not Found" }`) Â· `409` duplicate `title` for the session
 
 #### PUT /api/sessions/:sessionId/plans/:id
 
 Update a plan (partial; only provided fields change). A body carrying only `flow` replaces the whole flow and leaves `title` and `description` untouched â€” this is the shape the dashboard's autosave sends, so an absent key is a no-op rather than a clear. A body carrying only `mindmap` likewise replaces the layout alone, which is the shape the map autosave sends.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6872,13 +7091,13 @@ Update a plan (partial; only provided fields change). A body carrying only `flow
 
 Returns the saved `Plan` entity raw (no envelope).
 
-**Errors:** `400` validation failure (over-length, malformed `flow`/`mindmap`, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` `id`+`sessionId` not found Â· `409` duplicate `title` for the session
+**Errors:** `400` validation failure (over-length, malformed `flow`/`mindmap`, or any extra field rejected by `forbidNonWhitelisted`) Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` `id`+`sessionId` not found Â· `409` duplicate `title` for the session
 
 #### DELETE /api/sessions/:sessionId/plans/:id
 
 Delete a plan. Deleting the session deletes its plans (FK `ON DELETE CASCADE`).
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6891,7 +7110,7 @@ Delete a plan. Deleting the session deletes its plans (FK `ON DELETE CASCADE`).
 
 No content (empty body). The handler looks the plan up first, so a missing plan yields `404` rather than a silent `204`.
 
-**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` `id`+`sessionId` not found
+**Errors:** `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` `id`+`sessionId` not found
 
 Files uploaded to a plan are swept with it: the delete removes the row and then best-effort clears the plan's `plan-media/<sessionId>/<planId>/` prefix. A storage failure there is logged rather than raised, so a stale object can never turn a successful delete into an error.
 
@@ -6901,7 +7120,7 @@ Upload one file to store on a plan's blocks â€” the dashboard offers it on 
 
 The stored name is a fresh UUID, so re-uploading the same file never overwrites an earlier upload and a client-supplied name can never address another plan's file. `filename` keeps the original name for display, and `mimetype` is the type the client reported when it is informative, falling back to the extension and then to `application/octet-stream` â€” browsers report octet-stream for many document types, so the extension is what actually identifies a PDF or spreadsheet.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6934,7 +7153,7 @@ The stored name is a fresh UUID, so re-uploading the same file never overwrites 
 }
 ```
 
-**Errors:** `400` no file in the `file` field, or a file whose name is unusable Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` `id`+`sessionId` not found Â· `413` file larger than `MEDIA_DOWNLOAD_MAX_BYTES` (see Â§6.3)
+**Errors:** `400` no file in the `file` field, or a file whose name is unusable Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` `id`+`sessionId` not found Â· `413` file larger than `MEDIA_DOWNLOAD_MAX_BYTES` (see Â§6.3)
 
 #### GET /api/sessions/:sessionId/plans/:id/media/:mediaId
 
@@ -6942,7 +7161,7 @@ Read one stored plan file back. The response is scoped to the plan, and `mediaId
 
 The `Content-Type` is inferred from the stored name's extension and passed through an allow-list: images, videos and audio are served with their own type, everything else â€” documents, and notably `image/svg+xml`, which is scriptable despite the `image/` prefix â€” is served as `application/octet-stream`, so this endpoint cannot host active content on the API origin. The body is a `Content-Disposition: attachment` download named after the stored file.
 
-**Auth:** API key (OPERATOR)
+**Auth:** API key (users)
 
 **Path parameters**
 
@@ -6956,7 +7175,7 @@ The `Content-Type` is inferred from the stored name's extension and passed throu
 
 Raw bytes of the stored file, with the inferred `Content-Type`.
 
-**Errors:** `400` `mediaId` is not a valid stored file name Â· `401` missing/invalid `X-API-Key` Â· `403` key below OPERATOR role Â· `404` no plan for `id`+`sessionId`, or no stored file named `mediaId`
+**Errors:** `400` `mediaId` is not a valid stored file name Â· `401` missing/invalid `X-API-Key` Â· `403` key below users role Â· `404` no plan for `id`+`sessionId`, or no stored file named `mediaId`
 
 ## 6.5 Real-time API (WebSocket)
 
@@ -7084,7 +7303,7 @@ A subscribe request whose `events` array contains no recognized name (after filt
 - The API key is **re-validated on every `subscribe`** (not just at connect), so a key revoked or expired mid-connection is caught â€” the server replies `UNAUTHORIZED` and disconnects.
 - **Per-key session scope is enforced** against the fresh key: a key restricted via `allowedSessions` may NOT subscribe to `"*"` and may NOT subscribe to a session outside its allowlist â€” either is rejected with `FORBIDDEN_SESSION`. An unrestricted key (no `allowedSessions`) may subscribe to anything, including `"*"`.
 - **Live sockets are re-validated against the database once a minute**, with no client activity required. A socket carries the key as it stood when it connected, and rooms joined earlier are never revisited, so that snapshot is what the sweep compares against the current row, along with any later `subscribe` whose key no longer matched it (what that `subscribe` granted outlives the change, so putting the row back does not spare the socket). It closes the key's sockets with an `UNAUTHORIZED` frame naming the cause: `API key has been deleted`, `API key has been revoked`, `API key has expired`, or `API key authorization changed; please reconnect` when `role`, `allowedIps`, `allowedSessions`, `allowedChats` or `expiresAt` moved. A change made through this API still evicts synchronously in the same request; the sweep is what catches a change made on another node, written straight to the database, or committed in the instant a socket was connecting. A rename, and the usage counters the gateway itself writes, evict nobody. Treat these frames as "reconnect and resubscribe", not as fatal.
-- **`session.qr` requires the OPERATOR role**, matching `GET /api/sessions/{sessionId}/qr`. A VIEWER key may still subscribe to it, by name or through a wildcard, but the QR is never delivered to its sockets; every other event is. The role is read from the key re-validated on each `subscribe`, so a key narrowed to VIEWER stops receiving the QR from its next `subscribe`. Between subscribes the QR gate rests on the same snapshot as every other event: a key demoted right after a `subscribe` keeps receiving the QR until its sockets are evicted, which is immediate on the node processing the change and within the sweep's minute anywhere else.
+- **`session.qr` requires the `users` role**, matching `GET /api/sessions/{sessionId}/qr`. Every key satisfies that tier by definition, but the gate still reads the role from the key re-validated on each `subscribe`, so a key whose cached role cannot satisfy it stops receiving the QR from its next `subscribe`. Between subscribes the QR gate rests on the same snapshot as every other event: a key demoted right after a `subscribe` keeps receiving the QR until its sockets are evicted, which is immediate on the node processing the change and within the sweep's minute anywhere else.
 
 ### Example (socket.io-client)
 

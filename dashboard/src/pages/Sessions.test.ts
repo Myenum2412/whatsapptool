@@ -280,9 +280,9 @@ before(async () => {
   ({ installJsdomGlobals } = await import('../test-helpers/jsdom.ts'));
   await installJsdomGlobals();
   installFetchStub();
-  // RoleProvider seeds from localStorage; 'admin' makes canWrite true, or every action button
+  // RoleProvider seeds from localStorage; 'orgmenu' makes canWrite true, or every action button
   // (New Session, Stop/Start, Unlink, Delete, Kill Stuck) is hidden and there is nothing to test.
-  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   // Deliberately NOT setting sessionStorage['mywhatsapp_api_key'] here: useWebSocket.connect() bails
   // with a console.warn when it's absent, so the page opens no socket. A case that drives the live
   // feed sets the key itself; the client it reaches is the socket.io double, which dials nothing.
@@ -1091,18 +1091,18 @@ test('a connect retries a failed list read once, even when each failure carries 
   assert.equal(listReads(), 2);
 });
 
-test('a read-only key gets no Show QR button, since the QR is operator-only', async () => {
+test('an unrecognized cached role gets no Show QR button', async () => {
   const { screen, within } = rtl;
   resetFetchCalls();
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'superuser');
   try {
     renderSessions();
     const card = (await screen.findByText('new-device')).closest('.session-card') as HTMLElement;
-    // The pairing placeholder still renders; only the action that would poll a 403 is gone.
+    // The pairing placeholder still renders; only the write-gated action is gone.
     assert.ok(card.querySelector('.qr-placeholder'));
     assert.equal(within(card).queryByRole('button', { name: 'Show QR' }) === null, true);
   } finally {
-    window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+    window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   }
 });
 

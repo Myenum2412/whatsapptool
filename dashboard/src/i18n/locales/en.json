@@ -68,7 +68,8 @@
     "logs": "Logs",
     "campaigns": "Campaigns",
     "flow": "Flow",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "users": "Users"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "Reload Dashboard"
   },
   "login": {
-    "apiKey": "API Key",
-    "apiKeyPlaceholder": "Enter your API key",
-    "apiKeyRequired": "API key is required",
-    "connect": "Connect",
-    "connecting": "Connecting...",
-    "invalidKey": "Invalid API key",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "connectionError": "Unable to connect to server. Please try again.",
     "help": "Need help?",
     "viewDocs": "View Documentation",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "New here?",
+    "signupLink": "Create an account",
+    "createdAccount": "Account created — sign in to continue."
+  },
+  "signup": {
+    "name": "Name (optional)",
+    "namePlaceholder": "Your name",
+    "signUp": "Sign Up",
+    "signingUp": "Creating account...",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "accountExists": "An account with this email already exists.",
+    "tooManyRequests": "Too many attempts. Please try again later.",
+    "loginPrompt": "Already have an account?",
+    "loginLink": "Sign in"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -625,7 +643,7 @@
       "description": "Add a webhook to receive real-time event notifications",
       "loadErrorTitle": "Could not load webhooks",
       "forbiddenTitle": "No access to webhooks",
-      "forbiddenDesc": "Webhooks require an API key with the operator or admin role."
+      "forbiddenDesc": "Webhooks require an API key with the users or orgmenu role."
     },
     "toasts": {
       "created": "Webhook created successfully",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "Create a WhatsApp session before adding templates.",
       "loadErrorTitle": "Could not load templates",
       "forbiddenTitle": "No access to templates",
-      "forbiddenDesc": "Templates require an API key with the operator or admin role."
+      "forbiddenDesc": "Templates require an API key with the users or orgmenu role."
     },
     "toasts": {
       "created": "Template created successfully",
@@ -918,14 +936,12 @@
     "namePlaceholder": "e.g., Production Key",
     "rolesTitle": "Roles Reference",
     "roles": {
-      "admin": "Admin",
-      "operator": "Operator",
-      "viewer": "Viewer"
+      "orgmenu": "Org Menu",
+      "users": "Users"
     },
     "roleDescriptions": {
-      "admin": "Full access to all resources",
-      "operator": "Session & message management",
-      "viewer": "Read-only access"
+      "orgmenu": "Full access to all resources and login-account management",
+      "users": "Session, message and automation management"
     },
     "columns": {
       "name": "Name",
@@ -1281,6 +1297,68 @@
       "friday": "Fri",
       "saturday": "Sat",
       "sunday": "Sun"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Email/password accounts your team signs in with",
+    "addButton": "Add user",
+    "loadError": "Could not load users.",
+    "created": "User created.",
+    "updated": "User updated.",
+    "deleted": "User deleted.",
+    "enabled": "User enabled.",
+    "disabled": "User disabled.",
+    "empty": {
+      "title": "No users yet",
+      "description": "Create a login account for a team member."
+    },
+    "columns": {
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "statuses": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "edit": "Edit",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete"
+    },
+    "modalAdd": "Add user",
+    "modalEdit": "Edit user",
+    "form": {
+      "name": "Name",
+      "placeholderName": "e.g., Jane Operator",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters",
+      "role": "Role",
+      "active": "Account is active"
+    },
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "A password is required.",
+      "passwordTooShort": "The password must be at least 8 characters."
+    },
+    "confirm": {
+      "deleteTitle": "Delete user",
+      "deleteMessage": "Permanently delete this account? Its login will stop working immediately.",
+      "delete": "Delete"
+    },
+    "errors": {
+      "create": "Could not create the user",
+      "update": "Could not update the user",
+      "delete": "Could not delete the user",
+      "enable": "Could not enable the user",
+      "disable": "Could not disable the user"
     }
   }
 }

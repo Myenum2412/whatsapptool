@@ -108,7 +108,7 @@ export class InfraStorageController implements OnApplicationBootstrap {
   // ============================================================================
 
   @Get('storage/files/count')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Get file count in current storage' })
   @ApiResponse({ status: 200, description: 'File count and size', type: StorageFileCountResponseDto })
   async getStorageFileCount(): Promise<{
@@ -127,7 +127,7 @@ export class InfraStorageController implements OnApplicationBootstrap {
   }
 
   @Get('storage/export')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Export all storage files as tar.gz' })
   @ApiResponse({
     status: 200,
@@ -194,7 +194,7 @@ export class InfraStorageController implements OnApplicationBootstrap {
 
   @Post('storage/import')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Import storage files from tar.gz' })
   // `type:` is required, not decoration: a description-only @ApiBody has nothing to infer the DTO
   // from and publishes `{"type":"string"}`, telling every generated client the body is a bare

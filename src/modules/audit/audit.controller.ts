@@ -12,7 +12,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'List audit logs with optional filters' })
   @ApiQuery({ name: 'action', required: false, enum: AuditAction })
   @ApiQuery({ name: 'severity', required: false, enum: AuditSeverity })

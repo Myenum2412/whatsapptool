@@ -94,7 +94,7 @@ describe('invokeTool', () => {
   it('enforces requiredRole via hasPermission', async () => {
     const a = auth();
     (a.hasPermission as jest.Mock).mockReturnValue(false);
-    const writeTool: ToolDescriptor = { ...readTool, tier: 'write', requiredRole: ApiKeyRole.OPERATOR };
+    const writeTool: ToolDescriptor = { ...readTool, tier: 'write', requiredRole: ApiKeyRole.USER };
     await expect(invokeTool(writeTool, { n: 1 }, 'rawkey', a as unknown as AuthService)).rejects.toBeInstanceOf(
       ForbiddenException,
     );
@@ -141,7 +141,7 @@ describe('invokeTool', () => {
       const a = auth();
       (a.hasPermission as jest.Mock).mockReturnValue(false);
       const onAuthFailure = jest.fn();
-      const writeTool: ToolDescriptor = { ...readTool, tier: 'write', requiredRole: ApiKeyRole.OPERATOR };
+      const writeTool: ToolDescriptor = { ...readTool, tier: 'write', requiredRole: ApiKeyRole.USER };
       await expect(
         invokeTool(writeTool, { n: 1 }, 'rawkey', a as unknown as AuthService, undefined, onAuthFailure),
       ).rejects.toBeInstanceOf(ForbiddenException);

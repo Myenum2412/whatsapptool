@@ -80,7 +80,7 @@ export class BullBoardAuthMiddleware implements NestMiddleware {
       // ahead of it in main.ts), so the stamp reaches AuditService.
       setRequestActor({ apiKeyId: apiKey.id, apiKeyName: apiKey.name, ipAddress: clientIp });
 
-      if (!this.authService.hasPermission(apiKey, ApiKeyRole.ADMIN)) {
+      if (!this.authService.hasPermission(apiKey, ApiKeyRole.ORG_MENU)) {
         throw new ForbiddenException('Admin role required to access the queue dashboard');
       }
 

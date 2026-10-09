@@ -68,7 +68,8 @@
     "logs": "Protokolle",
     "campaigns": "Campaigns",
     "flow": "Ablauf",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "users": "Benutzer"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "Dashboard neu laden"
   },
   "login": {
-    "apiKey": "API-Schlüssel",
-    "apiKeyPlaceholder": "API-Schlüssel eingeben",
-    "apiKeyRequired": "API-Schlüssel ist erforderlich",
-    "connect": "Verbinden",
-    "connecting": "Verbindung wird hergestellt...",
-    "invalidKey": "Ungültiger API-Schlüssel",
+    "email": "E-Mail",
+    "emailPlaceholder": "du@beispiel.de",
+    "emailRequired": "E-Mail ist erforderlich",
+    "passwordRequired": "Passwort ist erforderlich",
+    "signIn": "Anmelden",
+    "signingIn": "Anmeldung läuft...",
+    "invalidCredentials": "Ungültige E-Mail oder ungültiges Passwort",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
     "connectionError": "Verbindung zum Server nicht möglich. Bitte versuche es erneut.",
     "help": "Brauchst du Hilfe?",
     "viewDocs": "Dokumentation ansehen",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "Neu hier?",
+    "signupLink": "Konto erstellen",
+    "createdAccount": "Konto erstellt – bitte anmelden."
+  },
+  "signup": {
+    "name": "Name (optional)",
+    "namePlaceholder": "Ihr Name",
+    "signUp": "Registrieren",
+    "signingUp": "Konto wird erstellt...",
+    "passwordTooShort": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+    "accountExists": "Ein Konto mit dieser E-Mail existiert bereits.",
+    "tooManyRequests": "Zu viele Versuche. Bitte später erneut versuchen.",
+    "loginPrompt": "Sie haben bereits ein Konto?",
+    "loginLink": "Anmelden"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -625,7 +643,7 @@
       "description": "Füge einen Webhook hinzu, um Ereignisbenachrichtigungen in Echtzeit zu erhalten",
       "loadErrorTitle": "Webhooks konnten nicht geladen werden",
       "forbiddenTitle": "Kein Zugriff auf Webhooks",
-      "forbiddenDesc": "Webhooks erfordern einen API-Schlüssel mit der Rolle Operator oder Admin."
+      "forbiddenDesc": "Webhooks erfordern einen API-Schlüssel mit der Rolle users oder orgmenu."
     },
     "toasts": {
       "created": "Webhook wurde erfolgreich erstellt",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "Erstelle eine WhatsApp-Sitzung, bevor du Vorlagen hinzufügst.",
       "loadErrorTitle": "Vorlagen konnten nicht geladen werden",
       "forbiddenTitle": "Kein Zugriff auf Vorlagen",
-      "forbiddenDesc": "Vorlagen erfordern einen API-Schlüssel mit der Rolle Operator oder Admin."
+      "forbiddenDesc": "Vorlagen erfordern einen API-Schlüssel mit der Rolle users oder orgmenu."
     },
     "toasts": {
       "created": "Vorlage wurde erfolgreich erstellt",
@@ -918,14 +936,12 @@
     "namePlaceholder": "z. B. Produktionsschlüssel",
     "rolesTitle": "Rollenübersicht",
     "roles": {
-      "admin": "Administrator",
-      "operator": "Operator",
-      "viewer": "Betrachter"
+      "orgmenu": "Organisationsmenü",
+      "users": "Benutzer"
     },
     "roleDescriptions": {
-      "admin": "Vollzugriff auf alle Ressourcen",
-      "operator": "Verwaltung von Sitzungen und Nachrichten",
-      "viewer": "Nur Lesezugriff"
+      "orgmenu": "Vollzugriff auf alle Ressourcen und Verwaltung der Anmeldekonten",
+      "users": "Verwaltung von Sitzungen, Nachrichten und Automatisierungen"
     },
     "columns": {
       "name": "Name",
@@ -1281,6 +1297,68 @@
       "friday": "Fr",
       "saturday": "Sa",
       "sunday": "So"
+    }
+  },
+  "users": {
+    "title": "Benutzer",
+    "subtitle": "E-Mail-/Passwort-Konten, mit denen sich Ihr Team anmeldet",
+    "addButton": "Benutzer hinzufügen",
+    "loadError": "Benutzer konnten nicht geladen werden.",
+    "created": "Benutzer erstellt.",
+    "updated": "Benutzer aktualisiert.",
+    "deleted": "Benutzer gelöscht.",
+    "enabled": "Benutzer aktiviert.",
+    "disabled": "Benutzer deaktiviert.",
+    "empty": {
+      "title": "Noch keine Benutzer",
+      "description": "Erstellen Sie ein Anmeldekonto für ein Teammitglied."
+    },
+    "columns": {
+      "email": "E-Mail",
+      "name": "Name",
+      "role": "Rolle",
+      "status": "Status",
+      "created": "Erstellt",
+      "actions": "Aktionen"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "disabled": "Deaktiviert"
+    },
+    "actions": {
+      "edit": "Bearbeiten",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen"
+    },
+    "modalAdd": "Benutzer hinzufügen",
+    "modalEdit": "Benutzer bearbeiten",
+    "form": {
+      "name": "Name",
+      "placeholderName": "z. B. Jane Operator",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "passwordHint": "Mindestens 8 Zeichen",
+      "role": "Rolle",
+      "active": "Konto ist aktiv"
+    },
+    "validation": {
+      "emailRequired": "E-Mail ist erforderlich.",
+      "emailInvalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
+      "passwordRequired": "Ein Passwort ist erforderlich.",
+      "passwordTooShort": "Das Passwort muss mindestens 8 Zeichen lang sein."
+    },
+    "confirm": {
+      "deleteTitle": "Benutzer löschen",
+      "deleteMessage": "Dieses Konto dauerhaft löschen? Die Anmeldung funktioniert sofort nicht mehr.",
+      "delete": "Löschen"
+    },
+    "errors": {
+      "create": "Der Benutzer konnte nicht erstellt werden",
+      "update": "Der Benutzer konnte nicht aktualisiert werden",
+      "delete": "Der Benutzer konnte nicht gelöscht werden",
+      "enable": "Der Benutzer konnte nicht aktiviert werden",
+      "disable": "Der Benutzer konnte nicht deaktiviert werden"
     }
   }
 }

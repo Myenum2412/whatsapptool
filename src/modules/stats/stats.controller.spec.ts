@@ -15,7 +15,7 @@ describe('StatsController access control', () => {
 
   it.each(['getOverview', 'getMessageStats'] as const)('global stats route %s requires ADMIN', method => {
     const role = reflector.get<ApiKeyRole | undefined>(REQUIRED_ROLE_KEY, proto[method]);
-    expect(role).toBe(ApiKeyRole.ADMIN);
+    expect(role).toBe(ApiKeyRole.ORG_MENU);
   });
 
   it('per-session stats is not globally ADMIN-gated (scope-enforced by its :sessionId param)', () => {

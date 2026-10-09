@@ -671,7 +671,7 @@ times out on slow first boot_ above).
 curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/sessions/{sessionId}/messages/{chatId}/history
 
-# Check queue / infra status (ADMIN)
+# Check queue / infra status (orgmenu)
 curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/infra/status
 
@@ -881,7 +881,7 @@ curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/sessions/{sessionId}/webhooks
 
 # Abandoned deliveries, most recent first: those that exhausted every retry, plus those never
-# attempted at all (recorded with `attempts: 0`). Requires an ADMIN key — an OPERATOR key gets
+# attempted at all (recorded with `attempts: 0`). Requires an orgmenu key — a `users` key gets
 # a 403, which reads like the endpoint does not exist. Rows older than
 # WEBHOOK_FAILURE_RETENTION_DAYS (default 90) are pruned.
 curl -H "X-API-Key: $ADMIN_API_KEY" \
@@ -1018,7 +1018,7 @@ time curl http://localhost:2785/api/health
 # Check database readiness (no dedicated DB metric)
 curl http://localhost:2785/api/health/ready
 
-# Check queue / infra status (ADMIN)
+# Check queue / infra status (orgmenu)
 curl -H "X-API-Key: $API_KEY" \
   http://localhost:2785/api/infra/status
 ```

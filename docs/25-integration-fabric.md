@@ -1,6 +1,6 @@
 # 25 - Integration Fabric
 
-> **Status:** Shipped. The core substrate, operator provisioning (an ADMIN instance API and a dashboard
+> **Status:** Shipped. The core substrate, operator provisioning (an orgmenu instance API and a dashboard
 > **Instances** tab), and the official ingress adapters are all in place; the public SDK reference is
 > still to come (P4). This document describes the architecture and the design rationale — _why_ it is
 > built this way — not a how-to or an API reference (see
@@ -296,7 +296,7 @@ types remain the source of truth.
 
 See [15 - Project Roadmap](./15-project-roadmap.md) for the full phase table. In brief: **P0** (this
 substrate) is merged; **P1** added scale-correctness (per-conversation ordering, per-instance fairness,
-DLQ redrive, handover); **P2** shipped operator provisioning in v0.8.0 — an ADMIN-only instance API
+DLQ redrive, handover); **P2** shipped operator provisioning in v0.8.0 — an orgmenu-only instance API
 (`POST|GET /api/integration/plugins/:pluginId/instances` to create and list, with
 `GET|PATCH|DELETE /api/integration/plugins/:pluginId/instances/:instanceId` and
 `POST /api/integration/plugins/:pluginId/instances/:instanceId/regenerate-secret` on the item path) and a
@@ -306,7 +306,7 @@ ingress adapters ship as sandboxed plugins in the
 [MyWhatsapp-plugins](https://github.com/rmyndharis/OpenWA-plugins) catalog, not in this repository. What
 remains open is **P4**: the published SDK reference, a compatibility test suite, and multi-node routing.
 
-> **Provisioning is a first-class operator surface.** An ADMIN key mints a plugin instance against an
+> **Provisioning is a first-class operator surface.** An orgmenu key mints a plugin instance against an
 > ingress-capable plugin, binds it to a session scope, and receives the ingress URLs for the plugin's
 > declared routes. The instance's ingress secret (and its `verifyToken`) are revealed once, on create and
 > on regenerate, and masked on every later read.

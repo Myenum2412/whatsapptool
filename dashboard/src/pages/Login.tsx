@@ -8,12 +8,24 @@ import './Login.css';
 
 interface LoginProps {
   onLogin: (apiKey: string, role?: string) => void;
+  /** Pre-filled email after a successful signup, so the user just types the password. */
+  initialEmail?: string;
+  /** Switch to the signup view (rendered by App when unauthenticated). */
+  onSwitch?: () => void;
+  /** One-shot success notice (e.g. "account created") shown above the form. */
+  notice?: string;
 }
 
-export function Login({ onLogin }: LoginProps) {
+interface LoginResponse {
+  apiKey?: string;
+  role?: string;
+}
+
+export function Login({ onLogin, initialEmail, onSwitch, notice }: LoginProps) {
   const { t, i18n } = useTranslation();
-  const [apiKey, setApiKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
+  const [email, setEmail] = useState(initialEmail ?? '');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const currentLang = resolveSupportedLanguage(i18n.resolvedLanguage || i18n.language);
@@ -24,30 +36,41 @@ export function Login({ onLogin }: LoginProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiKey.trim()) {
-      setError(t('login.apiKeyRequired'));
+    if (!email.trim()) {
+      setError(t('login.emailRequired'));
+      return;
+    }
+    if (!password) {
+      setError(t('login.passwordRequired'));
       return;
     }
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       if (response.ok) {
-        // The validate body already carries the key's role — hand it up so the app can set it
-        // directly instead of re-validating the same key a second time.
-        const data: { role?: string } = await response.json().catch(() => ({}));
-        onLogin(apiKey, data.role);
+        // The login body already carries the freshly issued key and its role — hand them up so the
+        // app can store both without a second request. An unexpected body shape is treated as a
+        // failure rather than crashing with an empty key.
+        const data: LoginResponse = await response.json().catch(() => ({}));
+        if (data.apiKey) {
+          onLogin(data.apiKey, data.role);
+        } else {
+          setError(t('login.connectionError'));
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setError(errorData.message || t('login.invalidKey'));
+        // 401 is always the user's credentials; anything else (400 validation, 429 rate limit,
+        // 5xx) surfaces the server's detail when it offers one.
+        setError(
+          response.status === 401 ? t('login.invalidCredentials') : errorData.message || t('login.connectionError'),
+        );
       }
     } catch {
       setError(t('login.connectionError'));
@@ -81,32 +104,49 @@ export function Login({ onLogin }: LoginProps) {
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" noValidate>
+          {notice && <p className="login-notice">{notice}</p>}
           <div className="input-group">
-            <label htmlFor="apiKey">{t('login.apiKey')}</label>
+            <label htmlFor="email">{t('login.email')}</label>
             <div className="input-wrapper">
               <input
-                id="apiKey"
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder={t('login.apiKeyPlaceholder')}
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder={t('login.emailPlaceholder')}
+                autoComplete="email"
+                className={error ? 'error' : ''}
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">{t('common.password')}</label>
+            <div className="input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder={t('common.password')}
+                autoComplete="current-password"
                 className={error ? 'error' : ''}
               />
               <button
                 type="button"
                 className="toggle-visibility"
-                onClick={() => setShowKey(!showKey)}
-                aria-label={showKey ? t('common.hideApiKey') : t('common.showApiKey')}
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
               >
-                {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {error && <span className="error-message">{error}</span>}
           </div>
 
           <button type="submit" className="connect-btn" disabled={isLoading}>
-            {isLoading ? t('login.connecting') : t('login.connect')}
+            {isLoading ? t('login.signingIn') : t('login.signIn')}
           </button>
         </form>
 
@@ -116,6 +156,15 @@ export function Login({ onLogin }: LoginProps) {
             {t('login.viewDocs')}
           </a>
         </p>
+
+        {onSwitch && (
+          <p className="login-help">
+            {t('login.signupPrompt')}{' '}
+            <button type="button" className="login-switch" onClick={onSwitch}>
+              {t('login.signupLink')}
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );

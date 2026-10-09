@@ -216,7 +216,7 @@ afterEach(() => {
   calls.length = 0;
 });
 
-function renderCampaigns(role: 'operator' | 'viewer' = 'operator'): void {
+function renderCampaigns(role = 'users'): void {
   window.localStorage.setItem('mywhatsapp_user_role', role);
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1_000 } } });
   rtl.render(
@@ -289,8 +289,8 @@ test('the wizard blocks a placeholder with no matching column, then submits the 
   });
 });
 
-test('a read-only key cannot start a new campaign', async () => {
-  renderCampaigns('viewer');
+test('an unrecognized cached role cannot start a new campaign', async () => {
+  renderCampaigns('superuser');
   const button = (await rtl.screen.findByRole('button', { name: 'New campaign' })) as HTMLButtonElement;
   assert.equal(button.disabled, true);
 });

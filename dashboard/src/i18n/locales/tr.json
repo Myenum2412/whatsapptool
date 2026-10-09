@@ -68,7 +68,8 @@
     "logs": "Kayıtlar (Logs)",
     "campaigns": "Campaigns",
     "flow": "Akış",
-    "compliance": "Uyum"
+    "compliance": "Uyum",
+    "users": "Kullanıcılar"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "Kontrol Panelini Yeniden Yükle"
   },
   "login": {
-    "apiKey": "API Anahtarı",
-    "apiKeyPlaceholder": "API anahtarınızı girin",
-    "apiKeyRequired": "API anahtarı zorunludur",
-    "connect": "Bağlan",
-    "connecting": "Bağlanıyor...",
-    "invalidKey": "Geçersiz API anahtarı",
+    "email": "E-posta",
+    "emailPlaceholder": "siz@ornek.com",
+    "emailRequired": "E-posta zorunludur",
+    "passwordRequired": "Parola zorunludur",
+    "signIn": "Oturum Aç",
+    "signingIn": "Oturum açılıyor...",
+    "invalidCredentials": "Geçersiz e-posta veya parola",
+    "showPassword": "Parolayı göster",
+    "hidePassword": "Parolayı gizle",
     "connectionError": "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.",
     "help": "Yardıma mı ihtiyacınız var?",
     "viewDocs": "Dokümantasyonu Görüntüle",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "Yeni misin?",
+    "signupLink": "Hesap oluştur",
+    "createdAccount": "Hesap oluşturuldu — devam etmek için giriş yapın."
+  },
+  "signup": {
+    "name": "Ad (isteğe bağlı)",
+    "namePlaceholder": "Adınız",
+    "signUp": "Kayıt Ol",
+    "signingUp": "Hesap oluşturuluyor...",
+    "passwordTooShort": "Şifre en az 8 karakter olmalıdır.",
+    "accountExists": "Bu e-posta ile zaten bir hesap var.",
+    "tooManyRequests": "Çok fazla deneme. Lütfen daha sonra tekrar deneyin.",
+    "loginPrompt": "Zaten bir hesabınız var mı?",
+    "loginLink": "Giriş Yap"
   },
   "dashboard": {
     "title": "Kontrol Paneli",
@@ -625,7 +643,7 @@
       "description": "Gerçek zamanlı olay bildirimleri almak için bir webhook ekleyin",
       "loadErrorTitle": "Webhook'lar yüklenemedi",
       "forbiddenTitle": "Webhook'lara erişim yok",
-      "forbiddenDesc": "Webhook'lar, operatör veya yönetici rolüne sahip bir API anahtarı gerektirir."
+      "forbiddenDesc": "Webhook'lar users veya orgmenu rolüne sahip bir API anahtarı gerektirir."
     },
     "toasts": {
       "created": "Webhook başarıyla oluşturuldu",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "Şablon eklemeden önce bir WhatsApp oturumu oluşturun.",
       "loadErrorTitle": "Şablonlar yüklenemedi",
       "forbiddenTitle": "Şablonlara erişim yok",
-      "forbiddenDesc": "Şablonlar, operatör veya yönetici rolüne sahip bir API anahtarı gerektirir."
+      "forbiddenDesc": "Şablonlar users veya orgmenu rolüne sahip bir API anahtarı gerektirir."
     },
     "toasts": {
       "created": "Şablon başarıyla oluşturuldu",
@@ -918,14 +936,12 @@
     "namePlaceholder": "ör. Prodüksiyon Anahtarı",
     "rolesTitle": "Roller Referansı",
     "roles": {
-      "admin": "Yönetici (Admin)",
-      "operator": "Operatör",
-      "viewer": "İzleyici"
+      "orgmenu": "Organizasyon menüsü",
+      "users": "Kullanıcılar"
     },
     "roleDescriptions": {
-      "admin": "Tüm kaynaklara tam erişim",
-      "operator": "Oturum ve mesaj yönetimi",
-      "viewer": "Salt okunur erişim"
+      "orgmenu": "Tüm kaynaklara tam erişim ve oturum açma hesabı yönetimi",
+      "users": "Oturum, mesaj ve otomasyon yönetimi"
     },
     "columns": {
       "name": "Ad",
@@ -1281,6 +1297,68 @@
       "friday": "Cum",
       "saturday": "Cmt",
       "sunday": "Paz"
+    }
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "subtitle": "Ekip üyelerinizin giriş yaptığı e-posta/parola hesapları",
+    "addButton": "Kullanıcı ekle",
+    "loadError": "Kullanıcılar yüklenemedi.",
+    "created": "Kullanıcı oluşturuldu.",
+    "updated": "Kullanıcı güncellendi.",
+    "deleted": "Kullanıcı silindi.",
+    "enabled": "Kullanıcı etkinleştirildi.",
+    "disabled": "Kullanıcı devre dışı bırakıldı.",
+    "empty": {
+      "title": "Henüz kullanıcı yok",
+      "description": "Bir ekip üyesi için giriş hesabı oluşturun."
+    },
+    "columns": {
+      "email": "E-posta",
+      "name": "Ad",
+      "role": "Rol",
+      "status": "Durum",
+      "created": "Oluşturulma",
+      "actions": "İşlemler"
+    },
+    "statuses": {
+      "active": "Etkin",
+      "disabled": "Devre dışı"
+    },
+    "actions": {
+      "edit": "Düzenle",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak",
+      "delete": "Sil"
+    },
+    "modalAdd": "Kullanıcı ekle",
+    "modalEdit": "Kullanıcıyı düzenle",
+    "form": {
+      "name": "Ad",
+      "placeholderName": "örn. Jane Operator",
+      "email": "E-posta",
+      "password": "Parola",
+      "passwordHint": "En az 8 karakter",
+      "role": "Rol",
+      "active": "Hesap etkin"
+    },
+    "validation": {
+      "emailRequired": "E-posta zorunludur.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "passwordRequired": "Parola zorunludur.",
+      "passwordTooShort": "Parola en az 8 karakter olmalıdır."
+    },
+    "confirm": {
+      "deleteTitle": "Kullanıcıyı sil",
+      "deleteMessage": "Bu hesap kalıcı olarak silinsin mi? Girişi anında çalışmayı durdurur.",
+      "delete": "Sil"
+    },
+    "errors": {
+      "create": "Kullanıcı oluşturulamadı",
+      "update": "Kullanıcı güncellenemedi",
+      "delete": "Kullanıcı silinemedi",
+      "enable": "Kullanıcı etkinleştirilemedi",
+      "disable": "Kullanıcı devre dışı bırakılamadı"
     }
   }
 }

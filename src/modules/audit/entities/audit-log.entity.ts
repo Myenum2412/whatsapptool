@@ -9,9 +9,20 @@ export enum AuditAction {
   API_KEY_DELETED = 'api_key_deleted',
   API_KEY_AUTH_FAILED = 'api_key_auth_failed',
 
+  // Dashboard sign-in (POST /api/auth/login). Failed attempts carry the attempted email and a
+  // reason in metadata — never the submitted password — so a credential-stuffing run is visible
+  // in the audit trail without the log itself becoming a secret store.
+  AUTH_LOGIN_SUCCEEDED = 'auth_login_succeeded',
+  AUTH_LOGIN_FAILED = 'auth_login_failed',
+
   // Rate-limit enforcement (sampled: at most one row per subject+kind per minute — see
   // EventsGateway — so enforcing a limit never becomes an audit-write flood of its own).
   RATE_LIMIT_EXCEEDED = 'rate_limit_exceeded',
+
+  // Account provisioning (orgmenu-only routes on /api/auth/users).
+  USER_CREATED = 'user_created',
+  USER_UPDATED = 'user_updated',
+  USER_DELETED = 'user_deleted',
 
   // Queue dashboard (Bull Board) events
   QUEUE_BOARD_MUTATED = 'queue_board_mutated',

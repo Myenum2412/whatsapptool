@@ -71,7 +71,7 @@ export class CatalogController {
 
   @ChatScoped('fenced')
   @Post('messages/send-product')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a product message (Baileys engine only)' })
   @ApiResponse({ status: 201, description: 'Product message accepted for sending', type: ProductMessageResponseDto })
   @ApiResponse({ status: 404, description: 'Product id not found in the session catalog.' })

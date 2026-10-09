@@ -29,7 +29,7 @@ export class PlanController {
   constructor(private readonly planService: PlanService) {}
 
   @Post()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Create a flow plan for the session' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 201, description: 'Plan created', type: PlanResponseDto })
@@ -40,7 +40,7 @@ export class PlanController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'List all flow plans for a session' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'List of plans', type: [PlanResponseDto] })
@@ -49,7 +49,7 @@ export class PlanController {
   }
 
   @Get(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Get a flow plan by ID' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'id', description: 'Plan ID' })
@@ -62,7 +62,7 @@ export class PlanController {
   // PUT rather than PATCH, matching the other session-scoped resources. The dashboard's flow
   // autosave sends `{ flow }` on its own, so every field is optional and an absent key is a no-op.
   @Put(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Update a flow plan' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'id', description: 'Plan ID' })
@@ -78,7 +78,7 @@ export class PlanController {
   }
 
   @Delete(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a flow plan' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -90,7 +90,7 @@ export class PlanController {
   }
 
   @Post(':id/media')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: inboundMediaMaxBytes(), files: 1 } }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -128,7 +128,7 @@ export class PlanController {
   }
 
   @Get(':id/media/:mediaId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiProduces('application/octet-stream')
   @ApiOperation({ summary: 'Download a media file uploaded to a plan' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

@@ -68,7 +68,8 @@
     "logs": "Journaux",
     "campaigns": "Campaigns",
     "flow": "Flux",
-    "compliance": "Conformité"
+    "compliance": "Conformité",
+    "users": "Utilisateurs"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "Recharger le tableau de bord"
   },
   "login": {
-    "apiKey": "Clé API",
-    "apiKeyPlaceholder": "Entrez votre clé API",
-    "apiKeyRequired": "La clé API est requise",
-    "connect": "Connecter",
-    "connecting": "Connexion...",
-    "invalidKey": "Clé API invalide",
+    "email": "E-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "emailRequired": "L'e-mail est requis",
+    "passwordRequired": "Le mot de passe est requis",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion en cours...",
+    "invalidCredentials": "E-mail ou mot de passe invalide",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "connectionError": "Impossible de se connecter au serveur. Veuillez réessayer.",
     "help": "Besoin d'aide ?",
     "viewDocs": "Voir la documentation",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "Nouveau ici ?",
+    "signupLink": "Créer un compte",
+    "createdAccount": "Compte créé — connectez-vous pour continuer."
+  },
+  "signup": {
+    "name": "Nom (facultatif)",
+    "namePlaceholder": "Votre nom",
+    "signUp": "S'inscrire",
+    "signingUp": "Création du compte...",
+    "passwordTooShort": "Le mot de passe doit comporter au moins 8 caractères.",
+    "accountExists": "Un compte existe déjà avec cet e-mail.",
+    "tooManyRequests": "Trop de tentatives. Veuillez réessayer plus tard.",
+    "loginPrompt": "Vous avez déjà un compte ?",
+    "loginLink": "Se connecter"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -625,7 +643,7 @@
       "description": "Ajoutez un webhook pour recevoir des notifications d'événements en temps réel",
       "loadErrorTitle": "Impossible de charger les webhooks",
       "forbiddenTitle": "Aucun accès aux webhooks",
-      "forbiddenDesc": "Les webhooks nécessitent une clé API avec le rôle opérateur ou administrateur."
+      "forbiddenDesc": "Les webhooks nécessitent une clé API avec le rôle users ou orgmenu."
     },
     "toasts": {
       "created": "Webhook créé avec succès",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "Créez une session WhatsApp avant d'ajouter des templates.",
       "loadErrorTitle": "Impossible de charger les templates",
       "forbiddenTitle": "Aucun accès aux templates",
-      "forbiddenDesc": "Les templates nécessitent une clé API avec le rôle opérateur ou administrateur."
+      "forbiddenDesc": "Les modèles nécessitent une clé API avec le rôle users ou orgmenu."
     },
     "toasts": {
       "created": "Template créé avec succès",
@@ -918,14 +936,12 @@
     "namePlaceholder": "ex : Clé de Production",
     "rolesTitle": "Référence des rôles",
     "roles": {
-      "admin": "Administrateur",
-      "operator": "Opérateur",
-      "viewer": "Spectateur"
+      "orgmenu": "Menu d'organisation",
+      "users": "Utilisateurs"
     },
     "roleDescriptions": {
-      "admin": "Accès complet à toutes les ressources",
-      "operator": "Gestion des sessions et des messages",
-      "viewer": "Accès en lecture seule"
+      "orgmenu": "Accès complet à toutes les ressources et gestion des comptes de connexion",
+      "users": "Gestion des sessions, des messages et des automatisations"
     },
     "columns": {
       "name": "Nom",
@@ -1281,6 +1297,68 @@
       "friday": "Ven",
       "saturday": "Sam",
       "sunday": "Dim"
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Comptes e-mail/mot de passe avec lesquels votre équipe se connecte",
+    "addButton": "Ajouter un utilisateur",
+    "loadError": "Impossible de charger les utilisateurs.",
+    "created": "Utilisateur créé.",
+    "updated": "Utilisateur mis à jour.",
+    "deleted": "Utilisateur supprimé.",
+    "enabled": "Utilisateur activé.",
+    "disabled": "Utilisateur désactivé.",
+    "empty": {
+      "title": "Aucun utilisateur",
+      "description": "Créez un compte de connexion pour un membre de l’équipe."
+    },
+    "columns": {
+      "email": "E-mail",
+      "name": "Nom",
+      "role": "Rôle",
+      "status": "Statut",
+      "created": "Créé",
+      "actions": "Actions"
+    },
+    "statuses": {
+      "active": "Actif",
+      "disabled": "Désactivé"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "delete": "Supprimer"
+    },
+    "modalAdd": "Ajouter un utilisateur",
+    "modalEdit": "Modifier l'utilisateur",
+    "form": {
+      "name": "Nom",
+      "placeholderName": "p. ex. Jane Operator",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "passwordHint": "Au moins 8 caractères",
+      "role": "Rôle",
+      "active": "Le compte est actif"
+    },
+    "validation": {
+      "emailRequired": "L’e-mail est obligatoire.",
+      "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "passwordRequired": "Un mot de passe est obligatoire.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères."
+    },
+    "confirm": {
+      "deleteTitle": "Supprimer l'utilisateur",
+      "deleteMessage": "Supprimer définitivement ce compte ? Sa connexion cessera immédiatement de fonctionner.",
+      "delete": "Supprimer"
+    },
+    "errors": {
+      "create": "Impossible de créer l’utilisateur",
+      "update": "Impossible de mettre à jour l’utilisateur",
+      "delete": "Impossible de supprimer l’utilisateur",
+      "enable": "Impossible d'activer l'utilisateur",
+      "disable": "Impossible de désactiver l’utilisateur"
     }
   }
 }

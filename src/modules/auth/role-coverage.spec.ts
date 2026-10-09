@@ -14,7 +14,7 @@ describe('admin controller role coverage (server-side authorization is the real 
     ['IntegrationInstanceController', IntegrationInstanceController],
     ['RedriveController', RedriveController],
   ])('%s requires the ADMIN role at the class level', (_name, controller) => {
-    expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, controller)).toBe(ApiKeyRole.ADMIN);
+    expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, controller)).toBe(ApiKeyRole.ORG_MENU);
   });
 });
 
@@ -25,6 +25,6 @@ describe('admin controller role coverage (server-side authorization is the real 
 describe('group invite-code role coverage (the code is a capability, not read data)', () => {
   it.each(['getInviteCode', 'revokeInviteCode'] as const)('GroupController.%s requires the OPERATOR role', method => {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- reading route metadata, not invoking
-    expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, GroupController.prototype[method])).toBe(ApiKeyRole.OPERATOR);
+    expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, GroupController.prototype[method])).toBe(ApiKeyRole.USER);
   });
 });

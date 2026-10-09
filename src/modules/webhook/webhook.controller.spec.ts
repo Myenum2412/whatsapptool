@@ -125,18 +125,18 @@ describe('Webhook controllers (secret leak + read authz)', () => {
   it('findBySession requires OPERATOR role', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- reading route metadata, not invoking
     const role = reflector.get<ApiKeyRole>(REQUIRED_ROLE_KEY, controller.findBySession);
-    expect(role).toBe(ApiKeyRole.OPERATOR);
+    expect(role).toBe(ApiKeyRole.USER);
   });
 
   it('findOne requires OPERATOR role', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- reading route metadata, not invoking
     const role = reflector.get<ApiKeyRole>(REQUIRED_ROLE_KEY, controller.findOne);
-    expect(role).toBe(ApiKeyRole.OPERATOR);
+    expect(role).toBe(ApiKeyRole.USER);
   });
 
   it('cross-session findAll requires OPERATOR role', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- reading route metadata, not invoking
     const role = reflector.get<ApiKeyRole>(REQUIRED_ROLE_KEY, listController.findAll);
-    expect(role).toBe(ApiKeyRole.OPERATOR);
+    expect(role).toBe(ApiKeyRole.USER);
   });
 });

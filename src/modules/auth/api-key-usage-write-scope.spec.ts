@@ -29,10 +29,11 @@ function makeRow(overrides: Partial<ApiKey> = {}): ApiKey {
     name: 'Test Key',
     keyHash: 'hash',
     keyPrefix: 'prefix',
-    role: ApiKeyRole.OPERATOR,
+    role: ApiKeyRole.USER,
     allowedIps: null,
     allowedSessions: null,
     allowedChats: null,
+    ownerUserId: null,
     isActive: true,
     expiresAt: null,
     lastUsedAt: null,
@@ -86,21 +87,21 @@ describe('API-key usage write scope', () => {
   });
 
   it('does not revert an authorisation narrowing committed while the request was in flight', async () => {
-    const row = makeRow({ role: ApiKeyRole.ADMIN });
+    const row = makeRow({ role: ApiKeyRole.ORG_MENU });
     const repository = makeRepository(row);
     const tracker = new ApiKeyUsageTracker(repository as never);
 
     const heldByRequest = { ...row };
 
     // Narrowed on every authorisation dimension at once.
-    row.role = ApiKeyRole.VIEWER;
+    row.role = ApiKeyRole.USER;
     row.allowedSessions = ['session-a'];
     row.allowedIps = ['10.0.0.1'];
     row.expiresAt = new Date('2020-01-01T00:00:00.000Z');
 
     await tracker.record(heldByRequest);
 
-    expect(row.role).toBe(ApiKeyRole.VIEWER);
+    expect(row.role).toBe(ApiKeyRole.USER);
     expect(row.allowedSessions).toEqual(['session-a']);
     expect(row.allowedIps).toEqual(['10.0.0.1']);
     expect(row.expiresAt).toEqual(new Date('2020-01-01T00:00:00.000Z'));

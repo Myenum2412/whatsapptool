@@ -183,7 +183,7 @@ export class ContactController {
 
   @ChatScoped('fenced')
   @Put(':contactId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Save a contact to the account's addressbook, or edit an existing entry" })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -210,7 +210,7 @@ export class ContactController {
   // from shadowing the unblock route, whichever order they are declared in.
   @ChatScoped('fenced')
   @Delete(':contactId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: "Remove a contact from the account's addressbook" })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'contactId', description: 'Contact ID (e.g., 628xxx@c.us)' })
@@ -230,7 +230,7 @@ export class ContactController {
 
   @ChatScoped('fenced')
   @Post(':contactId/block')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Block a contact' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -254,7 +254,7 @@ export class ContactController {
 
   @ChatScoped('fenced')
   @Delete(':contactId/block')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Unblock a contact' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'contactId', description: 'Contact ID (e.g., 628xxx@c.us)' })

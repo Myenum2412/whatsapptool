@@ -56,8 +56,8 @@ describe('MediaController', () => {
   describe('authorization', () => {
     // Converting spends CPU and spawns a process, so it sits behind the same role as sending.
     it('requires OPERATOR to convert', () => {
-      expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, handler('convertVoice'))).toBe(ApiKeyRole.OPERATOR);
-      expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, handler('convertVideo'))).toBe(ApiKeyRole.OPERATOR);
+      expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, handler('convertVoice'))).toBe(ApiKeyRole.USER);
+      expect(Reflect.getMetadata(REQUIRED_ROLE_KEY, handler('convertVideo'))).toBe(ApiKeyRole.USER);
     });
 
     // Asking whether the feature exists reveals nothing, and a read-only key needs the answer to

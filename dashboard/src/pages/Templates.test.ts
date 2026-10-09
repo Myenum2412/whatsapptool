@@ -60,7 +60,7 @@ before(async () => {
   const { installJsdomGlobals } = await import('../test-helpers/jsdom.ts');
   await installJsdomGlobals();
   installFetchStub();
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'users');
   const { i18nReady } = await import('../i18n/index.ts');
   await i18nReady;
   rtl = await import('@testing-library/react');
@@ -88,13 +88,13 @@ function renderTemplates(): void {
 
 // The row button exists so a template can be deleted without opening it in the editor first, and it
 // is gated on the same write permission as the editor's own delete. Both halves are pinned here.
-test('a write key can delete a template from its row, and a read-only key cannot', async () => {
+test('a writer can delete a template from its row, and an unrecognized cached role cannot', async () => {
   const { screen, fireEvent, within, waitFor } = rtl;
   templatesStatus = 200;
   templates = [{ id: 'tpl-1', name: 'invoice-reminder', body: 'Hi {{name}}' }];
   deleted.length = 0;
 
-  window.localStorage.setItem('mywhatsapp_user_role', 'operator');
+  window.localStorage.setItem('mywhatsapp_user_role', 'users');
   renderTemplates();
 
   const row = (await screen.findByText('invoice-reminder')).closest('.template-list-row') as HTMLElement;
@@ -107,7 +107,7 @@ test('a write key can delete a template from its row, and a read-only key cannot
   await waitFor(() => assert.deepEqual(deleted, ['tpl-1'], 'the delete never reached the API'));
 
   rtl.cleanup();
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'superuser');
   templates = [{ id: 'tpl-1', name: 'invoice-reminder', body: 'Hi {{name}}' }];
   renderTemplates();
 
@@ -115,7 +115,7 @@ test('a write key can delete a template from its row, and a read-only key cannot
   assert.equal(
     within(readOnlyRow).queryByRole('button', { name: 'Delete' }),
     null,
-    'a read-only key was offered the row delete',
+    'an unrecognized cached role was offered the row delete',
   );
 });
 

@@ -15,7 +15,7 @@ export class StatsController {
   // session-restricted key out — role and session scope are independent — so these also require an
   // unrestricted key. (Per-session stats below stays scope-gated by its :sessionId route param.)
   @Get('overview')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @RequireUnscopedKey()
   @ApiOperation({ summary: 'Get overall statistics' })
   @ApiResponse({
@@ -28,7 +28,7 @@ export class StatsController {
   }
 
   @Get('messages')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @RequireUnscopedKey()
   @ApiOperation({ summary: 'Get message statistics with time series' })
   @ApiResponse({

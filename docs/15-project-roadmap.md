@@ -613,7 +613,7 @@ architecture and design rationale):
 | P3    | A second ingress adapter — validates the substrate generalizes beyond the first consumer.                                                                                                                             | ✅ Shipped (`supabase-otp-hook`)                          |
 | P4    | Developer experience: SDK reference docs, compatibility test suite, multi-node routing.                                                                                                                               | 📋 Planned                                                |
 
-> **Provisioning is operator-facing since `0.8.0`.** An ADMIN key mints a per-plugin instance and its
+> **Provisioning is operator-facing since `0.8.0`.** An orgmenu key mints a per-plugin instance and its
 > ingress secret through `POST /api/integration/plugins/:pluginId/instances`, and rotates that secret
 > through `POST /api/integration/plugins/:pluginId/instances/:instanceId/regenerate-secret`; both are also
 > reachable from the **Instances** tab of the dashboard plugin dialog. Rotation is a hard cutover — the old

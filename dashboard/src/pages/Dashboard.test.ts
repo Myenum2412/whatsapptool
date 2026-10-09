@@ -1,7 +1,8 @@
 // Render test for the Dashboard stat cards under the bare `node --test` runner, on the Sessions.test.ts
-// harness. GET /webhooks and GET /stats/overview both reject a viewer key; each card must then show
-// the unavailable placeholder rather than a count the gateway never returned. POST /sessions/:id/stop
-// is OPERATOR-only: a viewer is offered no Disconnect, and a failed stop is reported, not swallowed.
+// harness. GET /webhooks and GET /stats/overview both answer 403 in the stub; each card must then
+// show the unavailable placeholder rather than a count the gateway never returned. POST /sessions/:id/stop
+// is write-gated in the UI: an unrecognized cached role is offered no Disconnect, and a failed stop is
+// reported, not swallowed.
 import '../test-helpers/register-hooks.ts';
 import { test, before, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -42,10 +43,10 @@ function installFetchStub(): void {
     if (path === '/api/webhooks') {
       return webhooksStatus === 200
         ? Promise.resolve(jsonResponse(webhookList))
-        : Promise.resolve(jsonResponse({ message: 'Insufficient permissions. Required: operator' }, webhooksStatus));
+        : Promise.resolve(jsonResponse({ message: 'Insufficient permissions. Required: users' }, webhooksStatus));
     }
-    // Everything else, the admin-only overview included, is refused.
-    return Promise.resolve(jsonResponse({ message: 'Insufficient permissions. Required: admin' }, 403));
+    // Everything else, the orgmenu-only overview included, is refused.
+    return Promise.resolve(jsonResponse({ message: 'Insufficient permissions. Required: orgmenu' }, 403));
   }) as typeof fetch;
 }
 
@@ -65,7 +66,7 @@ before(async () => {
     disconnect(): void {}
   };
   installFetchStub();
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'users');
   const { i18nReady } = await import('../i18n/index.ts');
   await i18nReady;
   rtl = await import('@testing-library/react');
@@ -81,7 +82,7 @@ afterEach(() => {
   webhookList = [];
   sessionList = [];
   stopStatus = 200;
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'users');
 });
 
 function renderDashboard(): void {
@@ -133,20 +134,24 @@ test('a successful empty webhook read still counts zero', async () => {
   await rtl.waitFor(() => assert.equal(statValue('Webhooks Configured'), '0'));
 });
 
-test('a read-only key is offered no Disconnect', async () => {
+test('an unrecognized cached role is offered no Disconnect', async () => {
   webhooksStatus = 403;
   sessionList = [READY_SESSION];
+  window.localStorage.setItem('mywhatsapp_user_role', 'superuser');
   renderDashboard();
   await rtl.screen.findByText('Main');
   assert.ok(rtl.screen.getByRole('button', { name: 'View' }), 'the row rendered without its actions');
-  assert.ok(!rtl.screen.queryByRole('button', { name: 'Disconnect' }), 'a viewer key was offered Disconnect');
+  assert.ok(
+    !rtl.screen.queryByRole('button', { name: 'Disconnect' }),
+    'an unrecognized cached role was offered Disconnect',
+  );
 });
 
 test('a failed stop is reported, not swallowed', async () => {
   webhooksStatus = 200;
   sessionList = [READY_SESSION];
   stopStatus = 400;
-  window.localStorage.setItem('mywhatsapp_user_role', 'operator');
+  window.localStorage.setItem('mywhatsapp_user_role', 'users');
   renderDashboard();
   const disconnect = await rtl.screen.findByRole('button', { name: 'Disconnect' });
   // The session changed on the server even though the stop answered an error: the list is re-read.

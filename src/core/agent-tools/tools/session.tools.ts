@@ -64,7 +64,7 @@ export function sessionTools(session: SessionService): AnyToolDescriptor[] {
         'a reconnect and must be re-issued. Not available on the whatsapp-web.js engine. Requires ' +
         'OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -78,7 +78,7 @@ export function sessionTools(session: SessionService): AnyToolDescriptor[] {
         'The last presence reported for a chat, or null when none has been — the chat was never ' +
         'subscribed, or nothing has changed since. Subscribe first with SessionSubscribePresence.',
       tier: 'read',
-      requiredRole: ApiKeyRole.VIEWER,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -90,7 +90,7 @@ export function sessionTools(session: SessionService): AnyToolDescriptor[] {
       name: 'SessionMarkChatRead',
       description: 'Mark a chat as read (clears unread count). Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -114,7 +114,7 @@ export function sessionTools(session: SessionService): AnyToolDescriptor[] {
       name: 'SessionMarkChatUnread',
       description: 'Mark a chat as unread. Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -126,7 +126,7 @@ export function sessionTools(session: SessionService): AnyToolDescriptor[] {
       name: 'SessionSendChatState',
       description: "Show a typing/recording indicator in a chat, or clear it with 'paused'. Requires OPERATOR role.",
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,

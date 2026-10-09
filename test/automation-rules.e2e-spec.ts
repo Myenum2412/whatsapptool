@@ -56,8 +56,8 @@ describe('Automation rules (e2e)', () => {
 
     sessionRepo = app.get(getRepositoryToken(Session, 'data'));
     const authService = app.get(AuthService);
-    apiKey = (await authService.createApiKey({ name: 'e2e-automation-admin', role: ApiKeyRole.ADMIN })).rawKey;
-    viewerKey = (await authService.createApiKey({ name: 'e2e-automation-viewer', role: ApiKeyRole.VIEWER })).rawKey;
+    apiKey = (await authService.createApiKey({ name: 'e2e-automation-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
+    viewerKey = (await authService.createApiKey({ name: 'e2e-automation-viewer', role: ApiKeyRole.USER })).rawKey;
   });
 
   afterAll(async () => {

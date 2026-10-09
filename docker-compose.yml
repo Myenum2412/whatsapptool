@@ -280,6 +280,9 @@ services:
       # .spec.ts derives the required set from .env.example so a new knob cannot ship unreachable.
       - API_KEY_PEPPER=${API_KEY_PEPPER:-}
       - BOOTSTRAP_KEY_FILE=${BOOTSTRAP_KEY_FILE:-}
+      - BOOTSTRAP_ADMIN_EMAIL=${BOOTSTRAP_ADMIN_EMAIL:-}
+      - BOOTSTRAP_ADMIN_PASSWORD=${BOOTSTRAP_ADMIN_PASSWORD:-}
+      - BOOTSTRAP_ADMIN_FILE=${BOOTSTRAP_ADMIN_FILE:-}
       - ENABLE_SWAGGER=${ENABLE_SWAGGER:-}
       - VALIDATION_ERROR_DETAIL=${VALIDATION_ERROR_DETAIL:-}
       - MCP_READONLY=${MCP_READONLY:-}

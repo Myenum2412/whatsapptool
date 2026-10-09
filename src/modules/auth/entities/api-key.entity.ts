@@ -1,9 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 export enum ApiKeyRole {
-  ADMIN = 'admin',
-  OPERATOR = 'operator',
-  VIEWER = 'viewer',
+  ORG_MENU = 'orgmenu',
+  USER = 'users',
 }
 
 @Entity('api_keys')
@@ -26,7 +25,7 @@ export class ApiKey {
   @Column({
     type: 'varchar',
     length: 20,
-    default: ApiKeyRole.OPERATOR,
+    default: ApiKeyRole.USER,
   })
   role!: ApiKeyRole;
 
@@ -42,6 +41,16 @@ export class ApiKey {
   // sends; see src/common/security/chat-scope.ts.
   @Column({ type: 'simple-array', nullable: true })
   allowedChats!: string[] | null;
+
+  /**
+   * The dashboard account (`users.id`) a sign-in (POST /api/auth/login, /register) minted this key
+   * for, or NULL for a hand-minted operator key. A key with an owner is an ACCOUNT key: its `role`
+   * mirrors the account's, and a `users`-role account key may reach exactly the sessions it owns
+   * (`sessions.ownerUserId` on the `data` connection) — NULL never is, so account keys cannot see
+   * each other's (or orgmenu-created) WhatsApp connections.
+   */
+  @Column({ type: 'varchar', length: 36, nullable: true })
+  ownerUserId!: string | null;
 
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;

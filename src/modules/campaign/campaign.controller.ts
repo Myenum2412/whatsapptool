@@ -46,7 +46,7 @@ export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Post('inspect')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: resolveCampaignUploadMaxBytes() } }))
   @ApiConsumes('multipart/form-data')
@@ -66,7 +66,7 @@ export class CampaignController {
   }
 
   @Post()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: resolveCampaignUploadMaxBytes() } }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -112,7 +112,7 @@ export class CampaignController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'List the session’s campaigns, newest first' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'Campaigns', type: [CampaignResponseDto] })
@@ -121,7 +121,7 @@ export class CampaignController {
   }
 
   @Get(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Get a campaign with progress, skip reasons and a preview of the next rows' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'id', description: 'Campaign ID' })
@@ -132,7 +132,7 @@ export class CampaignController {
   }
 
   @Get(':id/recipients')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Page through a campaign’s rows and their outcomes' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'id', description: 'Campaign ID' })
@@ -147,7 +147,7 @@ export class CampaignController {
   }
 
   @Get(':id/export')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiProduces('text/csv')
   @ApiOperation({ summary: 'Download every row with its outcome as CSV' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -163,7 +163,7 @@ export class CampaignController {
   }
 
   @Post(':id/attachments')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: inboundMediaMaxBytes(), files: 1 } }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -205,7 +205,7 @@ export class CampaignController {
   }
 
   @Delete(':id/attachments/:attachmentId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove an attachment from a draft campaign' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -223,7 +223,7 @@ export class CampaignController {
   }
 
   @Post(':id/start')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Start a draft campaign, or resume a paused one' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -236,7 +236,7 @@ export class CampaignController {
   }
 
   @Post(':id/pause')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Pause a running campaign after the row in flight' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -248,7 +248,7 @@ export class CampaignController {
   }
 
   @Post(':id/cancel')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel a campaign; rows not yet sent stay pending and are never sent' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -260,7 +260,7 @@ export class CampaignController {
   }
 
   @Delete(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a campaign and its rows (not while running)' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

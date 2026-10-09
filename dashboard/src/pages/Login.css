@@ -179,6 +179,28 @@
   text-decoration: underline;
 }
 
+.login-container .login-notice {
+  display: block;
+  color: var(--primary-text);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.login-container .login-switch {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary-text);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.login-container .login-switch:hover {
+  text-decoration: underline;
+}
+
 /* Mobile Responsive */
 @media (max-width: 480px) {
   .login-container {

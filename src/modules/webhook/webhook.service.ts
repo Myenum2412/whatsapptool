@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, In, LessThan, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, LessThan, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Webhook } from './entities/webhook.entity';
 import { WebhookDeliveryFailure } from './entities/webhook-delivery-failure.entity';
 import { Session } from '../session/entities/session.entity';
 import { CreateWebhookDto, UpdateWebhookDto } from './dto';
 import { createLogger } from '../../common/services/logger.service';
-import { resolveSessionScope } from '../../common/security/session-scope';
+import { resolveSessionScope, normalizeSessionScope, SessionScopeContext } from '../../common/security/session-scope';
 import { ListOptions, resolveListWindow } from '../../common/utils/paginate';
 import { generateIdempotencyKey, generateDeliveryId } from './utils/idempotency.util';
 import {
@@ -167,9 +167,12 @@ export class WebhookService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async findAll(allowedSessions?: string[] | null, opts: ListOptions = {}): Promise<Webhook[]> {
+  async findAll(scope?: SessionScopeContext | string[] | null, opts: ListOptions = {}): Promise<Webhook[]> {
     // A session-restricted key only sees its own sessions' webhooks; an unrestricted key
     // (null/empty allowlist, e.g. ADMIN) sees all — mirroring the ApiKeyGuard allowedSessions model.
+    // An account `users`-role key additionally narrows to the sessions it OWNS, so it can never
+    // read the webhook URLs another account or the operator registered (sessionScopeContext()).
+    const ctx = normalizeSessionScope(scope);
     const { limit, offset } = resolveListWindow(opts.limit, opts.offset);
     // `id` tiebreaks the second-resolution `createdAt` so a paged walk has a total order.
     const options: FindManyOptions<Webhook> = {
@@ -177,9 +180,21 @@ export class WebhookService implements OnModuleInit, OnModuleDestroy {
       take: limit,
       skip: offset,
     };
-    if (allowedSessions && allowedSessions.length > 0) {
-      options.where = { sessionId: In(allowedSessions) };
+    const restrictions: FindOptionsWhere<Webhook>[] = [];
+    if (ctx.ownerUserId) {
+      const owned = await this.sessionRepository.find({
+        where: { ownerUserId: ctx.ownerUserId },
+        select: { id: true },
+      });
+      // An account that owns no session has nothing visible — not "everything".
+      if (owned.length === 0) return [];
+      restrictions.push({ sessionId: In(owned.map(session => session.id)) });
     }
+    if (ctx.allowedSessions && ctx.allowedSessions.length > 0) {
+      restrictions.push({ sessionId: In(ctx.allowedSessions) });
+    }
+    if (restrictions.length === 1) options.where = restrictions[0];
+    else if (restrictions.length > 1) options.where = restrictions;
     return this.webhookRepository.find(options);
   }
 

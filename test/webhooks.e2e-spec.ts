@@ -93,8 +93,8 @@ describe('Webhooks (e2e)', () => {
 
     // Mint real keys so the suite doesn't depend on seed/DB state; ADMIN covers the OPERATOR routes.
     const authService = app.get(AuthService);
-    apiKey = (await authService.createApiKey({ name: 'e2e-admin', role: ApiKeyRole.ADMIN })).rawKey;
-    viewerKey = (await authService.createApiKey({ name: 'e2e-viewer', role: ApiKeyRole.VIEWER })).rawKey;
+    apiKey = (await authService.createApiKey({ name: 'e2e-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
+    viewerKey = (await authService.createApiKey({ name: 'e2e-viewer', role: ApiKeyRole.USER })).rawKey;
 
     received = [];
     receiver = http.createServer((req, res) => {

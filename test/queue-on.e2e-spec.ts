@@ -195,7 +195,7 @@ describeQueueOn('Queued dispatch paths (e2e, QUEUE_ENABLED=true)', () => {
     eventRepo = app.get<Repository<IngressEvent>>(getRepositoryToken(IngressEvent, 'data'));
     webhookService = app.get(WebhookService);
     sessionRepo = app.get(getRepositoryToken(Session, 'data'));
-    apiKey = (await app.get(AuthService).createApiKey({ name: 'e2e-queue-on', role: ApiKeyRole.ADMIN })).rawKey;
+    apiKey = (await app.get(AuthService).createApiKey({ name: 'e2e-queue-on', role: ApiKeyRole.ORG_MENU })).rawKey;
 
     received = [];
     receiver = http.createServer((req, res) => {

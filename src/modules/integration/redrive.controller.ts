@@ -14,7 +14,7 @@ import { RedriveResultDto } from './dto/instance.dto';
 // must NOT be able to trigger it.)
 @ApiTags('integration')
 @Controller('integration/instances')
-@RequireRole(ApiKeyRole.ADMIN)
+@RequireRole(ApiKeyRole.ORG_MENU)
 export class RedriveController {
   constructor(
     private readonly redrive: RedriveService,

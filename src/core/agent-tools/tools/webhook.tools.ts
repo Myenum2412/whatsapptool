@@ -13,7 +13,7 @@ export function webhookTools(webhook: WebhookService): AnyToolDescriptor[] {
       description:
         'List all webhooks the API key is allowed to see, across all its accessible sessions. Supports limit/offset paging.',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       inputSchema: z.object({
         limit: z.number().int().min(1).max(1000).optional(),
         offset: z.number().int().min(0).optional(),
@@ -27,7 +27,7 @@ export function webhookTools(webhook: WebhookService): AnyToolDescriptor[] {
       name: 'WebhookFindBySession',
       description: 'List all webhooks registered for a specific session.',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({ sessionId }),
       handler: input => webhook.findBySession(input.sessionId).then(ws => WebhookResponseDto.fromEntities(ws)),
@@ -36,7 +36,7 @@ export function webhookTools(webhook: WebhookService): AnyToolDescriptor[] {
       name: 'WebhookFindOne',
       description: 'Get details for a specific webhook by ID within a session.',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,

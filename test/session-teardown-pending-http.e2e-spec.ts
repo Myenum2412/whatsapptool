@@ -64,7 +64,7 @@ describe('Session name-scoped teardown fence: 409 code survives HTTP serializati
     await app.init();
 
     const authService = app.get(AuthService);
-    adminKey = (await authService.createApiKey({ name: 'e2e-teardown-admin', role: ApiKeyRole.ADMIN })).rawKey;
+    adminKey = (await authService.createApiKey({ name: 'e2e-teardown-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
     // A ParseUUIDPipe-valid session id for the route param; the overridden findOne() ignores it but the
     // pipe still validates the shape before the handler runs.
     sessionId = '00000000-0000-4000-8000-000000000000';

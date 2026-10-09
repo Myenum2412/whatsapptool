@@ -74,20 +74,38 @@ fixed `dev-admin-key`; with neither set, the seed key is generated in the format
 API keys carry **no permission strings**. Authorization is a role hierarchy on the key itself, plus
 three scoping dimensions enforced by `ApiKeyGuard`.
 
-| Role       | Rank | Meaning                                                              |
-| ---------- | ---- | -------------------------------------------------------------------- |
-| `admin`    | 3    | Satisfies every `@RequireRole` level, including API-key management   |
-| `operator` | 2    | Satisfies `operator` and `viewer` routes — the default for a new key |
-| `viewer`   | 1    | Satisfies `viewer` routes only                                       |
+| Role      | Rank | Meaning                                                                        |
+| --------- | ---- | ------------------------------------------------------------------------------ |
+| `orgmenu` | 2    | Satisfies every `@RequireRole` level, including API-key and account management |
+| `users`   | 1    | Satisfies write/action routes — the default for a new key                      |
 
 A route declares its minimum level with `@RequireRole(...)`; a key passes when its role ranks at or
-above that level (`AuthService.hasPermission`). A key below it is rejected with `403 Forbidden`.
+above that level (`AuthService.hasPermission` — `{ USER: 1, ORG_MENU: 2 }`). A key below it is
+rejected with `403 Forbidden` (`Insufficient permissions. Required: <role>`). Two roles replaced the
+original three-tier `admin` / `operator` / `viewer` model: the old `operator` powers (sessions,
+messages, automation) folded into `users`, and key/settings management (the old `admin` tier) moved
+under `orgmenu`. The wire enum values mirror the `UserRole` enum (`UserRole.ORG_MENU = 'orgmenu'`,
+`UserRole.USER = 'users'`), because sign-in mirrors an account's `users.role` onto its own key row.
+
+A signed-in **account** (email + password, see `POST /api/auth/login`) is separate from a hand-minted
+**API key**, but carries the same two roles. Only an `orgmenu` account may provision and manage
+accounts through `/api/auth/users` (create/edit/delete, disable, reset password) — a `users` account
+cannot mint credentials.
 
 | Scope     | Field             | Effect                                                                                                                                                             |
 | --------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Source IP | `allowedIps`      | Empty/absent = unrestricted; non-empty = fail-closed IP whitelist (see §4.3)                                                                                       |
 | Sessions  | `allowedSessions` | Empty/absent = every session; non-empty = a request carrying any other session id is rejected with `401`                                                           |
 | Chats     | `allowedChats`    | Empty/absent = every chat; non-empty = default-deny: only chat-scoped routes, and only for a listed chat, else `403`; `/events`, MCP and Bull Board refuse the key |
+
+Sessions are additionally **account-private**: a session created by a signed-in `users` account
+(`POST /api/sessions` and the `/api/auth/login` path that rotates the account's key) is stamped with
+that account's `sessions.ownerUserId`, and a key whose own `api_keys.ownerUserId` is set is confined
+to sessions it owns — on the `:sessionId` routes (the `validateApiKey` fence answers `401 "API key not
+authorized for this session"`), on `GET /sessions` / `GET /sessions/stats/overview`, and on
+`GET /webhooks`. Sessions that predate the rule are ownerless and fall back to the table above
+(orgmenu / allowlisted keys only). orgmenu account keys and hand-minted API keys (ownerUserId NULL)
+are never confined by ownership, keeping the operator model unchanged.
 
 The key-lifecycle routes (`/api/auth/api-keys`) are additionally fenced with `@RequireUnscopedKey()`:
 a session-scoped key is refused there whatever its role, so it cannot mint or widen credentials
@@ -445,6 +463,7 @@ app.use(helmet({
 > (updates carry before/after authorization state), rejected authentication, session lifecycle,
 > integration-instance creation, secret rotation, deletion, and scope-binding bridge failures, the
 > infra operations (config save, restart request, data export/import, storage export/import),
+> dashboard-account create/update/delete (`user_created` / `user_updated` / `user_deleted`),
 > WebSocket rate-limit violations (sampled — see §4.6), and Bull Board queue mutations. Enum
 > members for API-key use, connection transitions, message sends, and webhook lifecycle are explicitly
 > registered as intentionally unemitted; application logs cover those operational events until dedicated

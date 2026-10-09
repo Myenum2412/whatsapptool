@@ -13,7 +13,7 @@ describe('RedriveController authz', () => {
     // The ApiKeyGuard only enforces a role when REQUIRED_ROLE_KEY metadata is present; without this
     // decorator any authenticated key (incl. read-only VIEWER) could POST the redrive action.
     const role = new Reflector().get<ApiKeyRole>(REQUIRED_ROLE_KEY, RedriveController);
-    expect(role).toBe(ApiKeyRole.ADMIN);
+    expect(role).toBe(ApiKeyRole.ORG_MENU);
   });
 });
 

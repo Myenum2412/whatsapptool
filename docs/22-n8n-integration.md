@@ -285,7 +285,7 @@ Always use the correct format for chat IDs:
    whatsapp-web.js and `call.received` is not reliable there (see the note under the trigger event
    table above)
 7. Ask MyWhatsapp which side dropped the event:
-   `GET /api/webhooks/delivery-failures?sessionId={sessionId}` (ADMIN key). A row means MyWhatsapp
+   `GET /api/webhooks/delivery-failures?sessionId={sessionId}` (orgmenu key). A row means MyWhatsapp
    delivered and n8n rejected it; an empty list means the event never reached delivery at all
 
 ### Message Not Sending

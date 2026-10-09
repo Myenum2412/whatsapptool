@@ -36,6 +36,7 @@
     "check:sdk-events": "node scripts/check-sdk-events.mjs",
     "check:sdk-docs": "node scripts/check-sdk-docs.mjs",
     "check:contract-shapes": "node scripts/check-contract-shapes.mjs",
+    "all": "npm run lint && npm run build && npm run test && npm run test:docs && npm run test:scripts",
     "openapi:export": "ts-node scripts/export-openapi.ts openapi.json",
     "openapi:check": "ts-node scripts/export-openapi.ts /tmp/openapi.generated.json && diff -u openapi.json /tmp/openapi.generated.json",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",

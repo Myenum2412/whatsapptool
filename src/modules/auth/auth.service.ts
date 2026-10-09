@@ -13,6 +13,7 @@ import { randomBytes } from 'crypto';
 import { ipMatches } from '../../common/utils/ip';
 import { hashApiKey } from './api-key-hash';
 import { ApiKey, ApiKeyRole } from './entities/api-key.entity';
+import { Session } from '../session/entities/session.entity';
 import { CreateApiKeyDto, UpdateApiKeyDto } from './dto';
 import { createLogger } from '../../common/services/logger.service';
 import { readBootstrapKey, removeBootstrapKey, writeBootstrapKey } from './bootstrap-key-file';
@@ -60,6 +61,11 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     private readonly apiKeyRepository: Repository<ApiKey>,
     private readonly usageTracker: ApiKeyUsageTracker,
     private readonly moduleRef: ModuleRef,
+    // The owner check in validateApiKey needs `sessions.ownerUserId`, which lives on the `data`
+    // connection (sessions are data-owned; the account id they reference is main-owned provenance, the
+    // same cross-connection pattern as tenancy).
+    @InjectRepository(Session, 'data')
+    private readonly sessionRepository: Repository<Session>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -71,7 +77,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     if (count === 0) {
       displayKey = resolveSeedApiKey();
 
-      await this.seedApiKey(displayKey, 'Default Admin Key', ApiKeyRole.ADMIN);
+      await this.seedApiKey(displayKey, 'Default Admin Key', ApiKeyRole.ORG_MENU);
       isNewKey = true;
 
       // Save raw key to file for startup script to read (owner-only — it's the raw admin key).
@@ -183,7 +189,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       name: dto.name,
       keyHash,
       keyPrefix,
-      role: dto.role || ApiKeyRole.OPERATOR,
+      role: dto.role || ApiKeyRole.USER,
       allowedIps: dto.allowedIps || null,
       allowedSessions: normalizeScopeList(dto.allowedSessions),
       allowedChats: normalizeChatAllowList(dto.allowedChats),
@@ -220,7 +226,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     // Scoping the last unscoped admin (non-empty allowedSessions) strips key-management just as
     // surely as demoting or expiring it: @RequireUnscopedKey would then 403 every lifecycle route.
     const removesOrSchedulesLastAdmin =
-      (dto.role !== undefined && dto.role !== ApiKeyRole.ADMIN) ||
+      (dto.role !== undefined && dto.role !== ApiKeyRole.ORG_MENU) ||
       (dto.expiresAt !== undefined && dto.expiresAt !== null) ||
       (normalizeScopeList(dto.allowedSessions)?.length ?? 0) > 0 ||
       (normalizeChatAllowList(dto.allowedChats)?.length ?? 0) > 0;
@@ -247,7 +253,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     if (dto.expiresAt !== undefined) patch.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
 
     let saved: ApiKey;
-    if (removesOrSchedulesLastAdmin && apiKey.role === ApiKeyRole.ADMIN) {
+    if (removesOrSchedulesLastAdmin && apiKey.role === ApiKeyRole.ORG_MENU) {
       // The guard's predicate is the target's ROLE, not its usability snapshot: usability also
       // depends on isActive/expiry/scope, which the guarded statement itself evaluates against live
       // row state. A non-admin target genuinely cannot strand the system, so it stays lock-free.
@@ -275,7 +281,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
 
   async delete(id: string): Promise<void> {
     const apiKey = await this.findOne(id);
-    if (apiKey.role === ApiKeyRole.ADMIN) {
+    if (apiKey.role === ApiKeyRole.ORG_MENU) {
       const result = await this.withLastAdminGuard(
         this.apiKeyRepository.createQueryBuilder().delete().from(ApiKey),
         id,
@@ -298,7 +304,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
   async revoke(id: string): Promise<ApiKey> {
     const apiKey = await this.findOne(id);
     let saved: ApiKey;
-    if (apiKey.role === ApiKeyRole.ADMIN) {
+    if (apiKey.role === ApiKeyRole.ORG_MENU) {
       const result = await this.withLastAdminGuard(
         this.apiKeyRepository.createQueryBuilder().update(ApiKey).set({ isActive: false }),
         id,
@@ -368,7 +374,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
         `(NOT (${AuthService.usableAdminCondition('')}) OR EXISTS (` +
           `SELECT 1 FROM "api_keys" "other" WHERE "other"."id" <> :id AND ${AuthService.usableAdminCondition('other')}))`,
       )
-      .setParameters({ adminRole: ApiKeyRole.ADMIN, guardNow: AuthService.guardNowParam() }) as T;
+      .setParameters({ adminRole: ApiKeyRole.ORG_MENU, guardNow: AuthService.guardNowParam() }) as T;
   }
 
   /**
@@ -479,6 +485,23 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    // Account-private sessions (the chokepoint for every `:sessionId` route). A key minted by
+    // dashboard sign-in carries `ownerUserId`; for a `users`-role account key the sessions it may
+    // reach are exactly the ones it owns. This is the data-plane side of "a users account must not
+    // see another account's (or the operator's) WhatsApp connections": orgmenu account keys and
+    // hand-minted operator keys (ownerUserId NULL) keep the established fail-open model. The row
+    // decides, not the route — an id that does not exist is treated exactly like one the key does
+    // not own, so no existence oracle is added beyond the 401 the allowedSessions fence already gives.
+    if (sessionId && apiKey.ownerUserId && apiKey.role === ApiKeyRole.USER) {
+      const session = await this.sessionRepository.findOne({
+        where: { id: sessionId },
+        select: { id: true, ownerUserId: true },
+      });
+      if (!session || session.ownerUserId !== apiKey.ownerUserId) {
+        throw new UnauthorizedException('API key not authorized for this session');
+      }
+    }
+
     // Advisory stats only; the tracker coalesces the write and never throws.
     await this.usageTracker.record(apiKey);
 
@@ -498,9 +521,8 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
 
   hasPermission(apiKey: ApiKey, requiredRole: ApiKeyRole): boolean {
     const roleHierarchy: Record<ApiKeyRole, number> = {
-      [ApiKeyRole.VIEWER]: 1,
-      [ApiKeyRole.OPERATOR]: 2,
-      [ApiKeyRole.ADMIN]: 3,
+      [ApiKeyRole.USER]: 1,
+      [ApiKeyRole.ORG_MENU]: 2,
     };
 
     return roleHierarchy[apiKey.role] >= roleHierarchy[requiredRole];

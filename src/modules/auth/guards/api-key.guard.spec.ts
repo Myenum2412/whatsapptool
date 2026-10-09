@@ -16,10 +16,11 @@ function createMockApiKey(overrides: Partial<ApiKey> = {}): ApiKey {
     name: 'Test Key',
     keyHash: 'hash',
     keyPrefix: 'owa_k1_xxxx',
-    role: ApiKeyRole.OPERATOR,
+    role: ApiKeyRole.USER,
     allowedIps: null,
     allowedSessions: null,
     allowedChats: null,
+    ownerUserId: null,
     isActive: true,
     expiresAt: null,
     lastUsedAt: null,
@@ -190,9 +191,9 @@ describe('ApiKeyGuard', () => {
   it('should reject when role permission is insufficient', async () => {
     reflector.getAllAndOverride
       .mockReturnValueOnce(false) // not public
-      .mockReturnValueOnce(ApiKeyRole.ADMIN); // required role = ADMIN
+      .mockReturnValueOnce(ApiKeyRole.ORG_MENU); // required role = ADMIN
 
-    const apiKey = createMockApiKey({ role: ApiKeyRole.VIEWER });
+    const apiKey = createMockApiKey({ role: ApiKeyRole.USER });
     (authService.validateApiKey as jest.Mock).mockResolvedValue(apiKey);
     (authService.hasPermission as jest.Mock).mockReturnValue(false);
 
@@ -204,11 +205,11 @@ describe('ApiKeyGuard', () => {
   it('rejects a session-scoped key on a @RequireUnscopedKey route, whatever its role', async () => {
     reflector.getAllAndOverride
       .mockReturnValueOnce(false) // not public
-      .mockReturnValueOnce(ApiKeyRole.ADMIN) // required role = ADMIN
+      .mockReturnValueOnce(ApiKeyRole.ORG_MENU) // required role = ADMIN
       .mockReturnValueOnce(undefined) // not @SessionScoped
       .mockReturnValueOnce(true); // @RequireUnscopedKey
 
-    const apiKey = createMockApiKey({ role: ApiKeyRole.ADMIN, allowedSessions: ['sess-A'] });
+    const apiKey = createMockApiKey({ role: ApiKeyRole.ORG_MENU, allowedSessions: ['sess-A'] });
     (authService.validateApiKey as jest.Mock).mockResolvedValue(apiKey);
     (authService.hasPermission as jest.Mock).mockReturnValue(true);
 
@@ -240,11 +241,11 @@ describe('ApiKeyGuard', () => {
     };
 
     it('stamps the key on an insufficient-role denial', async () => {
-      const apiKey = createMockApiKey({ id: 'key-uuid-1', name: 'Reporting key', role: ApiKeyRole.VIEWER });
+      const apiKey = createMockApiKey({ id: 'key-uuid-1', name: 'Reporting key', role: ApiKeyRole.USER });
       (authService.hasPermission as jest.Mock).mockReturnValue(false);
 
       const actor = await actorAfterDenial(() => {
-        reflector.getAllAndOverride.mockReturnValueOnce(false).mockReturnValueOnce(ApiKeyRole.ADMIN);
+        reflector.getAllAndOverride.mockReturnValueOnce(false).mockReturnValueOnce(ApiKeyRole.ORG_MENU);
       }, apiKey);
 
       expect(actor).toMatchObject({ apiKeyId: 'key-uuid-1', apiKeyName: 'Reporting key', ipAddress: '203.0.113.44' });
@@ -257,7 +258,7 @@ describe('ApiKeyGuard', () => {
       const actor = await actorAfterDenial(() => {
         reflector.getAllAndOverride
           .mockReturnValueOnce(false)
-          .mockReturnValueOnce(ApiKeyRole.ADMIN)
+          .mockReturnValueOnce(ApiKeyRole.ORG_MENU)
           .mockReturnValueOnce(undefined)
           .mockReturnValueOnce(true);
       }, apiKey);
@@ -286,11 +287,11 @@ describe('ApiKeyGuard', () => {
   it('admits an unrestricted key on a @RequireUnscopedKey route', async () => {
     reflector.getAllAndOverride
       .mockReturnValueOnce(false) // not public
-      .mockReturnValueOnce(ApiKeyRole.ADMIN) // required role = ADMIN
+      .mockReturnValueOnce(ApiKeyRole.ORG_MENU) // required role = ADMIN
       .mockReturnValueOnce(undefined) // not @SessionScoped
       .mockReturnValueOnce(true); // @RequireUnscopedKey
 
-    const apiKey = createMockApiKey({ role: ApiKeyRole.ADMIN, allowedSessions: null });
+    const apiKey = createMockApiKey({ role: ApiKeyRole.ORG_MENU, allowedSessions: null });
     (authService.validateApiKey as jest.Mock).mockResolvedValue(apiKey);
     (authService.hasPermission as jest.Mock).mockReturnValue(true);
 

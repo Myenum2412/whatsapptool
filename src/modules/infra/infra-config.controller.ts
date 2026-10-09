@@ -108,7 +108,7 @@ export class InfraConfigController {
   ) {}
 
   @Get('config')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Read the effective infrastructure configuration for the dashboard form' })
   @ApiResponse({ status: 200, description: 'Effective configuration (secrets omitted)', type: InfraConfigResponseDto })
   getConfig(): SavedConfigResponse {
@@ -176,7 +176,7 @@ export class InfraConfigController {
   }
 
   @Put('config')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Save infrastructure configuration to .env file' })
   @ApiResponse({
     status: 200,
@@ -375,7 +375,7 @@ export class InfraConfigController {
 
   @Post('restart')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Request server restart with Docker orchestration' })
   @ApiResponse({ status: 200, description: 'Server will restart with new profiles', type: InfraRestartResponseDto })
   @ApiBody({ required: false, type: RestartDto })

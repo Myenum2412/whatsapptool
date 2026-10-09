@@ -34,7 +34,7 @@ export class AuthController {
   }
 
   @Post()
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Create a new API key (admin only)' })
   @ApiResponse({
     status: 201,
@@ -69,7 +69,7 @@ export class AuthController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'List all API keys (admin only)' })
   @ApiResponse({
     status: 200,
@@ -95,7 +95,7 @@ export class AuthController {
   }
 
   @Get(':id')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Get API key details (admin only)' })
   @ApiResponse({
     status: 200,
@@ -121,7 +121,7 @@ export class AuthController {
   }
 
   @Put(':id')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Update API key (admin only)' })
   @ApiResponse({ status: 200, description: 'The updated API key.', type: ApiKeyResponseDto })
   @ApiResponse({ status: 409, description: 'The change would remove the last usable admin key.' })
@@ -166,7 +166,7 @@ export class AuthController {
   }
 
   @Delete(':id')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete API key (admin only)' })
   @ApiResponse({ status: 204, description: 'API key deleted' })
@@ -181,7 +181,7 @@ export class AuthController {
   }
 
   @Post(':id/revoke')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Revoke API key (admin only)' })
   @ApiResponse({ status: 200, description: 'The revoked API key (isActive now false).', type: ApiKeyResponseDto })

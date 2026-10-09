@@ -38,12 +38,12 @@ describe('Global read and create routes reject session-scoped keys (e2e)', () =>
 
     const authService = app.get(AuthService);
     scopedAdminKey = (
-      await authService.createApiKey({ name: 'e2e-global-scoped', role: ApiKeyRole.ADMIN, allowedSessions: [a.id] })
+      await authService.createApiKey({ name: 'e2e-global-scoped', role: ApiKeyRole.ORG_MENU, allowedSessions: [a.id] })
     ).rawKey;
     scopedOperatorKey = (
-      await authService.createApiKey({ name: 'e2e-global-op', role: ApiKeyRole.OPERATOR, allowedSessions: [a.id] })
+      await authService.createApiKey({ name: 'e2e-global-op', role: ApiKeyRole.USER, allowedSessions: [a.id] })
     ).rawKey;
-    adminKey = (await authService.createApiKey({ name: 'e2e-global-admin', role: ApiKeyRole.ADMIN })).rawKey;
+    adminKey = (await authService.createApiKey({ name: 'e2e-global-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
   });
 
   afterAll(async () => {

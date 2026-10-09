@@ -20,10 +20,11 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const value: RoleContextType = {
     role,
     setRole,
-    isAdmin: role === 'admin',
-    isOperator: role === 'operator',
-    isViewer: role === 'viewer',
-    canWrite: role === 'admin' || role === 'operator',
+    isOrgMenu: role === 'orgmenu',
+    isUsers: role === 'users',
+    // The collapsed two-role model has no read-only tier: 'users' absorbed the former operator
+    // powers, so every authenticated account may write.
+    canWrite: role === 'orgmenu' || role === 'users',
   };
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;

@@ -41,7 +41,7 @@ export function groupTools(group: GroupService): AnyToolDescriptor[] {
         'Get the invite code and link for a group. Requires OPERATOR role: the code is a ' +
         'transferable join capability, not plain read data.',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -56,7 +56,7 @@ export function groupTools(group: GroupService): AnyToolDescriptor[] {
       name: 'GroupCreate',
       description: 'Create a new WhatsApp group with a name and initial participants. Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -74,7 +74,7 @@ export function groupTools(group: GroupService): AnyToolDescriptor[] {
       description:
         'Add participants to an existing group. The returned `results` carry the per-participant outcome (a partial refusal does not fail the batch). Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -106,7 +106,7 @@ export function groupTools(group: GroupService): AnyToolDescriptor[] {
       description: 'Change the group name/subject. Requires OPERATOR role.',
       tier: 'write',
       destructive: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -123,7 +123,7 @@ export function groupTools(group: GroupService): AnyToolDescriptor[] {
       description: 'Change the group description. Pass empty string to clear it. Requires OPERATOR role.',
       tier: 'write',
       destructive: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,

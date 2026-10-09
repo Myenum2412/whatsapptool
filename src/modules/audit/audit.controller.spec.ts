@@ -12,6 +12,6 @@ describe('AuditController access control', () => {
     // (which guards against detached method `this`) doesn't fire on a metadata-only lookup.
     const proto = AuditController.prototype as unknown as Record<string, (...args: unknown[]) => unknown>;
     const role = new Reflector().get<ApiKeyRole | undefined>(REQUIRED_ROLE_KEY, proto.findAll);
-    expect(role).toBe(ApiKeyRole.ADMIN);
+    expect(role).toBe(ApiKeyRole.ORG_MENU);
   });
 });

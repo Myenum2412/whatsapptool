@@ -39,9 +39,9 @@ import { copyToClipboard } from '../utils/clipboard';
 import { canScopeSessions, sameSessionScope, sessionScopeNames } from '../utils/sessionScope';
 import './ApiKeys.css';
 
-const roleNames = ['admin', 'operator', 'viewer'] as const;
+const roleNames = ['orgmenu', 'users'] as const;
 
-const emptyKeyForm = { name: '', role: 'operator', allowedSessions: [] as string[] };
+const emptyKeyForm = { name: '', role: 'users', allowedSessions: [] as string[] };
 
 function useWindowSize() {
   const [width, setWidth] = useState(window.innerWidth);

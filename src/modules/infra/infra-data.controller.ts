@@ -23,7 +23,7 @@ export class InfraDataController {
   constructor(private readonly infraData: InfraDataService) {}
 
   @Get('export-data')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Export all data from Data DB for migration' })
   @ApiResponse({ status: 200, description: 'Exported data as JSON', type: InfraExportDataResponseDto })
   async exportData(): Promise<InfraExportDataResult> {
@@ -32,7 +32,7 @@ export class InfraDataController {
 
   @Post('import-data')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'Import data to Data DB (replaces existing data)' })
   // `type` is explicit: an @ApiBody carrying only a description does NOT fall back to the handler's
   // parameter type — it publishes `{"type": "string"}` for the whole body.

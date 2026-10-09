@@ -54,7 +54,7 @@ describe('App smoke (e2e)', () => {
 
   it('GET /api/health withholds the version without credentials, discloses it to a valid key', async () => {
     const authService = app.get(AuthService);
-    const { rawKey } = await authService.createApiKey({ name: 'e2e-health', role: ApiKeyRole.VIEWER });
+    const { rawKey } = await authService.createApiKey({ name: 'e2e-health', role: ApiKeyRole.USER });
 
     await request(app.getHttpServer())
       .get('/api/health')
@@ -131,8 +131,8 @@ describe('App RED metrics (e2e)', () => {
     await app.init();
 
     const authService = app.get(AuthService);
-    adminKey = (await authService.createApiKey({ name: 'e2e-red-admin', role: ApiKeyRole.ADMIN })).rawKey;
-    viewerKey = (await authService.createApiKey({ name: 'e2e-red-viewer', role: ApiKeyRole.VIEWER })).rawKey;
+    adminKey = (await authService.createApiKey({ name: 'e2e-red-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
+    viewerKey = (await authService.createApiKey({ name: 'e2e-red-viewer', role: ApiKeyRole.USER })).rawKey;
 
     // The store is process-wide; count only this suite's requests from here on.
     resetHttpRequestMetrics();

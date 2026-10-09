@@ -86,7 +86,7 @@ export function isSessionSubscriptionAllowed(allowedSessions: string[] | null | 
 export const QR_DENIED_ROOM = 'role:qr-denied';
 
 /** Roles allowed to receive `session.qr`. Anything else, including an unknown role, is denied. */
-const QR_ALLOWED_ROLES: ReadonlySet<string> = new Set([ApiKeyRole.OPERATOR, ApiKeyRole.ADMIN]);
+const QR_ALLOWED_ROLES: ReadonlySet<string> = new Set([ApiKeyRole.USER, ApiKeyRole.ORG_MENU]);
 
 /** Why an API key's live WebSocket sockets are being torn down — drives the client-facing message. */
 export type ApiKeyEvictionReason = 'revoked' | 'deleted' | 'authorization_changed' | 'expired';

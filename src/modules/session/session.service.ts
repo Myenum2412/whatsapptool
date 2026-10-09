@@ -33,6 +33,7 @@ import { PresenceStore, type ChatPresence } from './presence-store.service';
 import { SessionEngineLifecycle, resolveReconnectConfig } from './session-engine-lifecycle.service';
 import { SessionOwnershipService } from './session-ownership.service';
 import { paginate, ListOptions, resolveListWindow } from '../../common/utils/paginate';
+import { normalizeSessionScope, SessionScopeContext } from '../../common/security/session-scope';
 import { isUniqueViolation } from '../../common/utils/db-errors';
 import { resolveFeatureFlags } from '../../config/feature-flags';
 import { IWhatsAppEngine, ChatSummary, ChatState } from '../../engine/interfaces/whatsapp-engine.interface';
@@ -282,7 +283,13 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
     await this.ownership?.releaseAll();
   }
 
-  async create(dto: CreateSessionDto): Promise<Session> {
+  /**
+   * @param ownerUserId the dashboard account's id when a sign-in key created this session. The
+   *   created session is owned by that account — the private-sessions rule makes it visible (and
+   *   reachable by path) only to that account's `user:<email>` key. NULL (a hand-minted key, or no
+   *   key recorded) leaves the session unowned, i.e. orgmenu-only.
+   */
+  async create(dto: CreateSessionDto, ownerUserId?: string | null): Promise<Session> {
     // Check if session with same name exists
     const existing = await this.sessionRepository.findOne({
       where: { name: dto.name },
@@ -298,6 +305,7 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
       proxyUrl: dto.proxyUrl || null,
       proxyType: dto.proxyType || null,
       status: SessionStatus.CREATED,
+      ownerUserId: ownerUserId ?? null,
     });
 
     // The findOne pre-check above is a fast path for the common case, but it's a check-then-insert
@@ -330,29 +338,36 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
     return saved;
   }
 
-  async findAll(allowedSessions?: string[] | null, opts: SessionListOptions = {}): Promise<Session[]> {
+  async findAll(scope?: SessionScopeContext | string[] | null, opts: SessionListOptions = {}): Promise<Session[]> {
     // A session-restricted key only lists its own sessions; an unrestricted key (null/empty
     // allowlist) lists all — mirroring the ApiKeyGuard allowedSessions model so a scoped key
-    // cannot enumerate every session through this aggregate route.
+    // cannot enumerate every session through this aggregate route. An account `users`-role key
+    // additionally narrows to the sessions it OWNS (sessionScopeContext()), so one account can
+    // never enumerate another account's (or the operator's) WhatsApp connections.
     const { limit, offset } = resolveListWindow(opts.limit, opts.offset);
+    const ctx = normalizeSessionScope(scope);
     // `id` tiebreaks the second-resolution `createdAt` so a paged walk has a total order.
     const options: FindManyOptions<Session> = {
       order: { createdAt: 'DESC', id: 'DESC' },
       take: limit,
       skip: offset,
     };
-    const where: FindOptionsWhere<Session> = {};
-    if (allowedSessions && allowedSessions.length > 0) {
-      where.id = In(allowedSessions);
-    }
+    const conditions: FindOptionsWhere<Session>[] = [];
+    if (ctx.ownerUserId) conditions.push({ ownerUserId: ctx.ownerUserId });
+    if (ctx.allowedSessions && ctx.allowedSessions.length > 0) conditions.push({ id: In(ctx.allowedSessions) });
     // Exact, case-sensitive match. Only a non-empty string reaches TypeORM: anything else (an
     // array from a repeated query key, an empty value) is not a name and must not become one.
     if (typeof opts.name === 'string' && opts.name.length > 0) {
-      where.name = opts.name;
+      if (conditions.length === 0) {
+        conditions.push({ name: opts.name });
+      } else {
+        // The name filter ANDs with whichever restraint applies, so it lands on every OR branch
+        // the key's restrictions produced.
+        for (const condition of conditions) condition.name = opts.name;
+      }
     }
-    if (Object.keys(where).length > 0) {
-      options.where = where;
-    }
+    if (conditions.length === 1) options.where = conditions[0];
+    else if (conditions.length > 1) options.where = conditions;
     const sessions = await this.sessionRepository.find(options);
     return sessions.map(session => this.attachRuntimeState(session));
   }
@@ -869,7 +884,7 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
   /**
    * Get overall session statistics for multi-session monitoring
    */
-  async getStats(allowedSessions?: string[] | null): Promise<{
+  async getStats(scope?: SessionScopeContext | string[] | null): Promise<{
     total: number;
     active: number;
     ready: number;
@@ -879,7 +894,8 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
   }> {
     // Scope to the caller's allowedSessions so a session-restricted key cannot enumerate the count /
     // status distribution of sessions it has no rights to (matches the scoped GET /sessions route).
-    const scope = allowedSessions && allowedSessions.length > 0 ? allowedSessions : null;
+    // An account `users`-role key narrows to the sessions it owns instead (sessionScopeContext()).
+    const ctx = normalizeSessionScope(scope);
     // Aggregate status counts in the database instead of loading every row. findAll() is bounded by
     // DEFAULT_LIST_LIMIT for the HTTP routes, so reusing it here would silently undercount `total` and
     // `byStatus` on deployments with more sessions than that cap. A grouped COUNT is correct at any
@@ -888,8 +904,10 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
       .createQueryBuilder('session')
       .select('session.status', 'status')
       .addSelect('COUNT(session.id)', 'count');
-    if (scope) {
-      qb.where('session.id IN (:...scope)', { scope });
+    if (ctx.ownerUserId) {
+      qb.where('session.ownerUserId = :owner', { owner: ctx.ownerUserId });
+    } else if (ctx.allowedSessions && ctx.allowedSessions.length > 0) {
+      qb.where('session.id IN (:...scope)', { scope: ctx.allowedSessions });
     }
     const rows = await qb.groupBy('session.status').getRawMany<{ status: string; count: string }>();
 
@@ -903,10 +921,27 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
 
     const memory = process.memoryUsage();
 
+    // The engine map is keyed by session id; an owner-scoped key counts only the engines of the
+    // sessions it owns (ids resolved like the filter above), and an allowlist-scoped key only its own.
+    let engineScope: string[] | null = null;
+    if (ctx.ownerUserId) {
+      const owned = await this.sessionRepository.find({
+        where: { ownerUserId: ctx.ownerUserId },
+        select: { id: true },
+      });
+      engineScope = owned.map(session => session.id);
+    } else if (ctx.allowedSessions && ctx.allowedSessions.length > 0) {
+      engineScope = ctx.allowedSessions;
+    }
+    const inScopeEngineIds = engineScope === null ? null : new Set(engineScope);
+
     return {
       total,
       // engines is keyed by session id; a scoped key sees only its own running engines, not the global count.
-      active: scope ? [...this.engines.keys()].filter(id => scope.includes(id)).length : this.engines.size,
+      active:
+        inScopeEngineIds === null
+          ? this.engines.size
+          : [...this.engines.keys()].filter(id => inScopeEngineIds.has(id)).length,
       ready: byStatus[SessionStatus.READY] || 0,
       disconnected: byStatus[SessionStatus.DISCONNECTED] || 0,
       byStatus,

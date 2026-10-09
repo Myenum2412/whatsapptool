@@ -88,7 +88,7 @@ function stubGateway(): { bulkBodies: { messages: BulkItem[] }[] } {
 }
 
 async function renderBulkAsWriter(): Promise<HTMLElement> {
-  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1_000 } } });
   const { container } = rtl.render(
     createElement(QueryClientProvider, { client }, createElement(RoleProvider, null, createElement(MessageTester))),
@@ -170,7 +170,7 @@ function stubGroupGateway(groups: { id: string; name?: string }[], refuseFirstWi
 }
 
 async function renderGroupsAsWriter(): Promise<void> {
-  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1_000 } } });
   rtl.render(
     createElement(QueryClientProvider, { client }, createElement(RoleProvider, null, createElement(MessageTester))),
@@ -291,7 +291,7 @@ test('a session that stops being ready is replaced by what the selector shows', 
     }
     return Promise.resolve(jsonResponse([]));
   }) as typeof fetch;
-  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1_000 } } });
   const { container } = rtl.render(
     createElement(QueryClientProvider, { client }, createElement(RoleProvider, null, createElement(MessageTester))),

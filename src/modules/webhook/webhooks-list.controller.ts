@@ -5,6 +5,7 @@ import { WebhookResponseDto, WebhookDeliveryFailureDto } from './dto';
 import { WebhookDeliveryFailure } from './entities/webhook-delivery-failure.entity';
 import { RequireRole, CurrentApiKey } from '../auth/decorators/auth.decorators';
 import { ApiKey, ApiKeyRole } from '../auth/entities/api-key.entity';
+import { sessionScopeContext } from '../../common/security/session-scope';
 
 @ApiTags('webhooks')
 @Controller('webhooks')
@@ -12,7 +13,7 @@ export class WebhooksListController {
   constructor(private readonly webhookService: WebhookService) {}
 
   @Get('delivery-failures')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({ summary: 'List recently-failed webhook deliveries (all retries exhausted)' })
   @ApiResponse({
     status: 200,
@@ -41,7 +42,7 @@ export class WebhooksListController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'List webhooks visible to the calling key (scoped to its allowed sessions)' })
   @ApiResponse({
     status: 200,
@@ -56,9 +57,11 @@ export class WebhooksListController {
     @Query('offset') offset?: string,
   ): Promise<WebhookResponseDto[]> {
     // Scope to the key's allowedSessions so a session-restricted key cannot enumerate every
-    // session's webhook URLs. A null/empty allowlist (e.g. ADMIN) still sees all.
+    // session's webhook URLs. A null/empty allowlist (e.g. ADMIN) still sees all. An account
+    // `users`-role key narrows to the sessions it owns — another account's (or the operator's)
+    // webhook URLs are out of its fence.
     return WebhookResponseDto.fromEntities(
-      await this.webhookService.findAll(apiKey?.allowedSessions, {
+      await this.webhookService.findAll(sessionScopeContext(apiKey), {
         limit: limit ? parseInt(limit, 10) : undefined,
         offset: offset ? parseInt(offset, 10) : undefined,
       }),

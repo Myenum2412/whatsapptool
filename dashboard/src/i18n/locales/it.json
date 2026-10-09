@@ -68,7 +68,8 @@
     "logs": "Log",
     "campaigns": "Campaigns",
     "flow": "Flusso",
-    "compliance": "Conformità"
+    "compliance": "Conformità",
+    "users": "Utenti"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "Ricarica Dashboard"
   },
   "login": {
-    "apiKey": "Chiave API",
-    "apiKeyPlaceholder": "Inserisci la tua chiave API",
-    "apiKeyRequired": "La chiave API è richiesta",
-    "connect": "Connetti",
-    "connecting": "Connessione in corso...",
-    "invalidKey": "Chiave API non valida",
+    "email": "Email",
+    "emailPlaceholder": "tu@esempio.com",
+    "emailRequired": "L'email è obbligatoria",
+    "passwordRequired": "La password è obbligatoria",
+    "signIn": "Accedi",
+    "signingIn": "Accesso in corso...",
+    "invalidCredentials": "Email o password non validi",
+    "showPassword": "Mostra password",
+    "hidePassword": "Nascondi password",
     "connectionError": "Impossibile connettersi al server. Riprova.",
     "help": "Serve aiuto?",
     "viewDocs": "Visualizza la documentazione",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "Nuovo qui?",
+    "signupLink": "Crea account",
+    "createdAccount": "Account creato — accedi per continuare."
+  },
+  "signup": {
+    "name": "Nome (facoltativo)",
+    "namePlaceholder": "Il tuo nome",
+    "signUp": "Registrati",
+    "signingUp": "Creazione account...",
+    "passwordTooShort": "La password deve contenere almeno 8 caratteri.",
+    "accountExists": "Esiste già un account con questa e-mail.",
+    "tooManyRequests": "Troppi tentativi. Riprova più tardi.",
+    "loginPrompt": "Hai già un account?",
+    "loginLink": "Accedi"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -625,7 +643,7 @@
       "description": "Aggiungi un webhook per ricevere le notifiche degli eventi in tempo reale",
       "loadErrorTitle": "Impossibile caricare i webhook",
       "forbiddenTitle": "Nessun accesso ai webhook",
-      "forbiddenDesc": "I webhook richiedono una chiave API con ruolo operatore o amministratore."
+      "forbiddenDesc": "I webhook richiedono una chiave API con il ruolo users o orgmenu."
     },
     "toasts": {
       "created": "Webhook creato con successo",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "Crea una sessione WhatsApp prima di aggiungere i modelli.",
       "loadErrorTitle": "Impossibile caricare i modelli",
       "forbiddenTitle": "Nessun accesso ai modelli",
-      "forbiddenDesc": "I modelli richiedono una chiave API con ruolo operatore o amministratore."
+      "forbiddenDesc": "I modelli richiedono una chiave API con il ruolo users o orgmenu."
     },
     "toasts": {
       "created": "Modello creato con successo",
@@ -918,14 +936,12 @@
     "namePlaceholder": "es., Chiave di Produzione",
     "rolesTitle": "Riferimento Ruoli",
     "roles": {
-      "admin": "Amministratore",
-      "operator": "Operatore",
-      "viewer": "Visualizzatore"
+      "orgmenu": "Menu organizzativo",
+      "users": "Utenti"
     },
     "roleDescriptions": {
-      "admin": "Accesso completo a tutte le risorse",
-      "operator": "Gestione delle sessioni e dei messaggi",
-      "viewer": "Accesso in sola lettura"
+      "orgmenu": "Accesso completo a tutte le risorse e gestione degli account di accesso",
+      "users": "Gestione di sessioni, messaggi e automazioni"
     },
     "columns": {
       "name": "Nome",
@@ -1281,6 +1297,68 @@
       "friday": "Ven",
       "saturday": "Sab",
       "sunday": "Dom"
+    }
+  },
+  "users": {
+    "title": "Utenti",
+    "subtitle": "Account email/password con cui accede il tuo team",
+    "addButton": "Aggiungi utente",
+    "loadError": "Impossibile caricare gli utenti.",
+    "created": "Utente creato.",
+    "updated": "Utente aggiornato.",
+    "deleted": "Utente eliminato.",
+    "enabled": "Utente abilitato.",
+    "disabled": "Utente disabilitato.",
+    "empty": {
+      "title": "Nessun utente",
+      "description": "Crea un account di accesso per un membro del team."
+    },
+    "columns": {
+      "email": "Email",
+      "name": "Nome",
+      "role": "Ruolo",
+      "status": "Stato",
+      "created": "Creato",
+      "actions": "Azioni"
+    },
+    "statuses": {
+      "active": "Attivo",
+      "disabled": "Disabilitato"
+    },
+    "actions": {
+      "edit": "Modifica",
+      "enable": "Abilita",
+      "disable": "Disabilita",
+      "delete": "Elimina"
+    },
+    "modalAdd": "Aggiungi utente",
+    "modalEdit": "Modifica utente",
+    "form": {
+      "name": "Nome",
+      "placeholderName": "es. Jane Operator",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "Almeno 8 caratteri",
+      "role": "Ruolo",
+      "active": "L'account è attivo"
+    },
+    "validation": {
+      "emailRequired": "L’email è obbligatoria.",
+      "emailInvalid": "Inserisci un indirizzo email valido.",
+      "passwordRequired": "La password è obbligatoria.",
+      "passwordTooShort": "La password deve contenere almeno 8 caratteri."
+    },
+    "confirm": {
+      "deleteTitle": "Elimina utente",
+      "deleteMessage": "Eliminare definitivamente questo account? Il suo accesso smetterà di funzionare subito.",
+      "delete": "Elimina"
+    },
+    "errors": {
+      "create": "Impossibile creare l’utente",
+      "update": "Impossibile aggiornare l’utente",
+      "delete": "Impossibile eliminare l’utente",
+      "enable": "Impossibile abilitare l’utente",
+      "disable": "Impossibile disabilitare l’utente"
     }
   }
 }

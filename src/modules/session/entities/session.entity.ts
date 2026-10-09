@@ -97,6 +97,22 @@ export class Session {
   @Column({ type: 'varchar', length: 36, nullable: true })
   organizationId!: string | null;
 
+  /**
+   * The dashboard account (`users.id` on the `main` connection) whose login key owns this session,
+   * or NULL for a session created by a hand-minted API key — such sessions are orgmenu-only.
+   *
+   * A `users`-role account key may reach exactly the sessions it owns (and may create new ones,
+   * which are then owned by it); `orgmenu` account keys and hand-minted keys keep the pre-existing
+   * unrestricted model. NULL here is the "not an account's session" marker, and is also what a
+   * pre-ownership session row reads as — so existing sessions become orgmenu-only on upgrade.
+   *
+   * Same provenance-only pattern as organizationId: the referenced `users` row lives on the
+   * always-SQLite `main` connection while `sessions` is on `data`, so a FK is not expressible.
+   */
+  @Index('IDX_sessions_ownerUserId')
+  @Column({ type: 'varchar', length: 36, nullable: true })
+  ownerUserId!: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

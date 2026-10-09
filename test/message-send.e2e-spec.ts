@@ -94,7 +94,7 @@ describe('Message send endpoints (e2e)', () => {
     sessionId = (await sessionRepo.save(sessionRepo.create({ name: `e2e-send-${Date.now()}` }))).id;
 
     app.get(EngineRegistry).set(sessionId, engine as unknown as IWhatsAppEngine);
-    operatorKey = (await app.get(AuthService).createApiKey({ name: 'e2e-send', role: ApiKeyRole.OPERATOR })).rawKey;
+    operatorKey = (await app.get(AuthService).createApiKey({ name: 'e2e-send', role: ApiKeyRole.USER })).rawKey;
 
     // A real template row via the real route, so send-template exercises resolution and rendering
     // against persisted data rather than a seeded fixture.

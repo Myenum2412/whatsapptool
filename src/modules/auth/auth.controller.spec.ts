@@ -38,7 +38,7 @@ describe('AuthController — API-key lifecycle audit logging', () => {
     const createdKey = {
       id: 'k1',
       name: 'new-key',
-      role: 'user',
+      role: 'users',
       keyPrefix: 'ow_',
       isActive: true,
       usageCount: 0,
@@ -49,12 +49,12 @@ describe('AuthController — API-key lifecycle audit logging', () => {
       findOne: jest.fn().mockResolvedValue({
         id: 'k1',
         name: 'target-key',
-        role: 'viewer',
+        role: 'users',
         allowedIps: null,
         allowedSessions: null,
         expiresAt: null,
       }),
-      update: jest.fn().mockResolvedValue({ ...createdKey, role: 'admin' }),
+      update: jest.fn().mockResolvedValue({ ...createdKey, role: 'orgmenu' }),
       delete: jest.fn().mockResolvedValue(undefined),
       revoke: jest.fn().mockResolvedValue({ ...createdKey, isActive: false }),
     };
@@ -101,12 +101,12 @@ describe('AuthController — API-key lifecycle audit logging', () => {
   });
 
   it('logs API_KEY_UPDATED with before/after authorization state', async () => {
-    await controller.update('k1', { role: 'admin' } as never, makeReq(), actor);
+    await controller.update('k1', { role: 'orgmenu' } as never, makeReq(), actor);
     const ctx = lastContextFor(AuditAction.API_KEY_UPDATED);
     expect(ctx?.apiKey).toBe(actor);
     expect(ctx?.metadata?.targetKeyId).toBe('k1');
-    expect(ctx?.metadata?.before?.role).toBe('viewer');
-    expect(ctx?.metadata?.after?.role).toBe('admin');
+    expect(ctx?.metadata?.before?.role).toBe('users');
+    expect(ctx?.metadata?.after?.role).toBe('orgmenu');
   });
 
   it('logs API_KEY_REVOKED on revoke', async () => {

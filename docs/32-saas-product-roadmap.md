@@ -307,7 +307,7 @@ configuration API below.
 
 Remaining before this item can be called done:
 
-- ~~A settings API and dashboard surface for `quietHours`~~ — landed: `GET`/`PATCH /api/organizations/settings` (ADMIN) plus a dashboard Compliance page in all 13 locales, with `assertValidQuietHours` now the validator for the merged window. What remains is per-tenant authorization: an ADMIN key can currently write any organization's settings because an API key carries no organization.
+- ~~A settings API and dashboard surface for `quietHours`~~ — landed: `GET`/`PATCH /api/organizations/settings` (orgmenu) plus a dashboard Compliance page in all 13 locales, with `assertValidQuietHours` now the validator for the merged window. What remains is per-tenant authorization: an orgmenu key can currently write any organization's settings because an API key carries no organization.
 - Operator endpoints for listing/manually changing suppressions and for reading a contact's consent trail.
 - WhatsApp `onBlock`/`onUnblock` wired to `markBlocked`.
 - Consent matched by identity family, not literal address string, so a LID opt-out and a phone opt-out describe the same person.

@@ -68,10 +68,10 @@ describe('Session-scoped query endpoints (e2e)', () => {
 
     const authService = app.get(AuthService);
     scopedKey = (
-      await authService.createApiKey({ name: 'e2e-scoped', role: ApiKeyRole.ADMIN, allowedSessions: [sessA] })
+      await authService.createApiKey({ name: 'e2e-scoped', role: ApiKeyRole.ORG_MENU, allowedSessions: [sessA] })
     ).rawKey;
-    adminKey = (await authService.createApiKey({ name: 'e2e-admin', role: ApiKeyRole.ADMIN })).rawKey;
-    throwawayId = (await authService.createApiKey({ name: 'e2e-throwaway', role: ApiKeyRole.VIEWER })).apiKey.id;
+    adminKey = (await authService.createApiKey({ name: 'e2e-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
+    throwawayId = (await authService.createApiKey({ name: 'e2e-throwaway', role: ApiKeyRole.USER })).apiKey.id;
   });
 
   afterAll(async () => {
@@ -180,7 +180,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/auth/api-keys')
         .set('X-API-Key', scopedKey)
-        .send({ name: 'escape-attempt', role: 'admin', allowedSessions: [] })
+        .send({ name: 'escape-attempt', role: 'orgmenu', allowedSessions: [] })
         .expect(403);
     });
 
@@ -222,7 +222,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/auth/api-keys')
         .set('X-API-Key', adminKey)
-        .send({ name: 'e2e-lifecycle', role: 'viewer' })
+        .send({ name: 'e2e-lifecycle', role: 'users' })
         .expect(201);
       const id = (created.body as { id: string }).id;
       await request(app.getHttpServer())
@@ -262,7 +262,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
 
     beforeEach(async () => {
       const authService = app.get(AuthService);
-      const created = await authService.createApiKey({ name: 'e2e-sole-admin', role: ApiKeyRole.ADMIN });
+      const created = await authService.createApiKey({ name: 'e2e-sole-admin', role: ApiKeyRole.ORG_MENU });
       soleAdminKey = created.rawKey;
       soleAdminId = created.apiKey.id;
 
@@ -271,7 +271,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
       // session-scoped admin from the outer fixture must not count.
       const apiKeyRepo: Repository<ApiKey> = app.get(getRepositoryToken(ApiKey, 'main'));
       const others = (await apiKeyRepo.find()).filter(
-        k => k.id !== soleAdminId && k.role === ApiKeyRole.ADMIN && k.isActive && !k.allowedSessions?.length,
+        k => k.id !== soleAdminId && k.role === ApiKeyRole.ORG_MENU && k.isActive && !k.allowedSessions?.length,
       );
       for (const k of others) {
         k.isActive = false;
@@ -297,7 +297,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
       await request(app.getHttpServer())
         .put(`/api/auth/api-keys/${soleAdminId}`)
         .set('X-API-Key', soleAdminKey)
-        .send({ role: 'operator' })
+        .send({ role: 'users' })
         .expect(409);
     });
 
@@ -311,7 +311,7 @@ describe('Session-scoped query endpoints (e2e)', () => {
 
     it('still allows the mutation once another unscoped admin exists', async () => {
       const authService = app.get(AuthService);
-      const second = await authService.createApiKey({ name: 'e2e-second-admin', role: ApiKeyRole.ADMIN });
+      const second = await authService.createApiKey({ name: 'e2e-second-admin', role: ApiKeyRole.ORG_MENU });
 
       await request(app.getHttpServer())
         .put(`/api/auth/api-keys/${soleAdminId}`)

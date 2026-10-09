@@ -10,8 +10,8 @@ import { warnIfInsecureHttpUrl } from '../utils/urlSecurity';
 // `VITE_API_URL=https://gateway.example.com` — and the '/api' prefix is appended here.
 // Previously VITE_API_URL was documented but never read, so the dashboard always called
 // same-origin '/api' and a split deployment failed with "Invalid API Key" (#91).
-// Exported so direct fetches (e.g. auth/validate in Login.tsx / App.tsx) honor VITE_API_URL
-// too — otherwise split-origin deployments break. Empty VITE_API_URL → '/api'.
+// Exported so direct fetches (e.g. auth/login in Login.tsx, auth/validate in App.tsx) honor
+// VITE_API_URL too — otherwise split-origin deployments break. Empty VITE_API_URL → '/api'.
 const API_ORIGIN = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
 export const API_BASE_URL = `${API_ORIGIN}/api`;
 // Warn (not refuse — would break dev + TLS-terminating-proxy) when the API origin is an
@@ -266,7 +266,7 @@ export interface ApiKey {
   id: string;
   name: string;
   keyPrefix: string;
-  role: 'admin' | 'operator' | 'viewer';
+  role: 'orgmenu' | 'users';
   allowedIps?: string[];
   allowedSessions?: string[];
   allowedChats?: string[];
@@ -280,6 +280,32 @@ export interface ApiKey {
 /** The creation response: every list/detail field plus the plaintext key, shown exactly once. */
 export interface CreatedApiKey extends ApiKey {
   apiKey: string;
+}
+
+/** A login account an orgmenu user created from the dashboard (`/auth/users`). */
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: 'orgmenu' | 'users';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Create-account payload: password is only ever an input, never returned. */
+export interface CreateAuthUserInput {
+  email: string;
+  password: string;
+  name?: string;
+  role?: 'orgmenu' | 'users';
+}
+
+export interface UpdateAuthUserInput {
+  name?: string;
+  role?: 'orgmenu' | 'users';
+  isActive?: boolean;
+  password?: string;
 }
 
 export interface AuditLog {
@@ -1301,6 +1327,19 @@ export const apiKeyApi = {
     }),
   delete: (id: string) => request<void>(`/auth/api-keys/${id}`, { method: 'DELETE' }),
   revoke: (id: string) => request<ApiKey>(`/auth/api-keys/${id}/revoke`, { method: 'POST' }),
+};
+
+// =============================================================================
+// Login-account API (orgmenu-only user management)
+// =============================================================================
+
+export const authUsersApi = {
+  list: () => request<AuthUser[]>('/auth/users'),
+  create: (data: CreateAuthUserInput) =>
+    request<AuthUser>('/auth/users', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: UpdateAuthUserInput) =>
+    request<AuthUser>(`/auth/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) => request<void>(`/auth/users/${id}`, { method: 'DELETE' }),
 };
 
 // =============================================================================

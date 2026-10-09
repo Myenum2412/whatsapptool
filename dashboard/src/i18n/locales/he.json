@@ -68,7 +68,8 @@
     "logs": "לוגים",
     "campaigns": "Campaigns",
     "flow": "זרימה",
-    "compliance": "ציות"
+    "compliance": "ציות",
+    "users": "משתמשים"
   },
   "flow": {
     "plans": {
@@ -345,16 +346,33 @@
     "reload": "טעינה מחדש"
   },
   "login": {
-    "apiKey": "מפתח API",
-    "apiKeyPlaceholder": "יש להזין את מפתח ה-API",
-    "apiKeyRequired": "חובה להזין מפתח API",
-    "connect": "התחברות",
-    "connecting": "מתחבר...",
-    "invalidKey": "מפתח API שגוי",
+    "email": "אימייל",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "יש להזין אימייל",
+    "passwordRequired": "חובה להזין סיסמה",
+    "signIn": "כניסה",
+    "signingIn": "מתחבר...",
+    "invalidCredentials": "אימייל או סיסמה שגויים",
+    "showPassword": "הצגת סיסמה",
+    "hidePassword": "הסתרת סיסמה",
     "connectionError": "לא ניתן להתחבר לשרת. יש לנסות שוב.",
     "help": "צריך עזרה?",
     "viewDocs": "לצפייה בתיעוד",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "חדש כאן?",
+    "signupLink": "יצירת חשבון",
+    "createdAccount": "החשבון נוצר — היכנס כדי להמשיך."
+  },
+  "signup": {
+    "name": "שם (אופציונלי)",
+    "namePlaceholder": "השם שלך",
+    "signUp": "הרשמה",
+    "signingUp": "החשבון נוצר...",
+    "passwordTooShort": "הסיסמה חייבת להיות באורך 8 תווים לפחות.",
+    "accountExists": "כבר קיים חשבון עם כתובת דוא\"ל זו.",
+    "tooManyRequests": "יותר מדי ניסיונות. נסה שוב מאוחר יותר.",
+    "loginPrompt": "כבר יש לך חשבון?",
+    "loginLink": "התחברות"
   },
   "dashboard": {
     "title": "דאשבורד",
@@ -634,7 +652,7 @@
       "description": "יש להוסיף Webhook כדי לקבל התראות בזמן אמת",
       "loadErrorTitle": "לא ניתן לטעון את ה-Webhooks",
       "forbiddenTitle": "אין גישה ל-Webhooks",
-      "forbiddenDesc": "Webhooks דורשים מפתח API עם תפקיד מפעיל או מנהל."
+      "forbiddenDesc": "Webhooks דורשים מפתח API עם תפקיד users או orgmenu."
     },
     "toasts": {
       "created": "ה-Webhook נוצר בהצלחה",
@@ -715,7 +733,7 @@
       "noSessionsDesc": "צרו סשן WhatsApp לפני הוספת תבניות.",
       "loadErrorTitle": "לא ניתן לטעון את התבניות",
       "forbiddenTitle": "אין גישה לתבניות",
-      "forbiddenDesc": "תבניות דורשות מפתח API עם תפקיד מפעיל או מנהל."
+      "forbiddenDesc": "תבניות דורשות מפתח API עם תפקיד users או orgmenu."
     },
     "toasts": {
       "created": "התבנית נוצרה בהצלחה",
@@ -927,14 +945,12 @@
     "namePlaceholder": "לדוגמה: Production Key",
     "rolesTitle": "מדריך תפקידים",
     "roles": {
-      "admin": "Admin",
-      "operator": "Operator",
-      "viewer": "Viewer"
+      "orgmenu": "תפריט ארגון",
+      "users": "משתמשים"
     },
     "roleDescriptions": {
-      "admin": "גישה מלאה לכל המשאבים",
-      "operator": "ניהול Sessions והודעות",
-      "viewer": "גישת קריאה בלבד"
+      "orgmenu": "גישה מלאה לכל המשאבים וניהול חשבונות התחברות",
+      "users": "ניהול סשנים, הודעות ואוטומציות"
     },
     "columns": {
       "name": "שם",
@@ -1290,6 +1306,68 @@
       "friday": "ו׳",
       "saturday": "ש׳",
       "sunday": "א׳"
+    }
+  },
+  "users": {
+    "title": "משתמשים",
+    "subtitle": "חשבונות דוא\"ל/סיסמה שאיתם הצוות נכנס",
+    "addButton": "הוסף משתמש",
+    "loadError": "טעינת המשתמשים נכשלה.",
+    "created": "המשתמש נוצר.",
+    "updated": "המשתמש עודכן.",
+    "deleted": "המשתמש נמחק.",
+    "enabled": "המשתמש הופעל.",
+    "disabled": "המשתמש הושבת.",
+    "empty": {
+      "title": "עדיין אין משתמשים",
+      "description": "צור חשבון התחברות לחבר צוות."
+    },
+    "columns": {
+      "email": "אימייל",
+      "name": "שם",
+      "role": "תפקיד",
+      "status": "סטטוס",
+      "created": "נוצר",
+      "actions": "פעולות"
+    },
+    "statuses": {
+      "active": "פעיל",
+      "disabled": "מושבת"
+    },
+    "actions": {
+      "edit": "עריכה",
+      "enable": "הפעלה",
+      "disable": "השבתה",
+      "delete": "מחיקה"
+    },
+    "modalAdd": "הוסף משתמש",
+    "modalEdit": "ערוך משתמש",
+    "form": {
+      "name": "שם",
+      "placeholderName": "לדוגמה: Jane Operator",
+      "email": "אימייל",
+      "password": "סיסמה",
+      "passwordHint": "8 תווים לפחות",
+      "role": "תפקיד",
+      "active": "החשבון פעיל"
+    },
+    "validation": {
+      "emailRequired": "אימייל הוא שדה חובה.",
+      "emailInvalid": "הזן כתובת אימייל חוקית.",
+      "passwordRequired": "סיסמה היא שדה חובה.",
+      "passwordTooShort": "הסיסמה חייבת להכיל לפחות 8 תווים."
+    },
+    "confirm": {
+      "deleteTitle": "מחק משתמש",
+      "deleteMessage": "למחוק את החשבון לצמיתות? ההתחברות תפסיק לפעול מיד.",
+      "delete": "מחק"
+    },
+    "errors": {
+      "create": "יצירת המשתמש נכשלה",
+      "update": "עדכון המשתמש נכשל",
+      "delete": "מחיקת המשתמש נכשלה",
+      "enable": "הפעלת המשתמש נכשלה",
+      "disable": "השבתת המשתמש נכשלה"
     }
   }
 }

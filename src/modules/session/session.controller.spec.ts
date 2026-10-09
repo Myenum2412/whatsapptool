@@ -33,6 +33,9 @@ describe('SessionController — create() response contract', () => {
     // Tenant join key. Null is the honest value for a session fixture: the column is
     // nullable until enforcement lands, and a hard-coded id here would look like a real assignment.
     organizationId: null,
+    // Account-ownership join key; these fixtures are operator/API-minted sessions, so NULL (see the
+    // session.controller create() describe that feeds apiKey?.ownerUserId through).
+    ownerUserId: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
   };
@@ -123,6 +126,7 @@ describe('SessionController — logout() audit + error forwarding contract', () 
     // Tenant join key. Null is the honest value for a session fixture: the column is
     // nullable until enforcement lands, and a hard-coded id here would look like a real assignment.
     organizationId: null,
+    ownerUserId: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
   };
@@ -191,6 +195,7 @@ describe('SessionController — start/stop lifecycle', () => {
     // Tenant join key. Null is the honest value for a session fixture: the column is
     // nullable until enforcement lands, and a hard-coded id here would look like a real assignment.
     organizationId: null,
+    ownerUserId: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T01:00:00Z'),
   };
@@ -336,17 +341,23 @@ describe('SessionController findAll name filter', () => {
   it('forwards the name alongside the key allowlist and the window', async () => {
     await expect(controller.findAll(apiKey, '10', '5', 'my-bot')).resolves.toEqual([]);
 
-    expect(sessionService.findAll).toHaveBeenCalledWith(['sess-uuid-1'], { limit: 10, offset: 5, name: 'my-bot' });
+    expect(sessionService.findAll).toHaveBeenCalledWith(
+      { allowedSessions: ['sess-uuid-1'], ownerUserId: null },
+      { limit: 10, offset: 5, name: 'my-bot' },
+    );
   });
 
   it('leaves the query unfiltered when name is absent', async () => {
     await controller.findAll(apiKey);
 
-    expect(sessionService.findAll).toHaveBeenCalledWith(['sess-uuid-1'], {
-      limit: undefined,
-      offset: undefined,
-      name: undefined,
-    });
+    expect(sessionService.findAll).toHaveBeenCalledWith(
+      { allowedSessions: ['sess-uuid-1'], ownerUserId: null },
+      {
+        limit: undefined,
+        offset: undefined,
+        name: undefined,
+      },
+    );
   });
 
   // A repeated key arrives as an array and an empty value as ''. Dropping either would return every

@@ -68,7 +68,8 @@
     "logs": "記錄",
     "campaigns": "Campaigns",
     "flow": "流程",
-    "compliance": "合規"
+    "compliance": "合規",
+    "users": "用戶"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "重新載入控制面板"
   },
   "login": {
-    "apiKey": "API 金鑰",
-    "apiKeyPlaceholder": "輸入你的 API 金鑰",
-    "apiKeyRequired": "必須輸入 API 金鑰",
-    "connect": "連線",
-    "connecting": "正在連線...",
-    "invalidKey": "API 金鑰無效",
+    "email": "電郵",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "必須輸入電郵",
+    "passwordRequired": "必須輸入密碼",
+    "signIn": "登入",
+    "signingIn": "正在登入...",
+    "invalidCredentials": "電郵或密碼無效",
+    "showPassword": "顯示密碼",
+    "hidePassword": "隱藏密碼",
     "connectionError": "無法連線到伺服器。請再試一次。",
     "help": "需要協助？",
     "viewDocs": "查看文件",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "新用戶？",
+    "signupLink": "建立帳戶",
+    "createdAccount": "帳戶已建立 — 請登入以繼續。"
+  },
+  "signup": {
+    "name": "名稱（可選）",
+    "namePlaceholder": "您的名稱",
+    "signUp": "註冊",
+    "signingUp": "正在建立帳戶...",
+    "passwordTooShort": "密碼至少需要 8 個字元。",
+    "accountExists": "此電郵已註冊帳戶。",
+    "tooManyRequests": "嘗試次數過多，請稍後再試。",
+    "loginPrompt": "已有帳戶？",
+    "loginLink": "登入"
   },
   "dashboard": {
     "title": "控制面板",
@@ -625,7 +643,7 @@
       "description": "新增 Webhook 以接收即時事件通知",
       "loadErrorTitle": "無法載入 Webhook",
       "forbiddenTitle": "無權存取 Webhook",
-      "forbiddenDesc": "Webhook 需要具有操作員或管理員角色的 API 金鑰。"
+      "forbiddenDesc": "Webhooks 需要具有 users 或 orgmenu 角色的 API 金鑰。"
     },
     "toasts": {
       "created": "Webhook 建立成功",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "請先建立 WhatsApp 工作階段，才能新增範本。",
       "loadErrorTitle": "無法載入範本",
       "forbiddenTitle": "無權存取範本",
-      "forbiddenDesc": "範本需要具有操作員或管理員角色的 API 金鑰。"
+      "forbiddenDesc": "範本需要具有 users 或 orgmenu 角色的 API 金鑰。"
     },
     "toasts": {
       "created": "範本建立成功",
@@ -918,14 +936,12 @@
     "namePlaceholder": "例如：Production Key",
     "rolesTitle": "角色參考",
     "roles": {
-      "admin": "管理員",
-      "operator": "操作員",
-      "viewer": "檢視者"
+      "orgmenu": "組織選單",
+      "users": "用戶"
     },
     "roleDescriptions": {
-      "admin": "可完整存取所有資源",
-      "operator": "工作階段及訊息管理",
-      "viewer": "唯讀存取"
+      "orgmenu": "完整存取所有資源及登入帳號管理",
+      "users": "工作階段、訊息及自動化管理"
     },
     "columns": {
       "name": "名稱",
@@ -1281,6 +1297,68 @@
       "friday": "五",
       "saturday": "六",
       "sunday": "日"
+    }
+  },
+  "users": {
+    "title": "用戶",
+    "subtitle": "團隊成員用以登入的電郵/密碼帳號",
+    "addButton": "新增用戶",
+    "loadError": "無法載入用戶。",
+    "created": "用戶已建立。",
+    "updated": "用戶已更新。",
+    "deleted": "用戶已刪除。",
+    "enabled": "用戶已啟用。",
+    "disabled": "用戶已停用。",
+    "empty": {
+      "title": "尚無用戶",
+      "description": "為團隊成員建立登入帳號。"
+    },
+    "columns": {
+      "email": "電郵",
+      "name": "名稱",
+      "role": "角色",
+      "status": "狀態",
+      "created": "建立時間",
+      "actions": "操作"
+    },
+    "statuses": {
+      "active": "啟用",
+      "disabled": "停用"
+    },
+    "actions": {
+      "edit": "編輯",
+      "enable": "啟用",
+      "disable": "停用",
+      "delete": "刪除"
+    },
+    "modalAdd": "新增用戶",
+    "modalEdit": "編輯用戶",
+    "form": {
+      "name": "名稱",
+      "placeholderName": "例如：Jane Operator",
+      "email": "電郵",
+      "password": "密碼",
+      "passwordHint": "至少 8 個字元",
+      "role": "角色",
+      "active": "帳號處於啟用狀態"
+    },
+    "validation": {
+      "emailRequired": "電郵為必填。",
+      "emailInvalid": "請輸入有效的電郵地址。",
+      "passwordRequired": "密碼為必填。",
+      "passwordTooShort": "密碼至少需要 8 個字元。"
+    },
+    "confirm": {
+      "deleteTitle": "刪除用戶",
+      "deleteMessage": "確定永久刪除此帳號？其登入將立即失效。",
+      "delete": "刪除"
+    },
+    "errors": {
+      "create": "無法建立用戶",
+      "update": "無法更新用戶",
+      "delete": "無法刪除用戶",
+      "enable": "無法啟用用戶",
+      "disable": "無法停用用戶"
     }
   }
 }

@@ -68,7 +68,8 @@
     "logs": "로그",
     "campaigns": "Campaigns",
     "flow": "플로우",
-    "compliance": "컴플라이언스"
+    "compliance": "컴플라이언스",
+    "users": "사용자"
   },
   "flow": {
     "plans": {
@@ -338,16 +339,33 @@
     "reload": "대시보드 새로고침"
   },
   "login": {
-    "apiKey": "API 키",
-    "apiKeyPlaceholder": "API 키를 입력하세요",
-    "apiKeyRequired": "API 키가 필요합니다",
-    "connect": "연결",
-    "connecting": "연결하는 중...",
-    "invalidKey": "잘못된 API 키입니다",
+    "email": "이메일",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "이메일이 필요합니다",
+    "passwordRequired": "비밀번호가 필요합니다",
+    "signIn": "로그인",
+    "signingIn": "로그인 중...",
+    "invalidCredentials": "잘못된 이메일 또는 비밀번호입니다",
+    "showPassword": "비밀번호 표시",
+    "hidePassword": "비밀번호 숨기기",
     "connectionError": "서버에 연결할 수 없습니다. 다시 시도해 주세요.",
     "help": "도움이 필요하신가요?",
     "viewDocs": "문서 보기",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "처음 오셨나요?",
+    "signupLink": "계정 만들기",
+    "createdAccount": "계정이 생성되었습니다 — 계속하려면 로그인하세요."
+  },
+  "signup": {
+    "name": "이름 (선택 사항)",
+    "namePlaceholder": "이름",
+    "signUp": "가입하기",
+    "signingUp": "계정 생성 중...",
+    "passwordTooShort": "비밀번호는 8자 이상이어야 합니다.",
+    "accountExists": "이 이메일로 이미 계정이 있습니다.",
+    "tooManyRequests": "시도 횟수가 너무 많습니다. 나중에 다시 시도하세요.",
+    "loginPrompt": "이미 계정이 있으신가요?",
+    "loginLink": "로그인"
   },
   "dashboard": {
     "title": "대시보드",
@@ -625,7 +643,7 @@
       "description": "실시간 이벤트 알림을 받으려면 웹훅을 추가하세요",
       "loadErrorTitle": "웹훅을 불러올 수 없습니다",
       "forbiddenTitle": "웹훅에 접근할 수 없습니다",
-      "forbiddenDesc": "웹훅을 사용하려면 운영자 또는 관리자 역할의 API 키가 필요합니다."
+      "forbiddenDesc": "웹훅에는 users 또는 orgmenu 역할의 API 키가 필요합니다."
     },
     "toasts": {
       "created": "웹훅이 생성되었습니다",
@@ -706,7 +724,7 @@
       "noSessionsDesc": "템플릿을 추가하기 전에 WhatsApp 세션을 만드세요.",
       "loadErrorTitle": "템플릿을 불러올 수 없습니다",
       "forbiddenTitle": "템플릿에 접근할 수 없습니다",
-      "forbiddenDesc": "템플릿을 사용하려면 운영자 또는 관리자 역할의 API 키가 필요합니다."
+      "forbiddenDesc": "템플릿에는 users 또는 orgmenu 역할의 API 키가 필요합니다."
     },
     "toasts": {
       "created": "템플릿이 생성되었습니다",
@@ -918,14 +936,12 @@
     "namePlaceholder": "예: Production Key",
     "rolesTitle": "역할 안내",
     "roles": {
-      "admin": "관리자",
-      "operator": "운영자",
-      "viewer": "뷰어"
+      "orgmenu": "조직 메뉴",
+      "users": "사용자"
     },
     "roleDescriptions": {
-      "admin": "모든 리소스에 대한 전체 접근 권한",
-      "operator": "세션 및 메시지 관리",
-      "viewer": "읽기 전용 접근"
+      "orgmenu": "모든 리소스에 대한 전체 액세스 및 로그인 계정 관리",
+      "users": "세션, 메시지 및 자동화 관리"
     },
     "columns": {
       "name": "이름",
@@ -1281,6 +1297,68 @@
       "friday": "금",
       "saturday": "토",
       "sunday": "일"
+    }
+  },
+  "users": {
+    "title": "사용자",
+    "subtitle": "팀원이 로그인하는 이메일/비밀번호 계정",
+    "addButton": "사용자 추가",
+    "loadError": "사용자를 불러올 수 없습니다.",
+    "created": "사용자가 생성되었습니다.",
+    "updated": "사용자가 업데이트되었습니다.",
+    "deleted": "사용자가 삭제되었습니다.",
+    "enabled": "사용자가 활성화되었습니다.",
+    "disabled": "사용자가 비활성화되었습니다.",
+    "empty": {
+      "title": "사용자가 아직 없습니다",
+      "description": "팀원의 로그인 계정을 만드세요."
+    },
+    "columns": {
+      "email": "이메일",
+      "name": "이름",
+      "role": "역할",
+      "status": "상태",
+      "created": "생성일",
+      "actions": "작업"
+    },
+    "statuses": {
+      "active": "활성",
+      "disabled": "비활성화"
+    },
+    "actions": {
+      "edit": "편집",
+      "enable": "활성화",
+      "disable": "비활성화",
+      "delete": "삭제"
+    },
+    "modalAdd": "사용자 추가",
+    "modalEdit": "사용자 편집",
+    "form": {
+      "name": "이름",
+      "placeholderName": "예: Jane Operator",
+      "email": "이메일",
+      "password": "비밀번호",
+      "passwordHint": "8자 이상",
+      "role": "역할",
+      "active": "계정이 활성 상태입니다"
+    },
+    "validation": {
+      "emailRequired": "이메일은 필수입니다.",
+      "emailInvalid": "유효한 이메일 주소를 입력하세요.",
+      "passwordRequired": "비밀번호는 필수입니다.",
+      "passwordTooShort": "비밀번호는 8자 이상이어야 합니다."
+    },
+    "confirm": {
+      "deleteTitle": "사용자 삭제",
+      "deleteMessage": "이 계정을 영구 삭제하시겠습니까? 로그인이 즉시 중지됩니다.",
+      "delete": "삭제"
+    },
+    "errors": {
+      "create": "사용자를 생성할 수 없습니다",
+      "update": "사용자를 업데이트할 수 없습니다",
+      "delete": "사용자를 삭제할 수 없습니다",
+      "enable": "사용자를 활성화할 수 없습니다",
+      "disable": "사용자를 비활성화할 수 없습니다"
     }
   }
 }

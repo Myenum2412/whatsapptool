@@ -100,7 +100,10 @@ describe('EventsGateway API-key authorization sweep', () => {
   beforeEach(async () => {
     await repo.clear();
     const moduleRef = { get: () => gateway } as unknown as ModuleRef;
-    service = new AuthService(repo, new ApiKeyUsageTracker(repo), moduleRef);
+    // validateApiKey's account-ownership fence reads the data Session repo; this sweep spec drives
+    // hand-minted keys (ownerUserId null) so any Session repo behaviour stays untouched.
+    const sessionRepoStub = {} as never;
+    service = new AuthService(repo, new ApiKeyUsageTracker(repo), moduleRef, sessionRepoStub);
     gateway = new EventsGateway(
       service,
       { logWarn: jest.fn().mockResolvedValue(null) } as unknown as AuditService,
@@ -109,7 +112,7 @@ describe('EventsGateway API-key authorization sweep', () => {
   });
 
   it('evicts nobody when only the usage statistics moved', async () => {
-    const { apiKey, rawKey } = await service.createApiKey({ name: 'usage probe', role: ApiKeyRole.VIEWER });
+    const { apiKey, rawKey } = await service.createApiKey({ name: 'usage probe', role: ApiKeyRole.USER });
     const sock = await connect(rawKey);
 
     // What the authentication hot path writes on its own, for every key in use.
@@ -282,10 +285,10 @@ describe('EventsGateway API-key authorization sweep', () => {
   });
 
   it('still evicts synchronously on an operator-driven change, before any sweep', async () => {
-    const { apiKey, rawKey } = await service.createApiKey({ name: 'demoted key' });
+    const { apiKey, rawKey } = await service.createApiKey({ name: 'promoted key' });
     const sock = await connect(rawKey);
 
-    await service.update(apiKey.id, { role: ApiKeyRole.VIEWER });
+    await service.update(apiKey.id, { role: ApiKeyRole.ORG_MENU });
 
     expect(sock.disconnect).toHaveBeenCalledWith(true);
     expect(evictionMessage(sock)).toBe('API key authorization changed; please reconnect');

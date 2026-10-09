@@ -56,12 +56,12 @@ describe('Group invite-code role gate (e2e)', () => {
     scopedViewerKey = (
       await authService.createApiKey({
         name: 'e2e-invite-viewer',
-        role: ApiKeyRole.VIEWER,
+        role: ApiKeyRole.USER,
         allowedSessions: [sessionId],
       })
     ).rawKey;
-    operatorKey = (await authService.createApiKey({ name: 'e2e-invite-operator', role: ApiKeyRole.OPERATOR })).rawKey;
-    adminKey = (await authService.createApiKey({ name: 'e2e-invite-admin', role: ApiKeyRole.ADMIN })).rawKey;
+    operatorKey = (await authService.createApiKey({ name: 'e2e-invite-operator', role: ApiKeyRole.USER })).rawKey;
+    adminKey = (await authService.createApiKey({ name: 'e2e-invite-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
   });
 
   afterAll(async () => {

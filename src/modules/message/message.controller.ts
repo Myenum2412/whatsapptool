@@ -135,7 +135,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-text')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a text message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   // Without an explicit example Swagger UI samples the body from EVERY property, which pairs
@@ -158,7 +158,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-template')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Render a stored text template and send it as a text message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -181,7 +181,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-image')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send an image message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   // Without an explicit example Swagger UI samples `url` AND `base64` into the body, and base64 wins
@@ -209,7 +209,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-video')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a video message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendMediaMessageDto, examples: SEND_VIDEO_BODY_EXAMPLES })
@@ -235,7 +235,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-audio')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send an audio/voice message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendAudioMessageDto, examples: SEND_AUDIO_BODY_EXAMPLES })
@@ -261,7 +261,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-document')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a document/file' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendMediaMessageDto, examples: SEND_DOCUMENT_BODY_EXAMPLES })
@@ -289,7 +289,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-location')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a location message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendLocationDto, examples: SEND_LOCATION_BODY_EXAMPLES })
@@ -306,7 +306,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-contact')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a contact card message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendContactDto, examples: SEND_CONTACT_BODY_EXAMPLES })
@@ -323,7 +323,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-sticker')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a sticker message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendMediaMessageDto, examples: SEND_STICKER_BODY_EXAMPLES })
@@ -346,7 +346,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-poll')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Send a native WhatsApp poll' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SendPollDto, examples: SEND_POLL_BODY_EXAMPLES })
@@ -364,7 +364,7 @@ export class MessageController {
   @ChatQuotedAllowed()
   @ChatScoped('fenced')
   @Post('reply')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Reply to a message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -381,7 +381,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('click-button')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({
     summary: 'Click a button on a WhatsApp Business prompt (Baileys only)',
     description:
@@ -412,7 +412,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('forward')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Forward a message to another chat' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -432,7 +432,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('react')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Add or remove a reaction to a message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -492,7 +492,7 @@ export class MessageController {
   }
 
   @Post('batch/:batchId/cancel')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel a running batch' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -659,7 +659,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('delete')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Delete a message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -690,7 +690,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('vote-poll')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Cast a vote on a poll' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'Vote cast', type: MessageActionResponseDto })
@@ -713,7 +713,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('pin')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Pin a message in its chat' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'Message pinned', type: MessageActionResponseDto })
@@ -742,7 +742,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('unpin')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Remove a message’s pin' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'Message unpinned', type: MessageActionResponseDto })
@@ -771,7 +771,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('star')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Star or unstar a message' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -799,7 +799,7 @@ export class MessageController {
   @ChatScoped('fenced')
   @Post('edit')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Edit the text of a message sent by this account' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -834,7 +834,7 @@ export class MessageController {
 
   @ChatScoped('fenced')
   @Post('send-bulk')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Send messages to multiple recipients (async batch processing)' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

@@ -70,7 +70,7 @@ export class StatusController {
   }
 
   @Post('send-text')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Post a text status' })
   @ApiResponse({
     status: 201,
@@ -91,7 +91,7 @@ export class StatusController {
   }
 
   @Post('send-image')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Post an image status' })
   @ApiResponse({
     status: 201,
@@ -118,7 +118,7 @@ export class StatusController {
   }
 
   @Post('send-video')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Post a video status' })
   @ApiResponse({
     status: 201,
@@ -145,7 +145,7 @@ export class StatusController {
   }
 
   @Post('send-voice')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Post an audio status as a voice note' })
   @ApiResponse({
     status: 201,
@@ -173,7 +173,7 @@ export class StatusController {
   }
 
   @Delete(':id')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Delete own status' })
   @ApiParam({ name: 'id', description: 'Status ID' })
   @ApiResponse({ status: 200, description: 'Status deleted.', type: StatusDeletedResponseDto })

@@ -120,19 +120,19 @@ The surface is an **allowlist by construction** — a capability is exposed only
 `ToolDescriptor` is written for it. There is no automatic route reflection. Each tool
 declares a `tier` (`read` | `write`) and a `requiredRole` when the call warrants one: every
 write carries its privilege level, and a read carries the role its REST twin requires. The
-reads at OPERATOR are `WebhooksList`, `WebhookFindBySession` and `WebhookFindOne`,
+reads at users are `WebhooksList`, `WebhookFindBySession` and `WebhookFindOne`,
 `AutomationRuleFindAll` and `AutomationRuleFindOne`, and `GroupGetInviteCode` (the invite
-code is a transferable join capability, so it sits at OPERATOR like the QR endpoint).
+code is a transferable join capability, so it sits at users like the QR endpoint).
 
 | Domain         | Read tools                                              | Write tools                                                                                   |
 | -------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | **Session**    | list, get, chats, stats, presence                       | mark read/unread, typing, subscribe presence                                                  |
 | **Message**    | list, history, reactions                                | send text/image/video/audio/document/location/contact/sticker/template, reply, forward, react |
 | **Contact**    | list, get, check-number, resolve-phone, profile-picture | block, unblock                                                                                |
-| **Group**      | list, get, invite-code (OPERATOR)                       | create, add participants, set subject, set description                                        |
-| **Webhook**    | list, get (OPERATOR)                                    | —                                                                                             |
+| **Group**      | list, get, invite-code (users)                       | create, add participants, set subject, set description                                        |
+| **Webhook**    | list, get (users)                                    | —                                                                                             |
 | **Label**      | list, get, chats for a label, labels on a chat          | upsert, delete, add to chat, remove from chat                                                 |
-| **Automation** | rules list, get (OPERATOR)                              | —                                                                                             |
+| **Automation** | rules list, get (users)                              | —                                                                                             |
 
 > **Labels split across the engines**, and each tool's description says which way. Every label
 > _read_ needs whatsapp-web.js — Baileys exposes no label query at all. Editing a label (upsert,
@@ -163,7 +163,7 @@ only when an agent genuinely needs to send messages / mutate state.
   per-session `allowedSessions` scoping are enforced identically to REST. A key scoped to
   one session cannot act on another.
 - **Least-privilege keys.** Mint a **dedicated, non-admin, session-scoped** key for each
-  MCP client (`OPERATOR` role at most). The plaintext key is shown once on creation; to
+  MCP client (`users` role at most). The plaintext key is shown once on creation; to
   rotate, create a new key and delete the old one.
 - **No IP allow-list over MCP.** There is no genuine client IP on a tool call, so a key
   that carries an `allowedIps` list will be rejected. Use a key without `allowedIps` for
@@ -245,7 +245,7 @@ Guidelines:
   can leak fields the REST API deliberately strips.
 - Mark writes with `tier: 'write'` and the appropriate `requiredRole`. Give a read the same
   `requiredRole` as the REST route it mirrors: the webhook and automation-rule reads and
-  `GroupGetInviteCode` sit at OPERATOR because their REST routes do.
+  `GroupGetInviteCode` sit at users because their REST routes do.
 - Use `sessionScoped: true` and a non-empty `sessionId` field for any per-session tool so
   the scope check applies.
 - A snapshot test (`tool-registry.spec.ts`) locks the public tool-name set; update it

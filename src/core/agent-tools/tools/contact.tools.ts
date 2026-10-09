@@ -78,7 +78,7 @@ export function contactTools(contact: ContactService): AnyToolDescriptor[] {
       name: 'ContactBlock',
       description: 'Block a contact. The contact will no longer be able to send messages. Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,
@@ -93,7 +93,7 @@ export function contactTools(contact: ContactService): AnyToolDescriptor[] {
       name: 'ContactUnblock',
       description: 'Unblock a previously blocked contact. Requires OPERATOR role.',
       tier: 'write',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,

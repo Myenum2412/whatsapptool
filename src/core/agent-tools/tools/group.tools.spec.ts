@@ -124,7 +124,7 @@ describe('groupTools execute handlers', () => {
     const tool = groupTools({ getGroupInviteCode } as unknown as GroupService).find(
       t => t.name === 'GroupGetInviteCode',
     )!;
-    expect(tool.requiredRole).toBe(ApiKeyRole.OPERATOR);
+    expect(tool.requiredRole).toBe(ApiKeyRole.USER);
 
     const auth = makeAuth();
     (auth.hasPermission as jest.Mock).mockReturnValue(false);

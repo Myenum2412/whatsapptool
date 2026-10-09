@@ -68,7 +68,8 @@
     "logs": "السجلات",
     "campaigns": "Campaigns",
     "flow": "التدفق",
-    "compliance": "الامتثال"
+    "compliance": "الامتثال",
+    "users": "المستخدمون"
   },
   "flow": {
     "plans": {
@@ -349,16 +350,33 @@
     "reload": "إعادة تحميل لوحة التحكم"
   },
   "login": {
-    "apiKey": "مفتاح API",
-    "apiKeyPlaceholder": "أدخل مفتاح API الخاص بك",
-    "apiKeyRequired": "مفتاح API مطلوب",
-    "connect": "اتصال",
-    "connecting": "جارٍ الاتصال...",
-    "invalidKey": "مفتاح API غير صالح",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صالحة",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
     "connectionError": "تعذّر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
     "help": "هل تحتاج مساعدة؟",
     "viewDocs": "عرض التوثيق",
-    "version": "v{{version}} · {{date}}"
+    "version": "v{{version}} · {{date}}",
+    "signupPrompt": "جديد هنا؟",
+    "signupLink": "إنشاء حساب",
+    "createdAccount": "تم إنشاء الحساب — سجّل الدخول للمتابعة."
+  },
+  "signup": {
+    "name": "الاسم (اختياري)",
+    "namePlaceholder": "اسمك",
+    "signUp": "إنشاء حساب",
+    "signingUp": "جارٍ إنشاء الحساب...",
+    "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل.",
+    "accountExists": "يوجد حساب مسجل بالفعل بهذا البريد الإلكتروني.",
+    "tooManyRequests": "محاولات كثيرة جدًا. يرجى المحاولة لاحقًا.",
+    "loginPrompt": "لديك حساب بالفعل؟",
+    "loginLink": "تسجيل الدخول"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -640,7 +658,7 @@
       "description": "أضف ويب هوك لتلقي إشعارات فورية بالأحداث",
       "loadErrorTitle": "تعذر تحميل الويب هوك",
       "forbiddenTitle": "لا يوجد وصول إلى الويب هوك",
-      "forbiddenDesc": "يتطلب الويب هوك مفتاح API بدور المشغل أو المسؤول."
+      "forbiddenDesc": "تتطلب الخطافات (Webhooks) مفتاح واجهة برمجة تطبيقات بدور users أو orgmenu."
     },
     "toasts": {
       "created": "تم إنشاء الويب هوك بنجاح",
@@ -721,7 +739,7 @@
       "noSessionsDesc": "أنشئ جلسة WhatsApp قبل إضافة القوالب.",
       "loadErrorTitle": "تعذر تحميل القوالب",
       "forbiddenTitle": "لا يوجد وصول إلى القوالب",
-      "forbiddenDesc": "تتطلب القوالب مفتاح API بدور المشغل أو المسؤول."
+      "forbiddenDesc": "تتطلب القوالب مفتاح واجهة برمجة تطبيقات بدور users أو orgmenu."
     },
     "toasts": {
       "created": "تم إنشاء القالب بنجاح",
@@ -933,14 +951,12 @@
     "namePlaceholder": "مثال: مفتاح الإنتاج",
     "rolesTitle": "مرجع الأدوار",
     "roles": {
-      "admin": "مدير",
-      "operator": "مشغّل",
-      "viewer": "مشاهد"
+      "orgmenu": "قائمة المؤسسة",
+      "users": "المستخدمون"
     },
     "roleDescriptions": {
-      "admin": "وصول كامل لجميع الموارد",
-      "operator": "إدارة الجلسات والرسائل",
-      "viewer": "وصول للقراءة فقط"
+      "orgmenu": "وصول كامل إلى جميع الموارد وإدارة حسابات تسجيل الدخول",
+      "users": "إدارة الجلسات والرسائل والأتمتة"
     },
     "columns": {
       "name": "الاسم",
@@ -1296,6 +1312,68 @@
       "friday": "جم",
       "saturday": "سب",
       "sunday": "أح"
+    }
+  },
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "حسابات البريد الإلكتروني/كلمة المرور التي يسجّل بها فريقك الدخول",
+    "addButton": "إضافة مستخدم",
+    "loadError": "تعذّر تحميل المستخدمين.",
+    "created": "تم إنشاء المستخدم.",
+    "updated": "تم تحديث المستخدم.",
+    "deleted": "تم حذف المستخدم.",
+    "enabled": "تم تفعيل المستخدم.",
+    "disabled": "تم تعطيل المستخدم.",
+    "empty": {
+      "title": "لا يوجد مستخدمون بعد",
+      "description": "أنشئ حساب تسجيل دخول لأحد أعضاء الفريق."
+    },
+    "columns": {
+      "email": "البريد الإلكتروني",
+      "name": "الاسم",
+      "role": "الدور",
+      "status": "الحالة",
+      "created": "تاريخ الإنشاء",
+      "actions": "الإجراءات"
+    },
+    "statuses": {
+      "active": "نشط",
+      "disabled": "معطّل"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "enable": "تفعيل",
+      "disable": "تعطيل",
+      "delete": "حذف"
+    },
+    "modalAdd": "إضافة مستخدم",
+    "modalEdit": "تعديل المستخدم",
+    "form": {
+      "name": "الاسم",
+      "placeholderName": "مثال: Jane Operator",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "passwordHint": "8 أحرف على الأقل",
+      "role": "الدور",
+      "active": "الحساب نشط"
+    },
+    "validation": {
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "أدخل عنوان بريد إلكتروني صحيحاً.",
+      "passwordRequired": "كلمة المرور مطلوبة.",
+      "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل."
+    },
+    "confirm": {
+      "deleteTitle": "حذف المستخدم",
+      "deleteMessage": "حذف هذا الحساب نهائياً؟ سيتوقف تسجيل الدخول فوراً عن العمل.",
+      "delete": "حذف"
+    },
+    "errors": {
+      "create": "تعذّر إنشاء المستخدم",
+      "update": "تعذّر تحديث المستخدم",
+      "delete": "تعذّر حذف المستخدم",
+      "enable": "تعذّر تفعيل المستخدم",
+      "disable": "تعذّر تعطيل المستخدم"
     }
   }
 }

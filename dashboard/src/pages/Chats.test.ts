@@ -340,9 +340,9 @@ before(async () => {
   ({ installJsdomGlobals } = await import('../test-helpers/jsdom.ts'));
   await installJsdomGlobals();
   installFetchStub();
-  // RoleProvider initializes from localStorage; 'admin' makes canWrite true so the composer
+  // RoleProvider initializes from localStorage; 'orgmenu' makes canWrite true so the composer
   // controls render enabled.
-  window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+  window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   // useWebSocket.connect() bails without this, so no socket would exist to receive a frame. It
   // dials nothing: the client is the double above.
   window.sessionStorage.setItem('mywhatsapp_api_key', 'test-key');
@@ -620,18 +620,21 @@ test('Escape dismisses the message search results instead of the conversation be
   await waitFor(() => assert.ok(!screen.queryByRole('button', { name: 'Back' }), 'Escape did not close the room'));
 });
 
-test('a read-only key is offered no status compose trigger', async () => {
+test('an unrecognized cached role is offered no status compose trigger', async () => {
   const { screen, fireEvent } = rtl;
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'superuser');
   try {
     renderChats();
     await screen.findByText('Main (15551234567)');
     fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
-    // Reading statuses stays open to a viewer; only posting one is withheld.
+    // Reading statuses stays open to any account; only posting one is withheld.
     await screen.findByText('No contacts have an active status.');
-    assert.ok(!screen.queryByRole('button', { name: 'Post a status' }), 'a viewer key was offered status compose');
+    assert.ok(
+      !screen.queryByRole('button', { name: 'Post a status' }),
+      'an unrecognized cached role was offered status compose',
+    );
   } finally {
-    window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+    window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   }
 });
 
@@ -645,10 +648,10 @@ test('a writer key opening a chat clears its unread badge', async () => {
   await waitFor(() => assert.ok(!screen.queryByLabelText('2 unread messages'), 'opening the chat kept its badge'));
 });
 
-test('a read-only key opening a chat sends no mark-as-read', async () => {
+test('an unrecognized cached role opening a chat sends no mark-as-read', async () => {
   const { screen, fireEvent, within, waitFor } = rtl;
   resetFetchCalls();
-  window.localStorage.setItem('mywhatsapp_user_role', 'viewer');
+  window.localStorage.setItem('mywhatsapp_user_role', 'superuser');
   try {
     const { container } = renderChats();
     await screen.findByText('Main (15551234567)');
@@ -656,7 +659,10 @@ test('a read-only key opening a chat sends no mark-as-read', async () => {
     await within(container.querySelector('.room-messages') as HTMLElement).findByText('hello from alice');
     // Past the mark-as-read quiet window, so a queued call would have gone out.
     await new Promise(resolve => setTimeout(resolve, 1_000));
-    assert.ok(!findFetchCall('POST', `/api/sessions/${SESSION.id}/chats/read`), 'a viewer key marked the chat read');
+    assert.ok(
+      !findFetchCall('POST', `/api/sessions/${SESSION.id}/chats/read`),
+      'an unrecognized cached role marked the chat read',
+    );
     // The chat is still unread on the gateway, so the sidebar badge keeps its count.
     assert.ok(
       screen.queryByLabelText('2 unread messages'),
@@ -687,7 +693,7 @@ test('a read-only key opening a chat sends no mark-as-read', async () => {
       assert.ok(screen.queryByLabelText('3 unread messages'), 'the open chat did not count the arrival'),
     );
   } finally {
-    window.localStorage.setItem('mywhatsapp_user_role', 'admin');
+    window.localStorage.setItem('mywhatsapp_user_role', 'orgmenu');
   }
 });
 

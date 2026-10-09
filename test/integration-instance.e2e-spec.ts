@@ -252,7 +252,11 @@ describe('IntegrationInstanceController (e2e)', () => {
     beforeAll(async () => {
       const authService = app.get(AuthService);
       scopedKey = (
-        await authService.createApiKey({ name: 'e2e-scoped-int', role: ApiKeyRole.ADMIN, allowedSessions: ['sess-1'] })
+        await authService.createApiKey({
+          name: 'e2e-scoped-int',
+          role: ApiKeyRole.ORG_MENU,
+          allowedSessions: ['sess-1'],
+        })
       ).rawKey;
       // Fixtures created with the unrestricted key: one instance inside the fence, one outside, one global.
       const mk = (instanceId: string, body: Record<string, unknown>) =>
@@ -366,7 +370,7 @@ describe('IntegrationInstanceController (e2e)', () => {
       scopedCurrentKey = (
         await authService.createApiKey({
           name: 'e2e-redrive-sess-current',
-          role: ApiKeyRole.ADMIN,
+          role: ApiKeyRole.ORG_MENU,
           allowedSessions: ['sess-current'],
         })
       ).rawKey;

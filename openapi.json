@@ -17,7 +17,12 @@
                 "api_key_revoked",
                 "api_key_deleted",
                 "api_key_auth_failed",
+                "auth_login_succeeded",
+                "auth_login_failed",
                 "rate_limit_exceeded",
+                "user_created",
+                "user_updated",
+                "user_deleted",
                 "queue_board_mutated",
                 "session_created",
                 "session_started",
@@ -431,6 +436,225 @@
           }
         },
         "summary": "Validate an API key",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "description": "Returns a freshly-issued API key carrying the account role. Each sign-in rotates the account's previous key, so earlier sessions are invalidated. Rate-limited to 5 attempts per minute per client.",
+        "operationId": "AuthLoginController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed (missing/malformed email or password)"
+          },
+          "401": {
+            "description": "Invalid email or password"
+          },
+          "429": {
+            "description": "Too many attempts — retry later"
+          }
+        },
+        "summary": "Sign in with email and password, receiving a session API key",
+        "tags": [
+          "auth"
+        ],
+        "security": []
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "description": "Creates a least-privilege (`users`) email/password account that can then sign in through `POST /api/auth/login`. There is no `role` field: a self-registered account is never granted `orgmenu` — that tier is provisioned by an administrator or the bootstrap seed. Rate-limited to 5 attempts per minute per client.",
+        "operationId": "AuthRegisterController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed (missing/malformed email, short password, or a non-whitelisted body field)"
+          },
+          "409": {
+            "description": "An account with that email already exists"
+          },
+          "429": {
+            "description": "Too many attempts — retry later"
+          }
+        },
+        "summary": "Create a dashboard account by self-signup",
+        "tags": [
+          "auth"
+        ],
+        "security": []
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "operationId": "AuthUsersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All accounts, ordered by creation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List dashboard accounts (orgmenu only)",
+        "tags": [
+          "auth"
+        ]
+      },
+      "post": {
+        "operationId": "AuthUsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "An account with that email already exists."
+          }
+        },
+        "summary": "Create a dashboard account (orgmenu only)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/users/{id}": {
+      "patch": {
+        "operationId": "AuthUsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No account with that id."
+          },
+          "409": {
+            "description": "The change would remove the last active orgmenu account."
+          }
+        },
+        "summary": "Update a dashboard account (orgmenu only)",
+        "tags": [
+          "auth"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthUsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account deleted."
+          },
+          "404": {
+            "description": "No account with that id."
+          },
+          "409": {
+            "description": "The account is the last active orgmenu, or the one you are signed in with."
+          }
+        },
+        "summary": "Delete a dashboard account (orgmenu only)",
         "tags": [
           "auth"
         ]
@@ -10730,11 +10954,10 @@
             "type": "string",
             "description": "Role/permission level",
             "enum": [
-              "admin",
-              "operator",
-              "viewer"
+              "orgmenu",
+              "users"
             ],
-            "default": "operator"
+            "default": "users"
           },
           "allowedIps": {
             "description": "Allowed IP addresses (whitelist)",
@@ -10795,9 +11018,8 @@
           "role": {
             "type": "string",
             "enum": [
-              "admin",
-              "operator",
-              "viewer"
+              "orgmenu",
+              "users"
             ]
           },
           "allowedIps": {
@@ -10869,9 +11091,8 @@
           "role": {
             "type": "string",
             "enum": [
-              "admin",
-              "operator",
-              "viewer"
+              "orgmenu",
+              "users"
             ]
           },
           "allowedIps": {
@@ -10930,9 +11151,8 @@
           "role": {
             "type": "string",
             "enum": [
-              "admin",
-              "operator",
-              "viewer"
+              "orgmenu",
+              "users"
             ]
           },
           "allowedIps": {
@@ -10969,9 +11189,8 @@
           "role": {
             "type": "string",
             "enum": [
-              "admin",
-              "operator",
-              "viewer"
+              "orgmenu",
+              "users"
             ],
             "description": "The key's role; present only when valid."
           }
@@ -10979,6 +11198,203 @@
         "required": [
           "valid"
         ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Account email",
+            "example": "admin@localhost"
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password",
+            "example": "correct-horse-battery-staple"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "description": "Full API key for the session — returned only by this response",
+            "example": "owa_k1_4f3c2b1a9d8e7c6b5a4938271605f4e3c2b1a9d8e7c6b5a4938271605f4e3c2b"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "orgmenu",
+              "users"
+            ],
+            "description": "The account's role, mirrored onto the issued API key"
+          },
+          "user": {
+            "$ref": "#/components/schemas/LoginUserResponseDto"
+          }
+        },
+        "required": [
+          "apiKey",
+          "role",
+          "user"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Account email (stored normalized: trimmed and lowercased)",
+            "example": "operator@acme.example"
+          },
+          "password": {
+            "type": "string",
+            "description": "Initial password (plaintext in the request only — hashed at rest)",
+            "example": "correct-horse-battery-staple",
+            "minLength": 8,
+            "maxLength": 1024
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "Ada Operator",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "orgmenu",
+              "users"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "lastLoginAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "isActive",
+          "lastLoginAt",
+          "createdAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Account email (stored normalized: trimmed and lowercased)",
+            "example": "operator@acme.example"
+          },
+          "password": {
+            "type": "string",
+            "description": "Initial password (plaintext in the request only — hashed at rest)",
+            "example": "correct-horse-battery-staple",
+            "minLength": 8,
+            "maxLength": 1024
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "Ada Operator",
+            "maxLength": 200
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "orgmenu",
+              "users"
+            ],
+            "description": "Authorization tier — default `users`",
+            "default": "users"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "maxLength": 200
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "orgmenu",
+              "users"
+            ],
+            "description": "Authorization tier"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Disable/enable the account. Disabling revokes the account’s active session keys."
+          },
+          "password": {
+            "type": "string",
+            "description": "New password (plaintext in the request only — hashed at rest)",
+            "minLength": 8,
+            "maxLength": 1024
+          }
+        }
       },
       "CreateSessionDto": {
         "type": "object",

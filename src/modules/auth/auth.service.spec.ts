@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import { AuthService, resolveSeedApiKey, bannerKeyLine } from './auth.service';
 import { ApiKeyUsageTracker } from './api-key-usage-tracker.service';
 import { ApiKey, ApiKeyRole } from './entities/api-key.entity';
+import { Session } from '../session/entities/session.entity';
 
 // Helpers
 const hashKey = (key: string) => createHash('sha256').update(key).digest('hex');
@@ -21,10 +22,11 @@ function createMockApiKey(overrides: Partial<ApiKey> = {}): ApiKey {
     name: 'Test Key',
     keyHash: hashKey('test-key'),
     keyPrefix: 'test-key-pre',
-    role: ApiKeyRole.OPERATOR,
+    role: ApiKeyRole.USER,
     allowedIps: null,
     allowedSessions: null,
     allowedChats: null,
+    ownerUserId: null,
     isActive: true,
     expiresAt: null,
     lastUsedAt: null,
@@ -122,6 +124,12 @@ describe('AuthService', () => {
           provide: getRepositoryToken(ApiKey, 'main'),
           useValue: repository,
         },
+        {
+          // The account-ownership fence in validateApiKey reads the data-connection Session repo.
+          // This spec drives hand-minted keys (ownerUserId null), which never hit that lookup.
+          provide: getRepositoryToken(Session, 'data'),
+          useValue: {},
+        },
       ],
     }).compile();
 
@@ -209,7 +217,7 @@ describe('AuthService', () => {
    * service): an active, unexpired ADMIN key with no session OR chat scope. */
   function isUsableAdminRow(key: ApiKey): boolean {
     return (
-      key.role === ApiKeyRole.ADMIN &&
+      key.role === ApiKeyRole.ORG_MENU &&
       key.isActive &&
       (!key.expiresAt || key.expiresAt.getTime() > Date.now()) &&
       (!key.allowedSessions || key.allowedSessions.length === 0) &&
@@ -218,7 +226,7 @@ describe('AuthService', () => {
   }
 
   function setupLiveAdmins(...ids: string[]): void {
-    setupKeys(ids.map(id => createMockApiKey({ id, role: ApiKeyRole.ADMIN })));
+    setupKeys(ids.map(id => createMockApiKey({ id, role: ApiKeyRole.ORG_MENU })));
   }
 
   // ── createApiKey ──────────────────────────────────────────────────
@@ -236,19 +244,19 @@ describe('AuthService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'My Key',
-          role: ApiKeyRole.OPERATOR, // default
+          role: ApiKeyRole.USER, // default
         }),
       );
     });
 
     it('should use the provided role instead of default', async () => {
-      const mockSaved = createMockApiKey({ role: ApiKeyRole.ADMIN });
+      const mockSaved = createMockApiKey({ role: ApiKeyRole.ORG_MENU });
       (repository.create as jest.Mock).mockReturnValue(mockSaved);
       (repository.save as jest.Mock).mockResolvedValue(mockSaved);
 
-      await service.createApiKey({ name: 'Admin Key', role: ApiKeyRole.ADMIN });
+      await service.createApiKey({ name: 'Admin Key', role: ApiKeyRole.ORG_MENU });
 
-      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ role: ApiKeyRole.ADMIN }));
+      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ role: ApiKeyRole.ORG_MENU }));
     });
 
     it('should store the SHA-256 hash, not the raw key', async () => {
@@ -302,7 +310,7 @@ describe('AuthService', () => {
       const result = await service.update('uuid-1', { name: 'Updated' });
 
       expect(result.name).toBe('Updated');
-      expect(result.role).toBe(ApiKeyRole.OPERATOR); // unchanged
+      expect(result.role).toBe(ApiKeyRole.USER); // unchanged
     });
 
     it('evicts active WebSocket sockets when allowedSessions narrows', async () => {
@@ -322,9 +330,9 @@ describe('AuthService', () => {
       jest
         .spyOn((service as unknown as { moduleRef: { get: (...a: unknown[]) => unknown } }).moduleRef, 'get')
         .mockReturnValue({ evictApiKey });
-      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.OPERATOR })]);
+      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.USER })]);
 
-      await service.update('uuid-1', { role: ApiKeyRole.ADMIN });
+      await service.update('uuid-1', { role: ApiKeyRole.ORG_MENU });
 
       expect(evictApiKey).toHaveBeenCalledWith('uuid-1', 'authorization_changed');
     });
@@ -342,9 +350,9 @@ describe('AuthService', () => {
     });
 
     it('rejects demoting or expiring the last usable admin', async () => {
-      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ADMIN })]);
+      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ORG_MENU })]);
 
-      await expect(service.update('uuid-1', { role: ApiKeyRole.OPERATOR })).rejects.toThrow(/last active admin/i);
+      await expect(service.update('uuid-1', { role: ApiKeyRole.USER })).rejects.toThrow(/last active admin/i);
       await expect(
         service.update('uuid-1', { expiresAt: new Date(Date.now() + 60_000).toISOString() }),
       ).rejects.toThrow(/last active admin/i);
@@ -388,13 +396,13 @@ describe('AuthService', () => {
     });
 
     it('rejects deleting the last usable admin but allows it when another usable admin exists', async () => {
-      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ADMIN })]);
+      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ORG_MENU })]);
 
       await expect(service.delete('uuid-1')).rejects.toThrow(/last active admin/i);
 
       setupKeys([
-        createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ADMIN }),
-        createMockApiKey({ id: 'uuid-2', role: ApiKeyRole.ADMIN }),
+        createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ORG_MENU }),
+        createMockApiKey({ id: 'uuid-2', role: ApiKeyRole.ORG_MENU }),
       ]);
 
       await expect(service.delete('uuid-1')).resolves.toBeUndefined();
@@ -441,7 +449,7 @@ describe('AuthService', () => {
     });
 
     it('rejects revoking the last usable admin', async () => {
-      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ADMIN, isActive: true })]);
+      setupKeys([createMockApiKey({ id: 'uuid-1', role: ApiKeyRole.ORG_MENU, isActive: true })]);
 
       await expect(service.revoke('uuid-1')).rejects.toThrow(/last active admin/i);
       expect(committedWrites).toHaveLength(0); // the write never landed
@@ -475,7 +483,7 @@ describe('AuthService', () => {
       setupLiveAdmins('admin-a', 'admin-b');
 
       const results = await Promise.allSettled([
-        service.update('admin-a', { role: ApiKeyRole.OPERATOR }),
+        service.update('admin-a', { role: ApiKeyRole.USER }),
         service.revoke('admin-b'),
       ]);
 
@@ -486,7 +494,7 @@ describe('AuthService', () => {
       const strippingWrites = committedWrites.filter(
         w =>
           w.mode === 'delete' ||
-          (w.patch?.role !== undefined && w.patch.role !== ApiKeyRole.ADMIN) ||
+          (w.patch?.role !== undefined && w.patch.role !== ApiKeyRole.ORG_MENU) ||
           w.patch?.isActive === false,
       );
       expect(strippingWrites).toHaveLength(1);
@@ -506,15 +514,15 @@ describe('AuthService', () => {
 
     it('runs non-admin mutations and benign admin updates on unguarded statements', async () => {
       setupKeys([
-        createMockApiKey({ id: 'op-del', role: ApiKeyRole.OPERATOR }),
-        createMockApiKey({ id: 'op-rev', role: ApiKeyRole.OPERATOR }),
-        createMockApiKey({ id: 'op-demote', role: ApiKeyRole.OPERATOR }),
-        createMockApiKey({ id: 'adm-1', role: ApiKeyRole.ADMIN }),
+        createMockApiKey({ id: 'op-del', role: ApiKeyRole.USER }),
+        createMockApiKey({ id: 'op-rev', role: ApiKeyRole.USER }),
+        createMockApiKey({ id: 'op-demote', role: ApiKeyRole.USER }),
+        createMockApiKey({ id: 'adm-1', role: ApiKeyRole.ORG_MENU }),
       ]);
 
       await service.delete('op-del'); // non-admin delete
       await service.revoke('op-rev'); // non-admin revoke
-      await service.update('op-demote', { role: ApiKeyRole.VIEWER }); // demote of a non-admin
+      await service.update('op-demote', { role: ApiKeyRole.USER }); // demote of a non-admin
       await service.update('adm-1', { name: 'renamed' }); // benign update of an admin
 
       // The last-admin guard is bound via andWhere; none of these statements carries it — the
@@ -535,9 +543,9 @@ describe('AuthService', () => {
     // write runs. The write must carry only its own patch — a full-entity save from the stale
     // snapshot would resurrect the concurrent commit.
     it('a rename does not resurrect a concurrent revoke: the write carries only name', async () => {
-      setupKeys([createMockApiKey({ id: 'op-1', role: ApiKeyRole.OPERATOR, isActive: false, name: 'original' })]);
+      setupKeys([createMockApiKey({ id: 'op-1', role: ApiKeyRole.USER, isActive: false, name: 'original' })]);
       (repository.findOne as jest.Mock).mockResolvedValueOnce(
-        createMockApiKey({ id: 'op-1', role: ApiKeyRole.OPERATOR, isActive: true, name: 'original' }), // stale pre-read
+        createMockApiKey({ id: 'op-1', role: ApiKeyRole.USER, isActive: true, name: 'original' }), // stale pre-read
       );
 
       const result = await service.update('op-1', { name: 'renamed' });
@@ -548,9 +556,9 @@ describe('AuthService', () => {
     });
 
     it('a revoke does not clobber a concurrent rename: isActive is the only column written', async () => {
-      setupKeys([createMockApiKey({ id: 'op-1', role: ApiKeyRole.OPERATOR, isActive: true, name: 'renamed-by-peer' })]);
+      setupKeys([createMockApiKey({ id: 'op-1', role: ApiKeyRole.USER, isActive: true, name: 'renamed-by-peer' })]);
       (repository.findOne as jest.Mock).mockResolvedValueOnce(
-        createMockApiKey({ id: 'op-1', role: ApiKeyRole.OPERATOR, isActive: true, name: 'original' }), // stale pre-read
+        createMockApiKey({ id: 'op-1', role: ApiKeyRole.USER, isActive: true, name: 'original' }), // stale pre-read
       );
 
       const result = await service.revoke('op-1');
@@ -567,12 +575,13 @@ describe('AuthService', () => {
     // Key-lifecycle routes are fenced behind @RequireUnscopedKey, so a session-scoped admin can
     // never manage keys: it must NOT count as a surviving admin, and scoping the last unscoped
     // admin must be rejected like a demotion — otherwise the system locks itself out for good.
-    const unscopedAdmin = (id: string) => createMockApiKey({ id, role: ApiKeyRole.ADMIN });
-    const scopedAdmin = (id: string) => createMockApiKey({ id, role: ApiKeyRole.ADMIN, allowedSessions: ['sess-1'] });
+    const unscopedAdmin = (id: string) => createMockApiKey({ id, role: ApiKeyRole.ORG_MENU });
+    const scopedAdmin = (id: string) =>
+      createMockApiKey({ id, role: ApiKeyRole.ORG_MENU, allowedSessions: ['sess-1'] });
     // A chat-scoped admin is likewise fenced out of key management (its routes are not
     // @ChatScoped, so the guard refuses it), so it must not count as a usable admin either.
     const chatScopedAdmin = (id: string) =>
-      createMockApiKey({ id, role: ApiKeyRole.ADMIN, allowedChats: ['123@g.us'] });
+      createMockApiKey({ id, role: ApiKeyRole.ORG_MENU, allowedChats: ['123@g.us'] });
 
     it('rejects deleting the last unscoped admin even while a session-scoped admin survives', async () => {
       setupKeys([unscopedAdmin('admin-a'), scopedAdmin('admin-scoped')]);
@@ -591,7 +600,7 @@ describe('AuthService', () => {
     it('rejects demoting the last unscoped admin even while a session-scoped admin survives', async () => {
       setupKeys([unscopedAdmin('admin-a'), scopedAdmin('admin-scoped')]);
 
-      await expect(service.update('admin-a', { role: ApiKeyRole.OPERATOR })).rejects.toThrow(/last active admin/i);
+      await expect(service.update('admin-a', { role: ApiKeyRole.USER })).rejects.toThrow(/last active admin/i);
     });
 
     it('rejects scoping the last unscoped admin — the same capability-stripping as a demotion', async () => {
@@ -621,7 +630,7 @@ describe('AuthService', () => {
       // fails here rather than in production.
       setupKeys([unscopedAdmin('admin-a'), chatScopedAdmin('admin-chat')]);
 
-      await expect(service.update('admin-a', { role: ApiKeyRole.OPERATOR })).rejects.toThrow(/last active admin/i);
+      await expect(service.update('admin-a', { role: ApiKeyRole.USER })).rejects.toThrow(/last active admin/i);
       expect(lastAdminFragments.join(' ')).toContain('allowedChats');
     });
 
@@ -657,9 +666,9 @@ describe('AuthService', () => {
       // mutation has already demoted it. The guard reads the row's CURRENT state inside the
       // statement (the table double below), so there is no spurious conflict — the delete goes
       // through and the demoted key is gone.
-      setupKeys([createMockApiKey({ id: 'admin-a', role: ApiKeyRole.OPERATOR })]);
+      setupKeys([createMockApiKey({ id: 'admin-a', role: ApiKeyRole.USER })]);
       (repository.findOne as jest.Mock).mockResolvedValueOnce(
-        createMockApiKey({ id: 'admin-a', role: ApiKeyRole.ADMIN }), // stale pre-read
+        createMockApiKey({ id: 'admin-a', role: ApiKeyRole.ORG_MENU }), // stale pre-read
       );
 
       await expect(service.delete('admin-a')).resolves.toBeUndefined();
@@ -1018,29 +1027,24 @@ describe('AuthService', () => {
   // ── hasPermission ─────────────────────────────────────────────────
 
   describe('hasPermission', () => {
-    it('should allow ADMIN to access ADMIN routes', () => {
-      const key = createMockApiKey({ role: ApiKeyRole.ADMIN });
-      expect(service.hasPermission(key, ApiKeyRole.ADMIN)).toBe(true);
+    it('should allow ORG_MENU to access ORG_MENU routes', () => {
+      const key = createMockApiKey({ role: ApiKeyRole.ORG_MENU });
+      expect(service.hasPermission(key, ApiKeyRole.ORG_MENU)).toBe(true);
     });
 
-    it('should allow ADMIN to access OPERATOR routes', () => {
-      const key = createMockApiKey({ role: ApiKeyRole.ADMIN });
-      expect(service.hasPermission(key, ApiKeyRole.OPERATOR)).toBe(true);
+    it('should allow ORG_MENU to access USER routes', () => {
+      const key = createMockApiKey({ role: ApiKeyRole.ORG_MENU });
+      expect(service.hasPermission(key, ApiKeyRole.USER)).toBe(true);
     });
 
-    it('should allow ADMIN to access VIEWER routes', () => {
-      const key = createMockApiKey({ role: ApiKeyRole.ADMIN });
-      expect(service.hasPermission(key, ApiKeyRole.VIEWER)).toBe(true);
+    it('should allow USER to access USER routes', () => {
+      const key = createMockApiKey({ role: ApiKeyRole.USER });
+      expect(service.hasPermission(key, ApiKeyRole.USER)).toBe(true);
     });
 
-    it('should deny VIEWER access to OPERATOR routes', () => {
-      const key = createMockApiKey({ role: ApiKeyRole.VIEWER });
-      expect(service.hasPermission(key, ApiKeyRole.OPERATOR)).toBe(false);
-    });
-
-    it('should deny OPERATOR access to ADMIN routes', () => {
-      const key = createMockApiKey({ role: ApiKeyRole.OPERATOR });
-      expect(service.hasPermission(key, ApiKeyRole.ADMIN)).toBe(false);
+    it('should deny USER access to ORG_MENU routes', () => {
+      const key = createMockApiKey({ role: ApiKeyRole.USER });
+      expect(service.hasPermission(key, ApiKeyRole.ORG_MENU)).toBe(false);
     });
   });
 

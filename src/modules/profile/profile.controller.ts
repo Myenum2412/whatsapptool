@@ -17,7 +17,7 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Put('name')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Set the account display name' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SetProfileNameDto })
@@ -42,7 +42,7 @@ export class ProfileController {
   }
 
   @Put('status')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Set the account about/status text' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SetProfileStatusDto })
@@ -61,7 +61,7 @@ export class ProfileController {
   }
 
   @Put('picture')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Set the account profile picture (URL or base64 image)' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: SetProfilePictureDto })
@@ -93,7 +93,7 @@ export class ProfileController {
   }
 
   @Delete('picture')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: "Remove the account's profile picture" })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 200, description: 'Profile picture removed', type: ProfileAckResponseDto })

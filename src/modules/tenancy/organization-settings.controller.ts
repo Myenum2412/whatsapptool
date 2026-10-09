@@ -24,7 +24,7 @@ export class OrganizationSettingsController {
   ) {}
 
   @Get('settings')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({
     summary: 'Read an organization’s policy settings',
     description:
@@ -57,7 +57,7 @@ export class OrganizationSettingsController {
   }
 
   @Patch('settings')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @ApiOperation({
     summary: 'Update an organization’s policy settings',
     description:

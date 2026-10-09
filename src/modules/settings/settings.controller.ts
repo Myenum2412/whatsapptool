@@ -60,7 +60,7 @@ export class SettingsController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @RequireUnscopedKey()
   @ApiOperation({ summary: 'Get application settings' })
   @ApiResponse({ status: 200, description: 'Current settings', type: SettingsResponseDto })

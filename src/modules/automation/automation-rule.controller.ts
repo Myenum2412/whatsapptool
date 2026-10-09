@@ -11,7 +11,7 @@ export class AutomationRuleController {
   constructor(private readonly automationRules: AutomationRulesService) {}
 
   @Post()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Create an autoreply rule' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({ status: 201, description: 'Rule created.', type: AutomationRuleResponseDto })
@@ -25,7 +25,7 @@ export class AutomationRuleController {
   }
 
   @Get()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'List the session’s autoreply rules' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiResponse({
@@ -39,7 +39,7 @@ export class AutomationRuleController {
   }
 
   @Get(':ruleId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Get one autoreply rule' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'ruleId', description: 'Rule ID' })
@@ -53,7 +53,7 @@ export class AutomationRuleController {
   }
 
   @Put(':ruleId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Update an autoreply rule' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'ruleId', description: 'Rule ID' })
@@ -68,7 +68,7 @@ export class AutomationRuleController {
   }
 
   @Delete(':ruleId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an autoreply rule' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

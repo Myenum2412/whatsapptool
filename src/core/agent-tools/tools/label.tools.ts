@@ -63,7 +63,7 @@ export function labelTools(labels: LabelService): AnyToolDescriptor[] {
         'labels and answers 501.',
       tier: 'write',
       sessionScoped: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       inputSchema: z.object({
         sessionId,
         labelId,
@@ -89,7 +89,7 @@ export function labelTools(labels: LabelService): AnyToolDescriptor[] {
       tier: 'write',
       sessionScoped: true,
       destructive: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       inputSchema: z.object({ sessionId, labelId }),
       handler: input => labels.deleteLabel(input.sessionId, input.labelId).then(() => ({ success: true })),
     }),
@@ -98,7 +98,7 @@ export function labelTools(labels: LabelService): AnyToolDescriptor[] {
       description: 'Tag a chat with an existing label. Works on both engines. WhatsApp Business only.',
       tier: 'write',
       sessionScoped: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       inputSchema: z.object({ sessionId, chatId, labelId }),
       handler: input =>
         labels.addLabelToChat(input.sessionId, input.chatId, input.labelId).then(() => ({ success: true })),
@@ -110,7 +110,7 @@ export function labelTools(labels: LabelService): AnyToolDescriptor[] {
         'WhatsApp Business only.',
       tier: 'write',
       sessionScoped: true,
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       inputSchema: z.object({ sessionId, chatId, labelId }),
       handler: input =>
         labels.removeLabelFromChat(input.sessionId, input.chatId, input.labelId).then(() => ({ success: true })),

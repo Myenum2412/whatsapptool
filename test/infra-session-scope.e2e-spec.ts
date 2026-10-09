@@ -35,9 +35,13 @@ describe('Infrastructure routes reject session-scoped keys (e2e)', () => {
 
     const authService = app.get(AuthService);
     scopedKey = (
-      await authService.createApiKey({ name: 'e2e-infra-scoped', role: ApiKeyRole.ADMIN, allowedSessions: [sessA.id] })
+      await authService.createApiKey({
+        name: 'e2e-infra-scoped',
+        role: ApiKeyRole.ORG_MENU,
+        allowedSessions: [sessA.id],
+      })
     ).rawKey;
-    adminKey = (await authService.createApiKey({ name: 'e2e-infra-admin', role: ApiKeyRole.ADMIN })).rawKey;
+    adminKey = (await authService.createApiKey({ name: 'e2e-infra-admin', role: ApiKeyRole.ORG_MENU })).rawKey;
   });
 
   afterAll(async () => {

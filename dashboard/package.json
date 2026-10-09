@@ -30,7 +30,9 @@
     "react-router-dom": "^7.18.4",
     "recharts": "^3.10.1",
     "socket.io-client": "^4.8.3",
-    "yet-another-react-lightbox": "^3.32.2"
+    "yet-another-react-lightbox": "^3.32.2",
+    "reactflow": "^11.11.4",
+    "@reactflow/core": "^11.11.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

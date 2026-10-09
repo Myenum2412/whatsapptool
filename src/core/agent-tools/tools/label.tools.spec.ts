@@ -6,7 +6,7 @@ import type { AuthService } from '../../../modules/auth/auth.service';
 
 function makeAuth(): Pick<AuthService, 'validateApiKey' | 'hasPermission'> {
   return {
-    validateApiKey: jest.fn().mockResolvedValue({ id: 'k1', role: 'operator', allowedSessions: null }),
+    validateApiKey: jest.fn().mockResolvedValue({ id: 'k1', role: 'users', allowedSessions: null }),
     hasPermission: jest.fn().mockReturnValue(true),
   };
 }

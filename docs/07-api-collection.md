@@ -40,7 +40,7 @@ export SESSION_ID=8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a
 
 ### 07.3 Sessions
 
-All routes are under `$BASE/api/sessions` and require `X-API-Key: $API_KEY` (some require an OPERATOR-role key). Reads come first, then writes.
+All routes are under `$BASE/api/sessions` and require `X-API-Key: $API_KEY` (some require a users-role key). Reads come first, then writes.
 
 #### GET /api/sessions
 
@@ -62,7 +62,7 @@ curl -X GET "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a" \
 
 #### GET /api/sessions/:sessionId/qr
 
-Get the QR code (PNG data URL) for authentication (OPERATOR).
+Get the QR code (PNG data URL) for authentication (users).
 
 ```bash
 curl -X GET "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/qr" \
@@ -98,7 +98,7 @@ curl -X GET "$BASE/api/sessions/stats/overview" \
 
 #### POST /api/sessions
 
-Create a new session (OPERATOR).
+Create a new session (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions" \
@@ -129,7 +129,7 @@ curl "$BASE/api/sessions/$SESSION_ID/proxy" \
 
 #### PATCH /api/sessions/:sessionId/proxy
 
-Update per-session proxy settings (OPERATOR). No restart — changes apply on the next start. Send `"proxyUrl": null` to clear.
+Update per-session proxy settings (users). No restart — changes apply on the next start. Send `"proxyUrl": null` to clear.
 
 ```bash
 curl -X PATCH "$BASE/api/sessions/$SESSION_ID/proxy" \
@@ -140,7 +140,7 @@ curl -X PATCH "$BASE/api/sessions/$SESSION_ID/proxy" \
 
 #### POST /api/sessions/:sessionId/start
 
-Start a session and initialize the connection (OPERATOR).
+Start a session and initialize the connection (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/start" \
@@ -149,7 +149,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/start" \
 
 #### POST /api/sessions/:sessionId/stop
 
-Stop a session and disconnect (OPERATOR).
+Stop a session and disconnect (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/stop" \
@@ -158,7 +158,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/stop" \
 
 #### POST /api/sessions/:sessionId/logout
 
-Attempt an engine-native unlink of this device, then stop the session (OPERATOR). Requires a running
+Attempt an engine-native unlink of this device, then stop the session (users). Requires a running
 session. A `200` means the unlink operation AND the required local cleanup completed — it is not an
 independent observation that the handset UI no longer shows the linked device, and a later start
 needs a fresh QR scan or pairing code. A `502` carries `code: 'SESSION_LOGOUT_INCOMPLETE'`: the
@@ -173,7 +173,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/logout" \
 
 #### POST /api/sessions/:sessionId/force-kill
 
-Force-kill a stuck session (OPERATOR). Returns `400` when the session is not started (there is no live engine to kill).
+Force-kill a stuck session (users). Returns `400` when the session is not started (there is no live engine to kill).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/force-kill" \
@@ -182,7 +182,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/force-kill
 
 #### POST /api/sessions/:sessionId/pairing-code
 
-Request an 8-char pairing code via phone number (OPERATOR).
+Request an 8-char pairing code via phone number (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/pairing-code" \
@@ -193,7 +193,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/pairing-co
 
 #### POST /api/sessions/:sessionId/presence/subscribe
 
-Subscribe to presence updates (online/typing) for a chat (OPERATOR). Baileys only — whatsapp-web.js
+Subscribe to presence updates (online/typing) for a chat (users). Baileys only — whatsapp-web.js
 answers `501`. The subscription belongs to the connection: re-issue it after a restart or reconnect.
 Updates arrive as the `presence.update` webhook/socket event.
 
@@ -216,7 +216,7 @@ curl "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/presence/123456789
 
 #### PUT /api/sessions/:sessionId/presence
 
-Set the account's OWN global presence — appear online or offline (OPERATOR, both engines). The
+Set the account's OWN global presence — appear online or offline (users, both engines). The
 setting does not survive a restart or reconnect; re-issue it after `session.status` reports one.
 
 ```bash
@@ -228,7 +228,7 @@ curl -X PUT "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/presence" \
 
 #### POST /api/sessions/:sessionId/chats/read
 
-Mark a chat as read/seen (OPERATOR).
+Mark a chat as read/seen (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/read" \
@@ -242,7 +242,7 @@ holds in memory is acknowledged, which on Baileys leaves the earlier messages of
 
 #### POST /api/sessions/:sessionId/chats/unread
 
-Mark a chat as unread (OPERATOR).
+Mark a chat as unread (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/unread" \
@@ -272,7 +272,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/arch
 
 #### POST /api/sessions/:sessionId/chats/mute
 
-Mute a chat until an epoch-**milliseconds** timestamp, or send `"muteUntil":null` to unmute (OPERATOR).
+Mute a chat until an epoch-**milliseconds** timestamp, or send `"muteUntil":null` to unmute (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/mute" \
@@ -282,7 +282,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/mute
 
 #### POST /api/sessions/:sessionId/chats/pin
 
-Pin a chat to the top of the list, or unpin it (OPERATOR). WhatsApp allows at most three pinned chats.
+Pin a chat to the top of the list, or unpin it (users). WhatsApp allows at most three pinned chats.
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/pin" \
@@ -292,7 +292,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/pin"
 
 #### POST /api/sessions/:sessionId/chats/delete
 
-Delete a chat from the chat list (OPERATOR).
+Delete a chat from the chat list (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/delete" \
@@ -303,7 +303,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/dele
 
 #### POST /api/sessions/:sessionId/chats/typing
 
-Send a typing/recording presence indicator (or clear it with `paused`) (OPERATOR).
+Send a typing/recording presence indicator (or clear it with `paused`) (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/typing" \
@@ -314,7 +314,7 @@ curl -X POST "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a/chats/typi
 
 #### DELETE /api/sessions/:sessionId
 
-Delete a session (OPERATOR). Returns `204` with no body.
+Delete a session (users). Returns `204` with no body.
 
 ```bash
 curl -X DELETE "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a" \
@@ -323,7 +323,7 @@ curl -X DELETE "$BASE/api/sessions/8f3c2b1a-9d4e-4c7a-8b2f-1e6d5a4c3b2a" \
 
 ### 07.4 Messages
 
-All routes are under `/api/sessions/:sessionId/messages`. Reads accept any API key; send/write routes need an OPERATOR (or higher) key.
+All routes are under `/api/sessions/:sessionId/messages`. Reads accept any API key; send/write routes need a users (or higher) key.
 
 #### GET /api/sessions/:sessionId/messages
 
@@ -566,7 +566,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/messages/delete" \
 
 #### POST /api/sessions/:sessionId/messages/edit
 
-Edit the text of a message sent by this account (OPERATOR); the edited message keeps its original id.
+Edit the text of a message sent by this account (users); the edited message keeps its original id.
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/messages/edit" \
@@ -669,7 +669,7 @@ curl -X DELETE "$BASE/api/sessions/$SESSION_ID/contacts/628123456789@c.us" \
 
 #### POST /api/sessions/:sessionId/contacts/:contactId/block
 
-Block a contact (requires an OPERATOR key). Send an empty body.
+Block a contact (requires a users key). Send an empty body.
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/contacts/6281234567890@c.us/block" \
@@ -680,7 +680,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/contacts/6281234567890@c.us/block" 
 
 #### DELETE /api/sessions/:sessionId/contacts/:contactId/block
 
-Unblock a contact (requires an OPERATOR key).
+Unblock a contact (requires a users key).
 
 ```bash
 curl -X DELETE "$BASE/api/sessions/$SESSION_ID/contacts/6281234567890@c.us/block" \
@@ -709,7 +709,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us" \
 
 #### GET /api/sessions/:sessionId/groups/:groupId/invite-code
 
-Get the group invite code and full invite link (OPERATOR).
+Get the group invite code and full invite link (users).
 
 ```bash
 curl -X GET "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/invite-code" \
@@ -718,7 +718,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/invit
 
 #### POST /api/sessions/:sessionId/groups
 
-Create a new group with an initial set of participants (OPERATOR).
+Create a new group with an initial set of participants (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups" \
@@ -729,7 +729,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups" \
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants
 
-Add participants to a group (OPERATOR).
+Add participants to a group (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/participants" \
@@ -740,7 +740,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/part
 
 #### DELETE /api/sessions/:sessionId/groups/:groupId/participants
 
-Remove participants from a group (OPERATOR). This DELETE takes a JSON body.
+Remove participants from a group (users). This DELETE takes a JSON body.
 
 ```bash
 curl -X DELETE "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/participants" \
@@ -751,7 +751,7 @@ curl -X DELETE "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/pa
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants/promote
 
-Promote participants to group admin (OPERATOR).
+Promote participants to group admin (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/participants/promote" \
@@ -762,7 +762,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/part
 
 #### POST /api/sessions/:sessionId/groups/:groupId/participants/demote
 
-Demote participants from group admin (OPERATOR).
+Demote participants from group admin (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/participants/demote" \
@@ -773,7 +773,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/part
 
 #### PUT /api/sessions/:sessionId/groups/:groupId/subject
 
-Change the group name/subject (OPERATOR).
+Change the group name/subject (users).
 
 ```bash
 curl -X PUT "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/subject" \
@@ -784,7 +784,7 @@ curl -X PUT "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/subje
 
 #### PUT /api/sessions/:sessionId/groups/:groupId/description
 
-Change the group description; an empty string clears it (OPERATOR).
+Change the group description; an empty string clears it (users).
 
 ```bash
 curl -X PUT "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/description" \
@@ -795,7 +795,7 @@ curl -X PUT "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/descr
 
 #### POST /api/sessions/:sessionId/groups/:groupId/leave
 
-Leave a group (OPERATOR).
+Leave a group (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/leave" \
@@ -804,7 +804,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/leav
 
 #### POST /api/sessions/:sessionId/groups/:groupId/invite-code/revoke
 
-Revoke the current invite code and generate a new one (OPERATOR).
+Revoke the current invite code and generate a new one (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/invite-code/revoke" \
@@ -824,7 +824,7 @@ curl "$BASE/api/sessions/$SESSION_ID/groups/join-info?code=XyZ987654321" \
 
 #### POST /api/sessions/:sessionId/groups/join
 
-Join a group via an invite code — the part after `https://chat.whatsapp.com/` (OPERATOR).
+Join a group via an invite code — the part after `https://chat.whatsapp.com/` (users).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/join" \
@@ -845,7 +845,7 @@ curl "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/membership-r
 
 #### POST /api/sessions/:sessionId/groups/:groupId/membership-requests/approve
 
-Approve pending join requests (OPERATOR) — the named requesters, or EVERY pending request when the
+Approve pending join requests (users) — the named requesters, or EVERY pending request when the
 body names none. The response carries a per-requester `results` list; a partial refusal does not
 fail the batch.
 
@@ -858,7 +858,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/memb
 
 #### POST /api/sessions/:sessionId/groups/:groupId/membership-requests/reject
 
-Reject pending join requests (OPERATOR). Same body, response shape and batch contract as `approve`.
+Reject pending join requests (users). Same body, response shape and batch contract as `approve`.
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/membership-requests/reject" \
@@ -869,7 +869,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/groups/120363021234567890@g.us/memb
 
 ### 07.7 Message Templates
 
-All template routes are nested under a session and require an OPERATOR-level key.
+All template routes are nested under a session and require a users-level key.
 
 #### GET /api/sessions/:sessionId/templates
 
@@ -961,7 +961,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/catalog/products/PROD_12345" \
 
 #### POST /api/sessions/:sessionId/messages/send-product
 
-Send a product card to a chat (OPERATOR key required). On Baileys returns `404` for an unknown product id and `400` when the product has no image; on whatsapp-web.js returns `501`.
+Send a product card to a chat (users key required). On Baileys returns `404` for an unknown product id and `400` when the product has no image; on whatsapp-web.js returns `501`.
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/messages/send-product" \
@@ -999,7 +999,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/channels/120363000000000000@newslett
 
 #### POST /api/sessions/:sessionId/channels/subscribe
 
-Subscribe to a channel by invite code (OPERATOR key required).
+Subscribe to a channel by invite code (users key required).
 
 ```bash
 curl -X POST "$BASE/api/sessions/$SESSION_ID/channels/subscribe" \
@@ -1010,7 +1010,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/channels/subscribe" \
 
 #### DELETE /api/sessions/:sessionId/channels/:channelId
 
-Unsubscribe from a channel (OPERATOR key required).
+Unsubscribe from a channel (users key required).
 
 ```bash
 curl -X DELETE "$BASE/api/sessions/$SESSION_ID/channels/120363000000000000@newsletter" \
@@ -1038,7 +1038,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/labels/chat/6281234567890@c.us" \
 ```
 
 ```bash
-# Add a label to a chat (OPERATOR)
+# Add a label to a chat (users)
 curl -X POST "$BASE/api/sessions/$SESSION_ID/labels/chat/6281234567890@c.us" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
@@ -1046,7 +1046,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/labels/chat/6281234567890@c.us" \
 ```
 
 ```bash
-# Remove a label from a chat (OPERATOR)
+# Remove a label from a chat (users)
 curl -X DELETE "$BASE/api/sessions/$SESSION_ID/labels/chat/6281234567890@c.us/5" \
   -H "X-API-Key: $API_KEY"
 ```
@@ -1064,7 +1064,7 @@ curl -X GET "$BASE/api/sessions/$SESSION_ID/status/6281234567890@c.us" \
 ```
 
 ```bash
-# Post a text status (OPERATOR)
+# Post a text status (users)
 curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-text" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
@@ -1072,7 +1072,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-text" \
 ```
 
 ```bash
-# Post an image status from a URL (OPERATOR)
+# Post an image status from a URL (users)
 curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-image" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
@@ -1080,7 +1080,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-image" \
 ```
 
 ```bash
-# Post a video status from a URL (OPERATOR)
+# Post a video status from a URL (users)
 curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-video" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
@@ -1088,7 +1088,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-video" \
 ```
 
 ```bash
-# Post a voice-note status (OPERATOR). WhatsApp only plays Ogg/Opus — neither engine
+# Post a voice-note status (users). WhatsApp only plays Ogg/Opus — neither engine
 # transcodes, so convert first via media/convert/voice and post the base64 it returns.
 # `recipients` (the viewer allow-list) is honored on Baileys only. There is no `caption`.
 curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-voice" \
@@ -1098,14 +1098,14 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/status/send-voice" \
 ```
 
 ```bash
-# Delete one of the session's own posted statuses (OPERATOR)
+# Delete one of the session's own posted statuses (users)
 curl -X DELETE "$BASE/api/sessions/$SESSION_ID/status/false_status@broadcast_3A1F" \
   -H "X-API-Key: $API_KEY"
 ```
 
 ### 07.10 Webhooks (management)
 
-All routes require an API key with OPERATOR role or higher. `secret` and `headers` are write-only (never returned by these routes; `GET /api/infra/export-data` omits them from webhook rows too). The per-session routes live under `/api/sessions/:sessionId/webhooks`; the cross-session list is `/api/webhooks`.
+All routes require an API key with users role or higher. `secret` and `headers` are write-only (never returned by these routes; `GET /api/infra/export-data` omits them from webhook rows too). The per-session routes live under `/api/sessions/:sessionId/webhooks`; the cross-session list is `/api/webhooks`.
 
 #### GET /api/sessions/:sessionId/webhooks
 
@@ -1136,7 +1136,7 @@ curl -X GET "$BASE/api/webhooks?limit=100&offset=0" \
 
 #### GET /api/webhooks/delivery-failures
 
-List webhook deliveries that exhausted every retry, most recent first (ADMIN; results stay confined
+List webhook deliveries that exhausted every retry, most recent first (orgmenu; results stay confined
 to the key's allowed sessions). `lastStatusCode` is `null` when the failure was a
 network/timeout/SSRF error rather than a non-2xx response.
 
@@ -1203,9 +1203,9 @@ curl -X DELETE "$BASE/api/sessions/$SESSION_ID/webhooks/f1e2d3c4-b5a6-7890-1234-
   -H "X-API-Key: $API_KEY"
 ```
 
-### 07.11 API Keys
+### 07.11 Auth (API Keys, Login & Dashboard Accounts)
 
-All `/api/auth/api-keys` routes require an unscoped **ADMIN** key: one with `allowedSessions` or `allowedChats` set is refused with `403`. `POST /api/auth/validate` accepts any valid key except one restricted with `allowedChats`, which gets `403`. The plaintext key is returned only by the create call.
+All `/api/auth/api-keys` and `/api/auth/users` routes require an unscoped **orgmenu** key: one with `allowedSessions` or `allowedChats` set is refused with `403`. `/api/auth/users` provisions the email/password accounts that sign in through `POST /api/auth/login`. `POST /api/auth/validate` accepts any valid key except one restricted with `allowedChats`, which gets `403`. The plaintext key is returned only by the create call (API keys) or the login call (account sessions).
 
 #### GET /api/auth/api-keys
 
@@ -1235,7 +1235,7 @@ curl -X POST "$BASE/api/auth/api-keys" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Production Bot",
-    "role": "operator",
+    "role": "users",
     "allowedIps": ["192.168.1.1", "10.0.0.0/8"],
     "allowedSessions": ["session-uuid-1"],
     "expiresAt": "2027-12-31T23:59:59Z"
@@ -1252,7 +1252,7 @@ curl -X PUT "$BASE/api/auth/api-keys/3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Renamed Bot",
-    "role": "viewer",
+    "role": "orgmenu",
     "allowedIps": ["203.0.113.5"],
     "expiresAt": "2028-01-01T00:00:00Z"
   }'
@@ -1282,6 +1282,85 @@ Validate the supplied key and report its role (empty body; key read from the hea
 
 ```bash
 curl -X POST "$BASE/api/auth/validate" \
+  -H "X-API-Key: $API_KEY"
+```
+
+#### POST /api/auth/login
+
+Sign in with an email/password dashboard account; the response carries a freshly-issued key whose role mirrors the account's tier (no `X-API-Key` header needed — this is the one place the global model is bypassed).
+
+```bash
+curl -X POST "$BASE/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@localhost",
+    "password": "correct-horse-battery-staple"
+  }'
+```
+
+Response: `{ "apiKey": "owa_k1_...", "role": "orgmenu", "user": { "id": "...", "email": "admin@localhost", "name": "Administrator" } }`. Send the returned `apiKey` in `X-API-Key` on subsequent calls.
+
+#### POST /api/auth/register
+
+Public self-signup — always creates a `users`-role account (no `X-API-Key` header, rate-limited to 5/min like login; no `role` field allowed).
+
+```bash
+curl -X POST "$BASE/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "operator@example.com",
+    "password": "correct-horse-battery-staple",
+    "name": "Ada Example"
+  }'
+```
+
+Response `201`: `{ "id": "...", "email": "operator@example.com", "name": "Ada Example", "role": "users", "isActive": true, "lastLoginAt": null, "createdAt": "..." }`. The account can then sign in via `POST /api/auth/login`.
+
+#### GET /api/auth/users
+
+List the dashboard accounts (orgmenu key required; passwords are never returned).
+
+```bash
+curl -X GET "$BASE/api/auth/users" \
+  -H "X-API-Key: $API_KEY"
+```
+
+#### POST /api/auth/users
+
+Create a dashboard account (orgmenu key required; `role` defaults to `users`). The account can sign in immediately.
+
+```bash
+curl -X POST "$BASE/api/auth/users" \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "amarn@corp.com",
+    "password": "correct-horse-battery-staple",
+    "name": "Amar N",
+    "role": "users"
+  }'
+```
+
+#### PATCH /api/auth/users/:id
+
+Rename, promote/demote, disable/enable, or reset the password of an account (orgmenu key required). A password change or disable rotates/revokes the account's session keys; the last active `orgmenu` account cannot be demoted or disabled (`409`).
+
+```bash
+curl -X PATCH "$BASE/api/auth/users/3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33" \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "role": "orgmenu",
+    "isActive": false
+  }'
+```
+
+#### DELETE /api/auth/users/:id
+
+Permanently delete an account and revoke its keys (returns `204`, no body). The last active `orgmenu` account, and the account you are signed in with, are refused with `409`.
+
+```bash
+curl -X DELETE "$BASE/api/auth/users/3f2a1c9e-1b2d-4a5f-9c8e-aa11bb22cc33" \
   -H "X-API-Key: $API_KEY"
 ```
 
@@ -1325,7 +1404,7 @@ curl "$BASE/api/metrics" \
 
 #### GET /api/stats/overview
 
-Cross-session aggregate stats. ADMIN key required.
+Cross-session aggregate stats. orgmenu key required.
 
 ```bash
 curl "$BASE/api/stats/overview" \
@@ -1334,7 +1413,7 @@ curl "$BASE/api/stats/overview" \
 
 #### GET /api/stats/messages
 
-Message stats over a period (`24h` | `7d` | `30d`, default `24h`). ADMIN key required.
+Message stats over a period (`24h` | `7d` | `30d`, default `24h`). orgmenu key required.
 
 ```bash
 curl "$BASE/api/stats/messages?period=7d" \
@@ -1352,7 +1431,7 @@ curl "$BASE/api/stats/sessions/9f1c2d3e-…" \
 
 #### GET /api/settings
 
-Read runtime settings (env-derived). ADMIN key required (`403` otherwise).
+Read runtime settings (env-derived). orgmenu key required (`403` otherwise).
 
 ```bash
 curl "$BASE/api/settings" \
@@ -1361,7 +1440,7 @@ curl "$BASE/api/settings" \
 
 #### GET /api/audit
 
-List audit-log entries, newest first (ADMIN; rows stay confined to the key's allowed sessions).
+List audit-log entries, newest first (orgmenu; rows stay confined to the key's allowed sessions).
 Unlike the other list routes the body is `{ "data", "total" }` — the page plus the unpaginated
 match count. Filters: `action`, `severity` (`info` | `warn` | `error`), `sessionId`, `apiKeyId`,
 plus `limit` (default 50, max 200) and `offset`.
@@ -1373,7 +1452,7 @@ curl -X GET "$BASE/api/audit?action=session_started&limit=50" \
 
 ### 07.13 Administration (Infrastructure, MCP)
 
-ADMIN-only operations (except the public health check and the MCP transport). Assumes `BASE`, `API_KEY`, and — for MCP — that `MCP_ENABLED=true`.
+orgmenu-only operations (except the public health check and the MCP transport). Assumes `BASE`, `API_KEY`, and — for MCP — that `MCP_ENABLED=true`.
 
 #### GET /api/infra/health
 
@@ -1536,7 +1615,7 @@ curl -X POST "$BASE/mcp" \
 ### 07.14 Profile (own account)
 
 Manage the linked account's own profile. All routes are nested under a session and require an
-OPERATOR key.
+users key.
 
 #### PUT /api/sessions/:sessionId/profile/name
 
@@ -1584,7 +1663,7 @@ curl -X DELETE "$BASE/api/sessions/$SESSION_ID/profile/picture" \
 
 ### 07.15 Search
 
-Cross-session full-text message search (OPERATOR or higher). On by default; `SEARCH_ENABLED=false`
+Cross-session full-text message search (users or higher). On by default; `SEARCH_ENABLED=false`
 removes the route and module entirely. A scoped key's `allowedSessions` is applied server-side and
 cannot be widened via the query. See doc 26 for the provider contract.
 
@@ -1619,7 +1698,7 @@ curl "$BASE/api/sessions/$SESSION_ID/media/convert" \
 #### POST /api/sessions/:sessionId/media/convert/voice
 
 Convert audio (or a video's audio track) into a WhatsApp voice note — Ogg/Opus, mono, 48 kHz
-(OPERATOR). Exactly one of `url` / `base64`. Post the returned `base64` to `messages/send-audio`
+(users). Exactly one of `url` / `base64`. Post the returned `base64` to `messages/send-audio`
 with `ptt: true` (or to `status/send-voice`).
 
 ```bash
@@ -1631,7 +1710,7 @@ curl -X POST "$BASE/api/sessions/$SESSION_ID/media/convert/voice" \
 
 #### POST /api/sessions/:sessionId/media/convert/video
 
-Convert video into a baseline H.264/AAC MP4 every WhatsApp client accepts (OPERATOR); same request
+Convert video into a baseline H.264/AAC MP4 every WhatsApp client accepts (users); same request
 body and errors as the voice endpoint. Both responses are bounded by
 `MEDIA_CONVERSION_MAX_OUTPUT_BYTES` (default 50 MiB).
 

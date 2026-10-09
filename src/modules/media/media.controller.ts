@@ -42,7 +42,7 @@ export class MediaController {
   // 200, not 201: this creates no resource, it answers with a representation of what was sent.
   @Post('convert/voice')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Convert audio into a WhatsApp voice note (Ogg/Opus)' })
   @ApiResponse({
     status: 200,
@@ -70,7 +70,7 @@ export class MediaController {
 
   @Post('convert/video')
   @HttpCode(HttpStatus.OK)
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Convert video into a WhatsApp-compatible MP4' })
   @ApiResponse({
     status: 200,

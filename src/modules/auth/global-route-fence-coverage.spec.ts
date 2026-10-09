@@ -92,7 +92,7 @@ describe('deployment-global routes are fenced against session-restricted keys', 
     const vulnerable = `
 export class ThingController {
   @Get('everything')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   findAll(): string[] {
     return [];
   }
@@ -105,7 +105,7 @@ export class ThingController {
     const vulnerable = `
 export class ThingController {
   @All('everything')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   handleAll(): string[] {
     return [];
   }
@@ -118,7 +118,7 @@ export class ThingController {
     const vulnerable = `
 export class ThingController {
     @Get('everything')
-    @RequireRole(ApiKeyRole.ADMIN)
+    @RequireRole(ApiKeyRole.ORG_MENU)
     findAll(): string[] {
         return [];
     }
@@ -131,7 +131,7 @@ export class ThingController {
     const fixed = `
 export class ThingController {
   @Get('everything')
-  @RequireRole(ApiKeyRole.ADMIN)
+  @RequireRole(ApiKeyRole.ORG_MENU)
   @RequireUnscopedKey()
   findAll(): string[] {
     return [];

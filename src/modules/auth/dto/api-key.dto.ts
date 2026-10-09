@@ -28,7 +28,7 @@ export class CreateApiKeyDto {
   @ApiPropertyOptional({
     description: 'Role/permission level',
     enum: ApiKeyRole,
-    default: ApiKeyRole.OPERATOR,
+    default: ApiKeyRole.USER,
   })
   @IsOptional()
   @IsEnum(ApiKeyRole)

@@ -82,7 +82,7 @@ export class LabelController {
   }
 
   @Put(':labelId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Create or update a label',
@@ -118,7 +118,7 @@ export class LabelController {
   }
 
   @Delete(':labelId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete a label',
@@ -166,7 +166,7 @@ export class LabelController {
 
   @ChatScoped('fenced')
   @Post('chat/:chatId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Add a label to a chat' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -207,7 +207,7 @@ export class LabelController {
 
   @ChatScoped('fenced')
   @Delete('chat/:chatId/:labelId')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Remove a label from a chat' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })

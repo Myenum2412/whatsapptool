@@ -45,7 +45,7 @@ describe('BullBoardAuthMiddleware', () => {
   });
 
   it('forbids a valid non-admin key', async () => {
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.OPERATOR });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.USER });
     authService.hasPermission.mockReturnValue(false);
     const next = jest.fn();
     await mw.use(reqWith({ 'x-api-key': 'op' }), res, next);
@@ -53,7 +53,7 @@ describe('BullBoardAuthMiddleware', () => {
   });
 
   it('allows a valid ADMIN key via X-API-Key', async () => {
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
     const next = jest.fn();
     await mw.use(reqWith({ 'x-api-key': 'admin' }), res, next);
@@ -65,7 +65,7 @@ describe('BullBoardAuthMiddleware', () => {
     authService.validateApiKey.mockResolvedValue({
       id: 'key-1',
       name: 'scoped-admin',
-      role: ApiKeyRole.ADMIN,
+      role: ApiKeyRole.ORG_MENU,
       allowedSessions: ['session-a'],
     });
     authService.hasPermission.mockReturnValue(true);
@@ -85,7 +85,7 @@ describe('BullBoardAuthMiddleware', () => {
     authService.validateApiKey.mockResolvedValue({
       id: 'key-chat',
       name: 'chat-scoped-admin',
-      role: ApiKeyRole.ADMIN,
+      role: ApiKeyRole.ORG_MENU,
       allowedSessions: null,
       allowedChats: ['123@g.us'],
     });
@@ -106,7 +106,7 @@ describe('BullBoardAuthMiddleware', () => {
     authService.validateApiKey.mockResolvedValue({
       id: 'key-2',
       name: 'unscoped-admin',
-      role: ApiKeyRole.ADMIN,
+      role: ApiKeyRole.ORG_MENU,
       allowedSessions: [],
     });
     authService.hasPermission.mockReturnValue(true);
@@ -121,7 +121,7 @@ describe('BullBoardAuthMiddleware', () => {
     authService.validateApiKey.mockResolvedValue({
       id: 'key-3',
       name: 'null-scope-admin',
-      role: ApiKeyRole.ADMIN,
+      role: ApiKeyRole.ORG_MENU,
       allowedSessions: null,
     });
     authService.hasPermission.mockReturnValue(true);
@@ -133,7 +133,7 @@ describe('BullBoardAuthMiddleware', () => {
   });
 
   it('accepts a Bearer token', async () => {
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
 
     await mw.use(reqWith({ authorization: 'Bearer abc' }), res, jest.fn());
@@ -142,7 +142,7 @@ describe('BullBoardAuthMiddleware', () => {
 
   it('honors X-Forwarded-For only behind a configured trusted proxy (allowedIps parity with the guard)', async () => {
     configService.get.mockReturnValue(['127.0.0.1']); // the socket peer is a trusted proxy
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
 
     await mw.use(reqWith({ 'x-api-key': 'admin', 'x-forwarded-for': '203.0.113.5' }), res, jest.fn());
@@ -152,7 +152,7 @@ describe('BullBoardAuthMiddleware', () => {
 
   it('ignores a spoofed X-Forwarded-For when no trusted proxy is configured (uses the socket address)', async () => {
     configService.get.mockReturnValue([]); // no trusted proxies — XFF is attacker-controlled
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
 
     await mw.use(reqWith({ 'x-api-key': 'admin', 'x-forwarded-for': '203.0.113.5' }), res, jest.fn());
@@ -182,7 +182,7 @@ describe('BullBoardAuthMiddleware pre-auth IP throttle (mirrors MCP createIpThro
   });
 
   const adminMw = (ipLimit: number): BullBoardAuthMiddleware => {
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
     return new BullBoardAuthMiddleware(
       authService as unknown as AuthService,
@@ -274,7 +274,7 @@ describe('BullBoardAuthMiddleware pre-auth IP throttle (mirrors MCP createIpThro
       authService as unknown as AuthService,
       configService as unknown as ConfigService,
     );
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ADMIN });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.ORG_MENU });
     authService.hasPermission.mockReturnValue(true);
     const next = jest.fn();
     await defaultMw.use(reqFromIp('203.0.113.9', { 'x-api-key': 'admin' }), res, next);
@@ -292,7 +292,7 @@ describe('BullBoardAuthMiddleware audit trail', () => {
   let auditService: { logWarn: jest.Mock; logInfo: jest.Mock };
   const res = {} as Response;
 
-  const adminKey = { id: 'key-1', name: 'Admin', role: ApiKeyRole.ADMIN };
+  const adminKey = { id: 'key-1', name: 'Admin', role: ApiKeyRole.ORG_MENU };
 
   const reqFor = (
     method: string,
@@ -349,7 +349,7 @@ describe('BullBoardAuthMiddleware audit trail', () => {
   });
 
   it('audits a 403 (valid non-admin key)', async () => {
-    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.OPERATOR });
+    authService.validateApiKey.mockResolvedValue({ role: ApiKeyRole.USER });
     authService.hasPermission.mockReturnValue(false);
     const next = jest.fn();
     await mw.use(reqFor('GET', { 'x-api-key': 'op' }, '/api/admin/queues/'), res, next);

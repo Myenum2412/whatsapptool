@@ -23,7 +23,7 @@ function installFetchStub(): void {
             id: 'key-1',
             name: 'billing-bot',
             keyPrefix: 'owa_k1ab',
-            role: 'operator',
+            role: 'users',
             isActive: true,
             usageCount: 0,
             createdAt: '2026-01-01T00:00:00.000Z',

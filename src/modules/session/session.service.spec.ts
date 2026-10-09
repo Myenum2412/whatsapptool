@@ -87,6 +87,7 @@ function createMockSession(overrides: Partial<Session> = {}): Session {
     leaseExpiresAt: null,
     nodeUrl: null,
     organizationId: null,
+    ownerUserId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

@@ -216,7 +216,7 @@ instant rather than assuming a 24-hour day.
 
 ## 33.4 Configuring a window
 
-`GET`/`PATCH /api/organizations/settings`, ADMIN-only and unscoped, documented in `docs/06`. Three
+`GET`/`PATCH /api/organizations/settings`, orgmenu-only and unscoped, documented in `docs/06`. Three
 decisions carry the design:
 
 **PATCH merges; it does not replace.** `Organization.settings` is a JSON blob shared with features
@@ -265,7 +265,7 @@ Honest inventory, so the next person does not assume the roadmap item is closed:
   their audit trail and their suppression state describe different people.
 - **`currentState` orders by `decidedAt` alone.** Two records written in the same millisecond — a
   bulk import backfilled with a shared timestamp — have no defined winner.
-- **Organization settings are `ADMIN`-only and not tenant-scoped.** An ADMIN key can read and write any
+- **Organization settings are `orgmenu`-only and not tenant-scoped.** An orgmenu key can read and write any
   organization's settings, because an API key carries no organization — there is no user login and no
   per-tenant principal yet, so there is nothing to narrow by. This route must be tightened when that
   lands; the same reason it is excluded from the SDKs (`sdk/README.md`).

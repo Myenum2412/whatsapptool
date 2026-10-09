@@ -6,6 +6,7 @@ import {
   planApi,
   campaignApi,
   apiKeyApi,
+  authUsersApi,
   auditApi,
   infraApi,
   statsApi,
@@ -16,6 +17,8 @@ import {
   type CampaignRecipientFilter,
   type CreateCampaignPayload,
   type StatsPeriod,
+  type CreateAuthUserInput,
+  type UpdateAuthUserInput,
 } from '../services/api';
 
 // ── Query Keys ────────────────────────────────────────────────────────
@@ -34,6 +37,7 @@ export const queryKeys = {
   campaignRecipients: (sessionId: string, id: string, filter: string, page: number) =>
     ['sessions', sessionId, 'campaigns', id, 'recipients', filter, page] as const,
   apiKeys: ['apiKeys'] as const,
+  authUsers: ['authUsers'] as const,
   logs: (params: { severity?: string; page: number; limit: number }) => ['logs', params] as const,
   infraStatus: ['infra', 'status'] as const,
   engines: ['engines'] as const,
@@ -296,6 +300,46 @@ export function useRevokeApiKeyMutation() {
     mutationFn: (id: string) => apiKeyApi.revoke(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys });
+    },
+  });
+}
+
+// ── Login-account (user) queries ──────────────────────────────────────
+
+export function useAuthUsersQuery() {
+  return useQuery({
+    queryKey: queryKeys.authUsers,
+    queryFn: authUsersApi.list,
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateAuthUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateAuthUserInput) => authUsersApi.create(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.authUsers });
+    },
+  });
+}
+
+export function useUpdateAuthUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateAuthUserInput }) => authUsersApi.update(id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.authUsers });
+    },
+  });
+}
+
+export function useDeleteAuthUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => authUsersApi.delete(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.authUsers });
     },
   });
 }

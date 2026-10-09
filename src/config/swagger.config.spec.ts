@@ -103,6 +103,8 @@ describe('PUBLIC_PATHS drift guard', () => {
     'src/modules/infra/infra-status.controller.ts',
     'src/modules/integration/ingress.controller.ts',
     'src/modules/metrics/metrics.controller.ts',
+    'src/modules/auth/auth-login.controller.ts',
+    'src/modules/auth/auth-register.controller.ts',
   ];
 
   function listTsFiles(dir: string, out: string[] = []): string[] {
@@ -141,6 +143,8 @@ describe('PUBLIC_PATHS drift guard', () => {
         '/api/health/ready',
         '/api/infra/health',
         '/api/ingress/{pluginId}/{instanceId}/{path}',
+        '/api/auth/login',
+        '/api/auth/register',
       ].sort(),
     );
   });

@@ -12,7 +12,7 @@ export function automationTools(automation: AutomationRulesService): AnyToolDesc
       name: 'AutomationRuleFindAll',
       description: 'List a session’s autoreply rules in evaluation order (creation time, id as tiebreak).',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({ sessionId }),
       handler: input =>
@@ -24,7 +24,7 @@ export function automationTools(automation: AutomationRulesService): AnyToolDesc
       name: 'AutomationRuleFindOne',
       description: 'Get one autoreply rule by ID within a session.',
       tier: 'read',
-      requiredRole: ApiKeyRole.OPERATOR,
+      requiredRole: ApiKeyRole.USER,
       sessionScoped: true,
       inputSchema: z.object({
         sessionId,

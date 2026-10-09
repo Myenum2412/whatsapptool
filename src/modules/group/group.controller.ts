@@ -107,7 +107,7 @@ export class GroupController {
   }
 
   @Post('join')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Join a group via invite code' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -142,7 +142,7 @@ export class GroupController {
   }
 
   @Put(':groupId/settings')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Update group settings (announce / locked / ephemeral timer)' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -169,7 +169,7 @@ export class GroupController {
   }
 
   @Post()
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Create a new group' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiBody({ type: CreateGroupDto })
@@ -187,7 +187,7 @@ export class GroupController {
   }
 
   @Post(':groupId/participants')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Add participants to a group' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -214,7 +214,7 @@ export class GroupController {
   }
 
   @Delete(':groupId/participants')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Remove participants from a group' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -240,7 +240,7 @@ export class GroupController {
   }
 
   @Post(':groupId/participants/promote')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Promote participants to admin' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -267,7 +267,7 @@ export class GroupController {
   }
 
   @Post(':groupId/participants/demote')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Demote participants from admin' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -313,7 +313,7 @@ export class GroupController {
   }
 
   @Post(':groupId/membership-requests/approve')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Approve pending join requests',
@@ -346,7 +346,7 @@ export class GroupController {
   }
 
   @Post(':groupId/membership-requests/reject')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Reject pending join requests',
@@ -380,7 +380,7 @@ export class GroupController {
 
   @ChatScoped('fenced')
   @Put(':groupId/subject')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Change group name/subject' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -406,7 +406,7 @@ export class GroupController {
 
   @ChatScoped('fenced')
   @Put(':groupId/description')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Change group description' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -432,7 +432,7 @@ export class GroupController {
 
   @ChatScoped('fenced')
   @Post(':groupId/leave')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Leave a group' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -475,7 +475,7 @@ export class GroupController {
 
   @ChatScoped('fenced')
   @Put(':groupId/picture')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set the group's picture" })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -509,7 +509,7 @@ export class GroupController {
 
   @ChatScoped('fenced')
   @Delete(':groupId/picture')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Remove the group's picture" })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
@@ -533,7 +533,7 @@ export class GroupController {
   // The invite code is a bearer join capability, not read data: it works outside MyWhatsapp and keeps
   // working after the key that fetched it is revoked. OPERATOR, like the QR endpoint.
   @Get(':groupId/invite-code')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @ApiOperation({ summary: 'Get group invite code/link' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })
   @ApiParam({ name: 'groupId', description: 'Group ID' })
@@ -551,7 +551,7 @@ export class GroupController {
   }
 
   @Post(':groupId/invite-code/revoke')
-  @RequireRole(ApiKeyRole.OPERATOR)
+  @RequireRole(ApiKeyRole.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Revoke group invite code and generate new one' })
   @ApiParam({ name: 'sessionId', description: 'Session ID' })

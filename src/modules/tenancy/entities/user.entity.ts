@@ -1,16 +1,27 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 /**
- * A named human operator. MAIN connection (always SQLite — see common/utils/column-types.ts).
+ * Sign-in roles. Same two values as ApiKeyRole — login mirrors `User.role` onto the user's key.
+ * `orgmenu` is the full-power tier (seeded bootstrap admin, user provisioning); `users` is every
+ * other signed-in account.
+ */
+export enum UserRole {
+  ORG_MENU = 'orgmenu',
+  USER = 'users',
+}
+
+/**
+ * Dashboard sign-in identity. MAIN connection (always SQLite — see common/utils/column-types.ts).
  *
- * Deliberately NOT an authentication credential source yet: there is no login route in this
- * increment, so nothing here can be used to authenticate. `passwordHash` exists so the column does
- * not have to be added later under a migration while rows exist, and it is nullable because the
- * supported auth model for now remains an API key (see ApiKeyRole).
+ * `passwordHash` holds a self-describing scrypt hash (see modules/auth/password-hash.ts) produced
+ * by POST /api/auth/login's seeding and login flow; it is nullable so API-only deployments never
+ * need a credential row. `role` is the authorization source of truth for a human sign-in: login
+ * mirrors it onto the user's own API-key row (`user:<email>`), which is what the existing
+ * X-API-Key guard then enforces.
  *
- * Email uniqueness is enforced by the DB (not normalized), so `A@b.com` and `a@b.com` are two rows.
- * Sign-in is out of scope for this increment; whoever builds it must normalize first, and this
- * comment is the warning that the index alone does not do it.
+ * Email uniqueness is enforced by the DB (NOT normalized): `A@b.com` and `a@b.com` are two rows.
+ * Sign-in therefore normalizes (trim + lowercase) BEFORE the lookup, so an account can only be
+ * reached through its normalized form — the index alone does not do it.
  */
 @Entity('users')
 export class User {
@@ -26,6 +37,10 @@ export class User {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   passwordHash!: string | null;
+
+  /** Pre-existing rows (created before sign-in existed) default to least privilege. */
+  @Column({ type: 'varchar', length: 20, default: UserRole.USER })
+  role!: UserRole;
 
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;

@@ -136,7 +136,7 @@ GET /api/search?q=<term>&sessionId=<id>&chatId=<id>&direction=<incoming|outgoing
   never as a `NaN` SQL parameter.
 - **Auth scoping is authoritative.** The caller's API-key `allowedSessions` is injected by
   `SearchService` — **never** accepted from the query — so a scoped key cannot broaden its reach. An
-  ADMIN / null-allowlist key searches all sessions; a scoped key sees only its allowlist even if it
+  orgmenu / null-allowlist key searches all sessions; a scoped key sees only its allowlist even if it
   passes `sessionId`. The DTO carries no `sessionIds` field (it would be rejected as non-whitelisted).
 - **Response** is a `SearchResults` object: `{ hits: SearchHit[], total, tookMs, provider }`. Each hit
   carries `messageId`, `waMessageId`, `sessionId`, `chatId`, `body`, `snippet`, `timestamp`, `type`,
@@ -149,7 +149,7 @@ GET /api/search?q=<term>&sessionId=<id>&chatId=<id>&direction=<incoming|outgoing
   SQLite build) · `502` a plugin provider returned a malformed `SearchResults` payload · `503` a plugin
   provider whose worker timed out or failed (the built-in provider does not return it).
 
-The endpoint requires at least `OPERATOR` role.
+The endpoint requires at least `users` role.
 
 ## 26.7 When to use a plugin backend
 
