@@ -139,13 +139,6 @@ export function Login({ onLogin, initialEmail, onSwitch, notice }: LoginProps) {
           </button>
         </form>
 
-        <p className="login-help">
-          {t('login.help')}{' '}
-          <a href="https://docs.open-wa.org" target="_blank" rel="noopener noreferrer">
-            {t('login.viewDocs')}
-          </a>
-        </p>
-
         {onSwitch && (
           <p className="login-help">
             {t('login.signupPrompt')}{' '}
