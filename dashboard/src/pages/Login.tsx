@@ -1,8 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, Languages } from 'lucide-react';
-import { CustomSelect } from '../components/CustomSelect';
-import { languageOptions, resolveSupportedLanguage, type SupportedLanguage } from '../i18n';
+import { Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL } from '../services/api';
 import './Login.css';
 
@@ -28,11 +26,12 @@ export function Login({ onLogin, initialEmail, onSwitch, notice }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const currentLang = resolveSupportedLanguage(i18n.resolvedLanguage || i18n.language);
 
-  const changeLanguage = (language: SupportedLanguage) => {
-    void i18n.changeLanguage(language);
-  };
+  // The login screen is English-only (no language picker): pin the locale so a stored or
+  // browser-detected preference cannot render this screen in another language.
+  useEffect(() => {
+    void i18n.changeLanguage('en');
+  }, [i18n]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,16 +91,6 @@ export function Login({ onLogin, initialEmail, onSwitch, notice }: LoginProps) {
               date: new Date(__BUILD_TIME__).toISOString().slice(0, 10).replace(/-/g, ''),
             })}
           </span>
-        </div>
-
-        <div className="login-language">
-          <Languages size={18} />
-          <CustomSelect
-            value={currentLang}
-            onChange={value => changeLanguage(value as SupportedLanguage)}
-            options={languageOptions.map(opt => ({ value: opt.value, label: opt.label }))}
-            ariaLabel={t('common.language')}
-          />
         </div>
 
         <form onSubmit={handleSubmit} className="login-form" noValidate>
